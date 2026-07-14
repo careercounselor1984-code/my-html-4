@@ -32,6 +32,15 @@ button{outline:none}
 .searchIcon{color:#7d8aa1;font-size:18px;line-height:1}.searchWrap input{border:0;outline:none;background:transparent;color:var(--text);min-width:0;flex:1;font-size:13px}.searchWrap input::placeholder{color:#98a5b8}
 kbd{font-size:10px;color:#7c899f;background:#fff;border:1px solid var(--line);border-bottom-width:2px;border-radius:6px;padding:2px 5px;white-space:nowrap}
 .sidebarBody{display:flex;flex-direction:column;min-height:0;flex:1}
+.fixedGptWrap{padding:12px 12px 2px;flex:0 0 auto}
+.fixedGptCard{display:grid;grid-template-columns:38px minmax(0,1fr) 28px;align-items:center;gap:9px;width:100%;min-height:82px;padding:11px 10px;border:1px solid #bcd0f5;border-radius:14px;background:linear-gradient(145deg,#eef5ff 0%,#ffffff 58%,#f0fdf8 100%);color:#17335f;text-decoration:none;box-shadow:0 7px 18px rgba(37,99,235,.09);transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease;position:relative;overflow:hidden}
+.fixedGptCard::after{content:'';position:absolute;right:-20px;top:-26px;width:72px;height:72px;border-radius:50%;background:rgba(37,99,235,.07);pointer-events:none}
+.fixedGptCard:hover{transform:translateY(-1px);border-color:#78a4ec;box-shadow:0 10px 22px rgba(37,99,235,.14)}
+.fixedGptIcon{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;background:linear-gradient(145deg,#2563eb,#1d4ed8);color:#fff;font-size:15px;font-weight:950;box-shadow:0 6px 14px rgba(37,99,235,.25);z-index:1}
+.fixedGptText{min-width:0;z-index:1}.fixedGptTop{display:flex;align-items:center;gap:6px;margin-bottom:3px}.fixedGptBadge{display:inline-flex;align-items:center;border:1px solid #86efac;background:#ecfdf5;color:#087a4b;border-radius:999px;padding:2px 6px;font-size:9px;font-weight:950;white-space:nowrap}.fixedGptTitle{display:block;font-size:12px;font-weight:950;color:#17335f;line-height:1.35;white-space:normal}.fixedGptDesc{display:block;margin-top:3px;font-size:10px;font-weight:700;color:#70819a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.fixedGptArrow{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;border:1px solid #cbdaf3;background:#fff;color:#2563eb;font-size:16px;font-weight:900;z-index:1}
+.app.sidebar-collapsed .fixedGptWrap{padding:10px 17px 4px}.app.sidebar-collapsed .fixedGptCard{display:grid;grid-template-columns:38px;width:42px;min-height:42px;padding:2px;border-radius:12px}.app.sidebar-collapsed .fixedGptText,.app.sidebar-collapsed .fixedGptArrow{display:none}.app.sidebar-collapsed .fixedGptIcon{width:36px;height:36px;border-radius:10px}
+@media(max-width:760px){.fixedGptWrap{padding:10px 12px 2px}.app.sidebar-collapsed .fixedGptWrap{padding:10px 12px 2px}.app.sidebar-collapsed .fixedGptCard{display:grid;grid-template-columns:38px minmax(0,1fr) 28px;width:100%;min-height:82px;padding:11px 10px}.app.sidebar-collapsed .fixedGptText,.app.sidebar-collapsed .fixedGptArrow{display:block}.app.sidebar-collapsed .fixedGptArrow{display:grid}}
+
 .recentSection{padding:14px 12px 8px}.sectionHead,.menuHeader{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 4px 8px}.sectionHead strong,.menuHeader strong{font-size:12px;color:#56647b;letter-spacing:.1px}.textBtn{border:0;background:transparent;color:#76859b;font-size:11px;font-weight:800;cursor:pointer;padding:3px}.textBtn:hover{color:var(--primary)}
 .recentMenu{display:flex;flex-wrap:wrap;gap:6px;min-height:28px}.recentChip{max-width:100%;border:1px solid var(--line);background:#fff;color:#4c5c75;border-radius:999px;padding:6px 9px;font-size:11px;font-weight:800;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:.15s}.recentChip:hover{border-color:#a9c1ea;color:var(--primary);background:var(--primary-soft)}.recentEmpty{font-size:11px;color:#98a5b8;padding:4px}
 .favoriteSection .sectionHead strong::before{content:'★';color:#f2b233;margin-right:5px;font-size:12px}.favoriteMenu{align-items:center}.favoriteChipWrap{display:flex;align-items:center;max-width:100%;border:1px solid #d8e2f0;background:#fff;border-radius:999px;overflow:hidden;transition:.15s;box-shadow:0 1px 2px rgba(30,64,175,.03)}.favoriteChipWrap:hover{border-color:#9fb9e7;background:var(--primary-soft)}.favoriteOpen{min-width:0;max-width:210px;border:0;background:transparent;color:#42536e;padding:6px 5px 6px 9px;font-size:11px;font-weight:850;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:left}.favoriteOpen:hover{color:var(--primary)}.favoriteRemove{width:24px;height:27px;border:0;background:transparent;color:#9aa7b9;font-size:14px;line-height:1;cursor:pointer;padding:0 6px 1px 2px}.favoriteRemove:hover{color:#dc2626;background:#fff1f2}.favoriteEmpty{font-size:11px;color:#98a5b8;padding:4px;line-height:1.45}.menuItemRow{display:flex;align-items:center;gap:3px;margin:2px 0}.menuItemRow .btn.page-btn{flex:1;width:auto;min-width:0;margin:0}.favoriteToggle{width:30px;height:34px;flex:0 0 30px;border:1px solid transparent;border-radius:9px;background:transparent;color:#a2aec0;font-size:18px;line-height:1;cursor:pointer;display:grid;place-items:center;transition:.15s}.favoriteToggle:hover{background:#fff8dc;color:#e4a900;border-color:#f5df91}.favoriteToggle.is-favorite{color:#e4a900;background:#fff8dc;border-color:#f3df9d}.favoriteToggle.is-favorite:hover{color:#d38d00;background:#fff3bd}.app.sidebar-collapsed .favoriteToggle{display:none}.app.sidebar-collapsed .menuItemRow{display:block}
@@ -102,6 +111,17 @@ body.clg-fixed-scroll .viewer iframe{height:100%!important}
       </div>
     </div>
     <div class="sidebarBody">
+      <div class="fixedGptWrap">
+        <a class="fixedGptCard" href="https://chatgpt.com/g/g-6a55dedf9ba48191aa01e9eb86faac1e-joheuniljari-gugcwi-eobmu-siljeog-doumi" target="_blank" rel="noopener noreferrer" title="국취 매뉴얼 & 실적 관련 도우미 열기">
+          <span class="fixedGptIcon">국</span>
+          <span class="fixedGptText">
+            <span class="fixedGptTop"><span class="fixedGptBadge">항상 고정</span></span>
+            <span class="fixedGptTitle">국취 매뉴얼 &amp; 실적 관련 도우미</span>
+            <span class="fixedGptDesc">업무 기준·처리 방법·실적 확인</span>
+          </span>
+          <span class="fixedGptArrow" aria-hidden="true">↗</span>
+        </a>
+      </div>
       <section class="recentSection favoriteSection">
         <div class="sectionHead"><strong>즐겨찾기</strong><button class="textBtn" id="clearFavoritesBtn" type="button">전체 해제</button></div>
         <div class="recentMenu favoriteMenu" id="favoriteMenu"></div>
@@ -718,7 +738,7 @@ document.getElementById('importMenuBtn')?.addEventListener('click', ()=>{
 document.getElementById('menuSearch')?.addEventListener('input', ()=>renderMenu());
 
 
-// ===== 리디자인 v2: 화면 셸 및 사용성 강화 =====
+// ===== 리디자인 v9: 고정 업무 도우미 및 화면 셸 강화 =====
 const CLG_FAVORITES_KEY = 'clg_favorite_pages_v8';
 const CLG_SIDEBAR_KEY = 'clg_sidebar_collapsed_v2';
 
