@@ -142,6 +142,9 @@ body.clg-fixed-scroll .viewer iframe{height:100%!important}
         <p class="pageSubtitle" id="pageSubtitle">좌측 메뉴를 선택하면 해당 상담 화면이 열립니다.</p>
       </div>
       <div class="topActions">
+        <button class="topBtn primary" id="globalBackupBtn" type="button" title="전화번호부·메모·카톡 문구·상담일지·메뉴 설정을 하나의 파일로 저장">⇩ <span class="label">전체 백업</span></button>
+        <button class="topBtn" id="globalRestoreBtn" type="button" title="통합본 전체 백업 파일을 불러와 모든 저장내용 복원">⇧ <span class="label">전체 복원</span></button>
+        <input id="globalRestoreFile" type="file" accept="application/json,.json" hidden />
         <button class="topBtn" id="reloadPageBtn" type="button" title="현재 화면 다시 열기">↻ <span class="label">새로고침</span></button>
         <button class="topBtn" id="helpBtn" type="button" title="빠른 사용 안내">? <span class="label">사용 안내</span></button>
         <button class="topBtn" id="fullscreenBtn" type="button" title="전체화면">⛶ <span class="label">전체화면</span></button>
@@ -159,7 +162,7 @@ body.clg-fixed-scroll .viewer iframe{height:100%!important}
         </div>
       </div>
     </section>
-    <footer class="appFooter"><span>상담일지 통합본 · 카톡 문의정보 및 신청 전 구직신청 안내 반영 · 데이터는 현재 브라우저 또는 PC 백업 파일에 저장됩니다.</span><span class="shortcutHint">Ctrl+K 메뉴 검색 · Esc 검색 초기화</span></footer>
+    <footer class="appFooter"><span>상담일지 통합본 · 상단 전체 백업으로 전화번호부·메모·카톡 문구·상담일지·설정을 한 파일에 보관할 수 있습니다.</span><span class="shortcutHint">Ctrl+K 메뉴 검색 · Esc 검색 초기화</span></footer>
   </main>
 </div>
 
@@ -189,8 +192,9 @@ body.clg-fixed-scroll .viewer iframe{height:100%!important}
       <div class="helpCard"><div class="helpNum">4</div><strong>결과 확인</strong><p>문장 누락과 4,000byte 상태를 확인하고 필요한 부분을 수정합니다.</p></div>
       <div class="helpCard"><div class="helpNum">5</div><strong>복사·저장</strong><p>전산에 복사하거나 내담자별 저장, PC 백업 기능으로 보관합니다.</p></div>
       <div class="helpCard"><div class="helpNum">6</div><strong>다시 불러오기</strong><p>저장한 내담자 또는 PC 백업 파일을 불러와 이어서 작성합니다.</p></div>
+      <div class="helpCard"><div class="helpNum">7</div><strong>전체 백업·복원</strong><p>상단 버튼으로 전화번호부, 메모, 카톡 문구, 상담일지 저장목록, 메뉴 설정을 하나의 파일로 저장하고 복원합니다.</p></div>
     </div>
-    <div class="helpFoot">중요: 상담사가 입력한 취업지원프로그램 참여 계획과 구직활동지원 계획은 4,000byte 자동맞춤 시에도 원문 그대로 유지됩니다.</div>
+    <div class="helpFoot">중요: 전체 백업은 이 통합본의 브라우저 저장내용을 한 번에 보관합니다. 상담사가 입력한 취업지원프로그램 참여 계획과 구직활동지원 계획은 4,000byte 자동맞춤 시에도 원문 그대로 유지됩니다.</div>
   </div>
 </dialog>
 
@@ -966,6 +970,132 @@ function renderMenu(){
     try{ localStorage.setItem(CLG_SIDEBAR_KEY, app?.classList.contains('sidebar-collapsed')?'1':'0'); }catch(e){}
   });
   document.getElementById('clearFavoritesBtn')?.addEventListener('click',()=>{ if(!uiFavoriteIds().length) return; if(confirm('즐겨찾기를 모두 해제할까요?')){ uiSaveFavoriteIds([]); uiRenderFavorites(); uiSyncFavoriteButtons(); } });
+
+  // ===== 통합본 전체 데이터 백업·복원 =====
+  const CLG_FULL_BACKUP_SCHEMA = 'clg-counsel-log-full-backup';
+  const CLG_FULL_BACKUP_VERSION = 1;
+
+  function clgCollectStorage(storage){
+    const data = {};
+    try{
+      for(let i=0;i<storage.length;i++){
+        const key = storage.key(i);
+        if(key !== null) data[key] = storage.getItem(key);
+      }
+    }catch(e){}
+    return data;
+  }
+
+  function clgStorageSize(data){
+    try{ return new TextEncoder().encode(JSON.stringify(data)).length; }catch(e){ return 0; }
+  }
+
+  function clgDateStamp(){
+    const d = new Date();
+    const pad = n => String(n).padStart(2,'0');
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}`;
+  }
+
+  function clgDownloadJson(data, filename){
+    const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json;charset=utf-8'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url), 1000);
+  }
+
+  async function clgFlushCurrentPage(){
+    try{
+      const frame = document.getElementById('frame');
+      frame?.contentDocument?.activeElement?.blur?.();
+      window.focus();
+    }catch(e){}
+    // 각 도구의 자동저장 지연시간이 끝난 뒤 백업
+    await new Promise(resolve=>setTimeout(resolve, 800));
+  }
+
+  async function clgExportAllData(){
+    await clgFlushCurrentPage();
+    const localData = clgCollectStorage(window.localStorage);
+    const sessionData = clgCollectStorage(window.sessionStorage);
+    const payload = {
+      schema: CLG_FULL_BACKUP_SCHEMA,
+      version: CLG_FULL_BACKUP_VERSION,
+      tool: '상담일지 통합본 전체 백업',
+      exportedAt: new Date().toISOString(),
+      sourceTitle: document.title,
+      activePageId: activePageId || '',
+      localStorage: localData,
+      sessionStorage: sessionData
+    };
+    const keyCount = Object.keys(localData).length + Object.keys(sessionData).length;
+    clgDownloadJson(payload, `상담일지통합본_전체백업_${clgDateStamp()}.json`);
+    const kb = Math.max(1, Math.round(clgStorageSize(payload)/1024));
+    alert(`전체 백업을 저장했습니다.\n\n저장 항목: ${keyCount}개\n파일 크기: 약 ${kb.toLocaleString()}KB\n\n전화번호부·메모·카톡 문구·상담일지 저장내용·메뉴 설정이 포함됩니다.`);
+  }
+
+  function clgValidateBackup(data){
+    return data && typeof data === 'object'
+      && data.schema === CLG_FULL_BACKUP_SCHEMA
+      && data.localStorage && typeof data.localStorage === 'object'
+      && !Array.isArray(data.localStorage);
+  }
+
+  async function clgRestoreAllData(file){
+    if(!file) return;
+    if(file.size > 20 * 1024 * 1024){
+      alert('백업 파일이 너무 큽니다. 올바른 통합본 전체 백업 파일인지 확인해주세요.');
+      return;
+    }
+    let data;
+    try{ data = JSON.parse(await file.text()); }
+    catch(e){ alert('JSON 형식의 올바른 백업 파일이 아닙니다.'); return; }
+    if(!clgValidateBackup(data)){
+      alert('상담일지 통합본에서 만든 전체 백업 파일이 아닙니다.');
+      return;
+    }
+    const count = Object.keys(data.localStorage).length + Object.keys(data.sessionStorage || {}).length;
+    const ok = confirm(`전체 백업 ${count}개 항목을 복원할까요?\n\n현재 이 통합본에 저장된 전화번호부·메모·카톡 문구·상담일지·메뉴 설정은 백업 파일의 내용으로 교체됩니다.`);
+    if(!ok) return;
+
+    const previousLocal = clgCollectStorage(window.localStorage);
+    const previousSession = clgCollectStorage(window.sessionStorage);
+    try{
+      window.localStorage.clear();
+      Object.entries(data.localStorage).forEach(([key,value])=>{
+        if(typeof value === 'string') window.localStorage.setItem(key,value);
+      });
+      window.sessionStorage.clear();
+      Object.entries(data.sessionStorage || {}).forEach(([key,value])=>{
+        if(typeof value === 'string') window.sessionStorage.setItem(key,value);
+      });
+    }catch(e){
+      // 복원 도중 저장용량 오류 등이 발생하면 기존 데이터로 되돌림
+      try{
+        window.localStorage.clear();
+        Object.entries(previousLocal).forEach(([key,value])=>window.localStorage.setItem(key,value));
+        window.sessionStorage.clear();
+        Object.entries(previousSession).forEach(([key,value])=>window.sessionStorage.setItem(key,value));
+      }catch(_){}
+      alert('전체 복원 중 오류가 발생하여 기존 저장내용으로 되돌렸습니다.');
+      return;
+    }
+    alert(`전체 복원이 완료되었습니다.\n${count}개 저장 항목을 적용한 뒤 통합본을 다시 엽니다.`);
+    window.location.reload();
+  }
+
+  const globalRestoreFile = document.getElementById('globalRestoreFile');
+  document.getElementById('globalBackupBtn')?.addEventListener('click', clgExportAllData);
+  document.getElementById('globalRestoreBtn')?.addEventListener('click', ()=>globalRestoreFile?.click());
+  globalRestoreFile?.addEventListener('change', async e=>{
+    const file = e.target.files?.[0];
+    try{ await clgRestoreAllData(file); }finally{ e.target.value=''; }
+  });
+
   document.getElementById('reloadPageBtn')?.addEventListener('click',()=>{ if(activePageId) loadPage(activePageId); });
   document.getElementById('fullscreenBtn')?.addEventListener('click',async()=>{
     try{ if(!document.fullscreenElement) await document.documentElement.requestFullscreen(); else await document.exitFullscreen(); }catch(e){}
