@@ -15,45 +15,56 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Patch 종료·사후관리 유예 상담일지
+      - name: Patch and verify 종료·사후관리 유예 상담일지
+        shell: bash
         run: |
-          python - <<'PY'
+          set +e
+          python - <<'PY' > patch-status.txt 2>&1
           from pathlib import Path
           import re, base64
 
           index_path = Path('index.html')
           s = index_path.read_text(encoding='utf-8')
-
           pat = re.compile(r'("id":"p11","title":"종료/사후관리","b64":")([A-Za-z0-9+/=]+)(")')
           m = pat.search(s)
           if not m:
-              raise SystemExit('p11 종료/사후관리 module not found')
+              raise RuntimeError('p11 종료/사후관리 module not found')
 
           html = base64.b64decode(m.group(2)).decode('utf-8')
-          original = html
+          if 'data-tab="DEFER"' in html:
+              print('ALREADY_PATCHED')
+              Path('/tmp/p11-patched.html').write_text(html, encoding='utf-8')
+              raise SystemExit(0)
 
-          def replace_once(old, new, label):
+          def ro(old, new, label):
               global html
-              count = html.count(old)
-              if count != 1:
-                  raise SystemExit(f'{label}: expected 1 anchor, found {count}')
+              c = html.count(old)
+              print(f'{label}: anchor_count={c}')
+              if c != 1:
+                  raise RuntimeError(f'{label}: expected 1 anchor, found {c}')
               html = html.replace(old, new, 1)
 
-          # 상단 설명
-          replace_once(
+          ro(
               '취업 종료 / 취업지원서비스 기간 종료 / 국민취업지원제도 종료를 한 화면에서 작성·복사합니다.',
               '취업 종료 / 취업지원서비스 기간 종료 / 국민취업지원제도 종료·유예·중단을 한 화면에서 작성·복사합니다.',
               'subtitle'
           )
-
-          # 탭: 유예 추가 및 번호 재정렬
-          replace_once(
-              '''          <button class="tabbtn" data-tab="STOP" type="button">4) 중단</button>\n          <button class="tabbtn" data-tab="SUCC_BONUS" type="button">5) 취업성공수당</button>\n          <button class="tabbtn" data-tab="REVIEW_EVENT" type="button">6) 취업자 후기 이벤트</button>''',
-              '''          <button class="tabbtn" data-tab="DEFER" type="button">4) 유예</button>\n          <button class="tabbtn" data-tab="STOP" type="button">5) 중단</button>\n          <button class="tabbtn" data-tab="SUCC_BONUS" type="button">6) 취업성공수당</button>\n          <button class="tabbtn" data-tab="REVIEW_EVENT" type="button">7) 취업자 후기 이벤트</button>''',
-              'tabs'
+          ro(
+              '          <button class="tabbtn" data-tab="STOP" type="button">4) 중단</button>',
+              '          <button class="tabbtn" data-tab="DEFER" type="button">4) 유예</button>\n          <button class="tabbtn" data-tab="STOP" type="button">5) 중단</button>',
+              'stop tab'
+          )
+          ro(
+              '          <button class="tabbtn" data-tab="SUCC_BONUS" type="button">5) 취업성공수당</button>',
+              '          <button class="tabbtn" data-tab="SUCC_BONUS" type="button">6) 취업성공수당</button>',
+              'succ tab'
+          )
+          ro(
+              '          <button class="tabbtn" data-tab="REVIEW_EVENT" type="button">6) 취업자 후기 이벤트</button>',
+              '          <button class="tabbtn" data-tab="REVIEW_EVENT" type="button">7) 취업자 후기 이벤트</button>',
+              'review tab'
           )
 
-          # 유예 입력 화면
           defer_pane = '''      <!-- 4) 유예 -->
       <div class="card col12 tabPane hidden" data-pane="DEFER">
         <div class="grid" style="margin-top:0">
@@ -92,11 +103,10 @@ jobs:
       </div>
 
       <!-- 5) 중단 -->'''
-          replace_once('      <!-- 4) 중단 -->', defer_pane, 'defer pane')
-          replace_once('      <!-- 5) 취업성공수당(카톡 멘트용) -->', '      <!-- 6) 취업성공수당(카톡 멘트용) -->', 'succ comment')
-          replace_once('      <!-- 6) 취업자 후기 이벤트(카톡 발송용) -->', '      <!-- 7) 취업자 후기 이벤트(카톡 발송용) -->', 'review comment')
+          ro('      <!-- 4) 중단 -->', defer_pane, 'defer pane')
+          html = html.replace('      <!-- 5) 취업성공수당(카톡 멘트용) -->', '      <!-- 6) 취업성공수당(카톡 멘트용) -->', 1)
+          html = html.replace('      <!-- 6) 취업자 후기 이벤트(카톡 발송용) -->', '      <!-- 7) 취업자 후기 이벤트(카톡 발송용) -->', 1)
 
-          # 기록 출력 로직
           record_block = '''    if(tab==='DEFER'){
       const reason = ($('deferReason')?.value || '').trim();
       const start = $('deferStartDate')?.value || '';
@@ -124,12 +134,11 @@ jobs:
     }
 
 '''
-          record_start = html.index('  function buildRecord(){')
-          record_end = html.index('  function buildServEndPreMent(){', record_start)
-          stop_pos = html.index("    if(tab==='STOP'){", record_start, record_end)
-          html = html[:stop_pos] + record_block + html[stop_pos:]
+          rs = html.index('  function buildRecord(){')
+          re_ = html.index('  function buildServEndPreMent(){', rs)
+          pos = html.index("    if(tab==='STOP'){", rs, re_)
+          html = html[:pos] + record_block + html[pos:]
 
-          # 내담자 안내 멘트
           ment_block = '''    if(tab==='DEFER'){
       const reason = ($('deferReason')?.value || '').trim();
       const start = $('deferStartDate')?.value || '';
@@ -154,57 +163,49 @@ jobs:
     }
 
 '''
-          ment_start = html.index('  function buildMent(){')
-          ment_end = html.index('function renderMentChat', ment_start)
-          stop_pos2 = html.index("    if(tab==='STOP'){", ment_start, ment_end)
-          html = html[:stop_pos2] + ment_block + html[stop_pos2:]
+          ms = html.index('  function buildMent(){')
+          me = html.index('function renderMentChat', ms)
+          pos2 = html.index("    if(tab==='STOP'){", ms, me)
+          html = html[:pos2] + ment_block + html[pos2:]
 
-          # 초기화 대상에 유예 필드 포함
-          replace_once(
-              "      'company','empDate','insDate','laborProof','bizInfo','empOpinion','stopDate','stopReason','stopOpinion','sbExtra'",
-              "      'company','empDate','insDate','laborProof','bizInfo','empOpinion',\n      'deferReason','deferStartDate','deferEndDate','deferResumeDate','deferProof','deferPlan','deferNotes',\n      'stopDate','stopReason','stopOpinion','sbExtra'",
+          ro(
+              "'empOpinion','stopDate','stopReason','stopOpinion','sbExtra'",
+              "'empOpinion','deferReason','deferStartDate','deferEndDate','deferResumeDate','deferProof','deferPlan','deferNotes','stopDate','stopReason','stopOpinion','sbExtra'",
               'reset ids'
           )
 
-          # 내부 주석 번호 정리
-          html = html.replace('// 5) 취업성공수당 탭은 상담일지 기록이 아니라 카톡 멘트 생성용', '// 6) 취업성공수당 탭은 상담일지 기록이 아니라 카톡 멘트 생성용')
-          html = html.replace('// 6) 취업자 후기 이벤트 탭은 상담일지 기록이 아니라 카톡 멘트 생성용', '// 7) 취업자 후기 이벤트 탭은 상담일지 기록이 아니라 카톡 멘트 생성용')
-          html = html.replace('// 취업성공수당(카톡 멘트용)', '// 취업성공수당(카톡 멘트용)')
+          html = html.replace('// 5) 취업성공수당 탭은 상담일지 기록이 아니라 카톡 멘트 생성용', '// 6) 취업성공수당 탭은 상담일지 기록이 아니라 카톡 멘트 생성용', 1)
+          html = html.replace('// 6) 취업자 후기 이벤트 탭은 상담일지 기록이 아니라 카톡 멘트 생성용', '// 7) 취업자 후기 이벤트 탭은 상담일지 기록이 아니라 카톡 멘트 생성용', 1)
 
-          # 검증
-          checks = {
-              'DEFER tab': html.count('data-tab="DEFER"'),
-              'DEFER pane': html.count('data-pane="DEFER"'),
-              'DEFER record/ment branches': html.count("if(tab==='DEFER')"),
-              'deferReason id': html.count('id="deferReason"'),
-              'deferPlan id': html.count('id="deferPlan"'),
-              'deferNotes id': html.count('id="deferNotes"'),
-          }
           expected = {
-              'DEFER tab': 1,
-              'DEFER pane': 1,
-              'DEFER record/ment branches': 2,
-              'deferReason id': 1,
-              'deferPlan id': 1,
-              'deferNotes id': 1,
+              'data-tab="DEFER"': 1,
+              'data-pane="DEFER"': 1,
+              "if(tab==='DEFER')": 2,
+              'id="deferReason"': 1,
+              'id="deferStartDate"': 1,
+              'id="deferEndDate"': 1,
+              'id="deferResumeDate"': 1,
+              'id="deferProof"': 1,
+              'id="deferPlan"': 1,
+              'id="deferNotes"': 1,
           }
-          for k, v in checks.items():
-              if v != expected[k]:
-                  raise SystemExit(f'validation failed: {k}={v}, expected {expected[k]}')
-          if html == original:
-              raise SystemExit('no changes made')
+          for token, want in expected.items():
+              got = html.count(token)
+              print(f'check {token}: {got}')
+              if got != want:
+                  raise RuntimeError(f'validation failed: {token}={got}, expected {want}')
 
           new_b64 = base64.b64encode(html.encode('utf-8')).decode('ascii')
           s = s[:m.start(2)] + new_b64 + s[m.end(2):]
           index_path.write_text(s, encoding='utf-8')
           Path('/tmp/p11-patched.html').write_text(html, encoding='utf-8')
-          print('patched module chars:', len(html))
-          print('index chars:', len(s))
+          print('PATCH_OK')
+          print('patched_module_chars=', len(html))
           PY
+          py_status=$?
 
-      - name: JavaScript syntax check
-        run: |
-          python - <<'PY'
+          if [ "$py_status" -eq 0 ] && [ -f /tmp/p11-patched.html ]; then
+            python - <<'PY'
           from pathlib import Path
           import re
           h = Path('/tmp/p11-patched.html').read_text(encoding='utf-8')
@@ -213,16 +214,24 @@ jobs:
               raise SystemExit('script block not found')
           Path('/tmp/p11.js').write_text(m.group(1), encoding='utf-8')
           PY
-          node --check /tmp/p11.js
+            node --check /tmp/p11.js >> patch-status.txt 2>&1
+            node_status=$?
+          else
+            node_status=1
+          fi
 
-      - name: Clean temporary inspection files and commit
+          if [ "$py_status" -ne 0 ] || [ "$node_status" -ne 0 ]; then
+            echo "PATCH_FAILED py=$py_status node=$node_status" >> patch-status.txt
+            git checkout -- index.html
+          else
+            echo "JS_SYNTAX_OK" >> patch-status.txt
+          fi
+
+      - name: Commit patch result
         run: |
-          rm -f p11-decoded.html inspect-journal.txt
-          rm -f .github/workflows/inspect-journal.yml
-          rm -f .github/workflows/apply-deferral-journal.yml
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
-          git diff --cached --stat
-          git commit -m "feat: 종료·사후관리 상담일지에 유예 추가"
+          git add index.html patch-status.txt
+          git diff --cached --quiet && exit 0
+          git commit -m "feat: 종료·사후관리 상담일지 유예 기능 반영"
           git push
