@@ -1,0 +1,51 @@
+name: Inspect counseling journal source
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/inspect-journal.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Inspect counseling journal anchors
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+          terms = [
+              '종료/사후관리',
+              '종료 / 사후관리',
+              '사후관리',
+              '종료 사유',
+              '상담일지',
+              '유예',
+          ]
+          out = [f'index.html chars={len(s)} bytes={len(s.encode("utf-8"))}']
+          for term in terms:
+              hits = [m.start() for m in re.finditer(re.escape(term), s)]
+              out.append(f'\n## TERM: {term} / hits={len(hits)}')
+              for n, i in enumerate(hits[:30], 1):
+                  start = max(0, i - 1800)
+                  end = min(len(s), i + 2600)
+                  snippet = s[start:end]
+                  out.append(f'\n--- {term} hit {n} at {i} ---\n{snippet}\n--- END ---')
+          Path('inspect-journal.txt').write_text('\n'.join(out), encoding='utf-8')
+          PY
+      - name: Commit inspection report
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add inspect-journal.txt
+          git diff --cached --quiet && exit 0
+          git commit -m "chore: add counseling journal inspection report"
+          git push
