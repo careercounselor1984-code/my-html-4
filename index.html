@@ -181,6 +181,28 @@ body.clg-fixed-scroll .viewer iframe{height:100%!important}
 .boardConfigBox{display:none;padding:12px;border:1px solid #dbe6f4;border-radius:12px;background:#f8fbff;margin-bottom:12px}.boardConfigBox.show{display:block}.boardConfigBox p{margin:0 0 8px;font-size:10.5px;color:#6d7d93;line-height:1.55}.boardConfigRow{display:grid;grid-template-columns:1fr auto;gap:6px}.boardConfigRow input{min-width:0;border:1px solid #d6e1ee;border-radius:9px;padding:8px 9px;font-size:10.5px}
 @media(max-width:850px){.boardBody{grid-template-columns:1fr}.boardEditor{border-left:0;border-top:1px solid var(--line)}.boardList{min-height:300px;padding:12px}.boardToolbar{grid-template-columns:1fr auto}.boardToolbar .boardConfigBtn{display:none}}
 @media(max-width:620px){.boardHead{padding:16px}.boardTabs{padding:10px 14px}.boardToolbar{padding:10px 14px}.boardBody{display:block}.boardEditor{padding:14px}.boardHeadActions .boardSyncStatus{display:none}.boardTopBtn .label{display:none}}
+
+.boardTopBtn.has-new{border-color:#ef4444!important;background:#fff5f5!important;color:#dc2626!important;box-shadow:0 0 0 3px rgba(239,68,68,.10);animation:boardPulse 1.8s ease-in-out infinite}
+.boardTopBtn.has-new .label::after{content:' NEW';font-size:9px;font-weight:950;color:#dc2626}
+@keyframes boardPulse{0%,100%{box-shadow:0 0 0 3px rgba(239,68,68,.08)}50%{box-shadow:0 0 0 7px rgba(239,68,68,.02)}}
+.boardNewNotice{display:none;align-items:center;gap:6px;border:1px solid #fecaca;background:#fff1f2;color:#be123c;border-radius:999px;padding:6px 10px;font-size:10.5px;font-weight:950}
+.boardNewNotice.show{display:inline-flex}
+.boardNewNoticeDot{width:7px;height:7px;border-radius:50%;background:#ef4444;box-shadow:0 0 0 3px #fee2e2}
+.boardItem.unseen{border-color:#fca5a5;background:linear-gradient(90deg,#fff7f7,#fff);box-shadow:0 5px 16px rgba(239,68,68,.08)}
+.boardAttachField{border:1px solid #dbe5f1;border-radius:12px;padding:10px;background:#fbfcfe}
+.boardAttachHelp{font-size:10px;color:#7b889c;line-height:1.5;margin:0 0 8px}
+.boardFileInput{display:block!important;width:100%;padding:8px!important;background:#fff!important}
+.boardAttachList{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.boardAttachRow{display:flex;align-items:center;gap:8px;border:1px solid #dfe7f1;background:#fff;border-radius:9px;padding:8px 9px;font-size:10.5px}
+.boardAttachName{min-width:0;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:850;color:#46576f}
+.boardAttachSize{color:#8997aa;white-space:nowrap}
+.boardAttachRemove{border:0;background:#fff1f2;color:#dc2626;border-radius:7px;padding:4px 7px;font-size:10px;font-weight:900;cursor:pointer}
+.boardDetailAttachments{margin-top:16px;padding-top:14px;border-top:1px solid #edf1f6}
+.boardDetailAttachmentsTitle{font-size:11px;font-weight:950;color:#5d6c82;margin-bottom:8px}
+.boardDetailAttachment{display:flex;align-items:center;gap:8px;margin-top:6px;padding:9px 10px;border:1px solid #dce6f2;border-radius:10px;background:#f8fbff;text-decoration:none;color:#24599f;font-size:11.5px;font-weight:850}
+.boardDetailAttachment:hover{background:#edf5ff;border-color:#a9c1e9}
+.boardStorageNote{margin-top:6px;font-size:9.5px;color:#8b98aa}
+
 </style>
 
 </head>
@@ -273,6 +295,7 @@ body.clg-fixed-scroll .viewer iframe{height:100%!important}
         <p>공지사항 · 사례공유 · 채용정보 · 기타 / 여러 상담사가 함께 보는 업무 게시판</p>
       </div>
       <div class="boardHeadActions">
+        <span class="boardNewNotice" id="boardNewNotice"><span class="boardNewNoticeDot"></span><span id="boardNewNoticeText">새 글</span></span>
         <span class="boardSyncStatus" id="boardSyncStatus"><span class="boardSyncDot"></span><span id="boardSyncText">연동 대기</span></span>
         <button class="miniBtn" id="boardRefreshBtn" type="button">↻ 새로고침</button>
         <button class="iconBtn" id="boardCloseBtn" type="button" title="닫기">×</button>
@@ -305,6 +328,13 @@ body.clg-fixed-scroll .viewer iframe{height:100%!important}
           <div class="boardField"><label>내용</label><textarea id="boardContent" maxlength="5000" placeholder="공유할 내용을 입력하세요"></textarea></div>
           <div class="boardField"><label>작성자</label><input id="boardAuthorInput" type="text" maxlength="30" placeholder="예: 조원희"/></div>
           <div class="boardField"><label>관련 링크 (선택)</label><input id="boardLink" type="url" placeholder="https://..."/></div>
+          <div class="boardField boardAttachField">
+            <label>📎 첨부파일 (선택)</label>
+            <p class="boardAttachHelp">게시글당 최대 3개 · 파일 1개당 최대 10MB · 공용 Google Drive에 저장됩니다.</p>
+            <input class="boardFileInput" id="boardFileInput" type="file" multiple/>
+            <div class="boardAttachList" id="boardAttachList"></div>
+            <div class="boardStorageNote" id="boardStorageNote"></div>
+          </div>
           <div class="boardCheckRow"><label class="boardCheck"><input id="boardPinned" type="checkbox"/> 상단 고정</label><label class="boardCheck"><input id="boardImportant" type="checkbox"/> 필독</label></div>
           <div class="boardEditorActions"><button class="miniBtn boardDanger" id="boardDeleteBtn" type="button" style="display:none">삭제</button><button class="miniBtn" id="boardResetBtn" type="button">내용 비우기</button><button class="topBtn primary" id="boardSaveBtn" type="button">등록</button></div>
           <div class="boardMetaNote">공용 게시판 연결 완료 · 모든 상담사가 같은 게시글을 조회·작성할 수 있습니다. 네트워크 오류 시에는 임시로 로컬 저장소를 사용합니다.</div>
@@ -315,6 +345,7 @@ body.clg-fixed-scroll .viewer iframe{height:100%!important}
           <div class="boardDetailMeta" id="boardDetailMeta"></div>
           <div class="boardDetailContent" id="boardDetailContent"></div>
           <div class="boardDetailLink" id="boardDetailLink"></div>
+          <div class="boardDetailAttachments" id="boardDetailAttachments"></div>
           <div class="boardEditorActions" style="margin-top:14px"><button class="miniBtn" id="boardBackBtn" type="button">목록/작성</button><button class="miniBtn" id="boardEditBtn" type="button">수정</button></div>
         </div>
       </aside>
@@ -1585,54 +1616,200 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
 (() => {
   const $ = id => document.getElementById(id);
   const STORAGE='clg_shared_board_v1';
-  const DEFAULT_API_URL='https://script.google.com/macros/s/AKfycbzb5we9Gnoqzk-XNwRrbuQhSI3kgF-O3pGNp0NwVdaNG8DWQcRJ6ThLfRNBayCO2UAz/exec';
+  const DEFAULT_API_URL='https://script.google.com/macros/s/AKfycbwwL1k5Nm82FzuZNh58zFSZu5jbF4ttgCWrkrxsQ8_um2WIxDhqyJJSTQyFcgaHobqSUw/exec';
   const CFG='clg_shared_board_cfg_v1';
   const AUTHOR='clg_shared_board_author_v1';
-  const LASTSEEN='clg_shared_board_lastseen_v1';
-  let activeCat='전체', items=[], selectedId=null;
+  const LASTSEEN='clg_shared_board_lastseen_v2';
+  const MAX_FILES=3, MAX_FILE_BYTES=10*1024*1024;
+  let activeCat='전체', items=[], selectedId=null, currentAttachments=[], pendingFiles=[];
+  let initializedSeen=false;
+
   const catClass=c=>c==='사례공유'?'case':c==='채용정보'?'job':c==='기타'?'etc':'';
   const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
   const fmt=d=>{try{return new Intl.DateTimeFormat('ko-KR',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date(d))}catch{return ''}};
   const nowIso=()=>new Date().toISOString();
+  const sizeText=n=>{n=Number(n||0);if(n<1024)return n+'B';if(n<1024*1024)return (n/1024).toFixed(1)+'KB';return (n/1024/1024).toFixed(1)+'MB'};
   function cfg(){try{return JSON.parse(localStorage.getItem(CFG)||'{}')}catch{return {}}}
   function setStatus(mode,text){const el=$('boardSyncStatus'); if(!el)return; el.classList.remove('online','error'); if(mode)el.classList.add(mode); $('boardSyncText').textContent=text}
   function localLoad(){try{return JSON.parse(localStorage.getItem(STORAGE)||'[]')}catch{return []}}
   function localSave(){localStorage.setItem(STORAGE,JSON.stringify(items))}
   async function api(action,payload={}){
     const url=(cfg().url||DEFAULT_API_URL||'').trim(); if(!url) throw new Error('NO_API');
-    const opts=action==='list'?{}:{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action,...payload})};
-    const target=action==='list'?url+(url.includes('?')?'&':'?')+'action=list&_='+Date.now():url;
-    const r=await fetch(target,opts); if(!r.ok) throw new Error('HTTP '+r.status); const data=await r.json(); if(data.ok===false)throw new Error(data.error||'API 오류'); return data;
+    const isGet=action==='list'||action==='stats';
+    const opts=isGet?{}:{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action,...payload})};
+    const target=isGet?url+(url.includes('?')?'&':'?')+'action='+encodeURIComponent(action)+'&_='+Date.now():url;
+    const r=await fetch(target,opts); if(!r.ok) throw new Error('HTTP '+r.status);
+    const data=await r.json(); if(data.ok===false)throw new Error(data.error||'API 오류'); return data;
   }
   async function loadBoard(){
-    setStatus('', '불러오는 중');
-    try{ const data=await api('list'); items=Array.isArray(data.items)?data.items:[]; setStatus('online','공용 연동됨'); }
-    catch(e){ items=localLoad(); setStatus(e.message==='NO_API'?'':'error',e.message==='NO_API'?'이 PC 시험모드':'연동 오류 · 로컬 표시'); }
+    const wasOnline=$('boardSyncStatus')?.classList.contains('online');
+    if(!wasOnline)setStatus('', '불러오는 중');
+    try{
+      const data=await api('list');
+      items=Array.isArray(data.items)?data.items:[];
+      setStatus('online','공용 연동됨');
+      if(!localStorage.getItem(LASTSEEN) && !initializedSeen){
+        localStorage.setItem(LASTSEEN,String(Date.now()));
+        initializedSeen=true;
+      }
+    } catch(e){
+      items=localLoad();
+      setStatus(e.message==='NO_API'?'':'error',e.message==='NO_API'?'이 PC 시험모드':'연동 오류 · 로컬 표시');
+    }
     render(); updateUnread();
   }
-  function filtered(){const q=$('boardSearch').value.trim().toLowerCase(); return [...items].filter(x=>(activeCat==='전체'||x.category===activeCat)&&(!q||[x.title,x.content,x.author].join(' ').toLowerCase().includes(q))).sort((a,b)=>(Number(!!b.pinned)-Number(!!a.pinned))||(new Date(b.updatedAt||b.createdAt)-new Date(a.updatedAt||a.createdAt)));}
-  function render(){const box=$('boardList'), arr=filtered(); if(!arr.length){box.innerHTML='<div class="boardEmpty">등록된 게시글이 없습니다.<br>오른쪽에서 새 글을 작성해보세요.</div>';return;} const seen=Number(localStorage.getItem(LASTSEEN)||0); box.innerHTML=arr.map(x=>{const t=new Date(x.updatedAt||x.createdAt).getTime(); const isNew=t>seen; return `<article class="boardItem ${x.pinned?'pinned':''}" data-id="${esc(x.id)}"><div class="boardItemTop"><span class="boardCat ${catClass(x.category)}">${esc(x.category)}</span>${x.pinned?'<span class="boardPin">📌 고정</span>':''}${x.important?'<span class="boardPin">필독</span>':''}${isNew?'<span class="boardNew">NEW</span>':''}<span class="boardItemDate">${fmt(x.updatedAt||x.createdAt)}</span></div><div class="boardItemTitle">${esc(x.title)}</div><div class="boardItemPreview">${esc(x.content)}</div><div class="boardItemFoot"><span class="boardAuthor">${esc(x.author||'작성자 미입력')}</span>${x.link?'<span class="boardAttach">🔗 링크</span>':''}</div></article>`}).join(''); box.querySelectorAll('.boardItem').forEach(el=>el.addEventListener('click',()=>showDetail(el.dataset.id)));}
-  function clearForm(){selectedId=null;$('boardEditId').value='';$('boardCategory').value=activeCat==='전체'?'공지사항':activeCat;$('boardTitle').value='';$('boardContent').value='';$('boardLink').value='';$('boardPinned').checked=false;$('boardImportant').checked=false;$('boardDeleteBtn').style.display='none';$('boardSaveBtn').textContent='등록';$('boardComposeTitle').textContent='새 글 작성';$('boardEditor').classList.remove('detail-mode');}
-  function fillForm(x){selectedId=x.id;$('boardEditId').value=x.id;$('boardCategory').value=x.category;$('boardTitle').value=x.title||'';$('boardContent').value=x.content||'';$('boardAuthorInput').value=x.author||'';$('boardLink').value=x.link||'';$('boardPinned').checked=!!x.pinned;$('boardImportant').checked=!!x.important;$('boardDeleteBtn').style.display='inline-flex';$('boardSaveBtn').textContent='수정 저장';$('boardComposeTitle').textContent='게시글 수정';$('boardEditor').classList.remove('detail-mode');}
-  function showDetail(id){const x=items.find(v=>String(v.id)===String(id)); if(!x)return; selectedId=x.id;$('boardDetailCategory').className='boardCat '+catClass(x.category);$('boardDetailCategory').textContent=x.category;$('boardDetailTitle').textContent=(x.pinned?'📌 ':'')+(x.important?'[필독] ':'')+(x.title||'');$('boardDetailMeta').innerHTML=`<span>${esc(x.author||'작성자 미입력')}</span><span>등록 ${fmt(x.createdAt)}</span>${x.updatedAt&&x.updatedAt!==x.createdAt?`<span>수정 ${fmt(x.updatedAt)}</span>`:''}`;$('boardDetailContent').textContent=x.content||'';$('boardDetailLink').innerHTML=x.link?`관련 링크: <a href="${esc(x.link)}" target="_blank" rel="noopener noreferrer">${esc(x.link)}</a>`:'';$('boardEditor').classList.add('detail-mode');}
-  async function savePost(){const id=$('boardEditId').value.trim();const author=$('boardAuthorInput').value.trim(), title=$('boardTitle').value.trim(), content=$('boardContent').value.trim(); if(!title){alert('제목을 입력하세요.');$('boardTitle').focus();return} if(!content){alert('내용을 입력하세요.');$('boardContent').focus();return} if(!author){alert('작성자를 입력하세요.');$('boardAuthorInput').focus();return} localStorage.setItem(AUTHOR,author); const old=items.find(x=>String(x.id)===String(id)); const post={id:id||('b'+Date.now().toString(36)+Math.random().toString(36).slice(2,6)),category:$('boardCategory').value,title,content,author,link:$('boardLink').value.trim(),pinned:$('boardPinned').checked,important:$('boardImportant').checked,createdAt:old?.createdAt||nowIso(),updatedAt:nowIso()};
-    try{await api('save',{item:post}); setStatus('online','공용 연동됨');}
-    catch(e){ if(e.message!=='NO_API')setStatus('error','연동 오류 · 로컬 저장'); const i=items.findIndex(x=>String(x.id)===String(post.id)); if(i>=0)items[i]=post;else items.push(post); localSave(); }
-    await loadBoard(); clearForm();
+  async function loadStats(){
+    try{
+      const data=await api('stats');
+      const s=data.stats||{};
+      $('boardStorageNote').textContent=`첨부파일 폴더 사용량: ${sizeText(s.bytes||0)} · ${Number(s.count||0)}개 파일`;
+    }catch(e){$('boardStorageNote').textContent='';}
   }
-  async function deletePost(){const id=$('boardEditId').value.trim();if(!id)return;if(!confirm('이 게시글을 삭제할까요?'))return; try{await api('delete',{id});}catch(e){items=items.filter(x=>String(x.id)!==String(id));localSave();} await loadBoard();clearForm();}
-  function updateUnread(){const seen=Number(localStorage.getItem(LASTSEEN)||0);const n=items.filter(x=>new Date(x.updatedAt||x.createdAt).getTime()>seen).length;const el=$('boardUnread');el.textContent=n>99?'99+':String(n);el.classList.toggle('show',n>0)}
-  function markSeen(){localStorage.setItem(LASTSEEN,String(Date.now()));updateUnread();}
-  function openBoard(){const d=$('boardDialog');if(typeof d.showModal==='function')d.showModal();else d.setAttribute('open','');markSeen();loadBoard();}
+  function filtered(){
+    const q=$('boardSearch').value.trim().toLowerCase();
+    return [...items].filter(x=>(activeCat==='전체'||x.category===activeCat)&&(!q||[x.title,x.content,x.author].join(' ').toLowerCase().includes(q)))
+      .sort((a,b)=>(Number(!!b.pinned)-Number(!!a.pinned))||(new Date(b.updatedAt||b.createdAt)-new Date(a.updatedAt||a.createdAt)));
+  }
+  function isUnseen(x){
+    const seen=Number(localStorage.getItem(LASTSEEN)||0);
+    return new Date(x.createdAt||0).getTime()>seen;
+  }
+  function isFresh(x){return Date.now()-new Date(x.createdAt||0).getTime() < 24*60*60*1000;}
+  function render(){
+    const box=$('boardList'), arr=filtered();
+    if(!arr.length){box.innerHTML='<div class="boardEmpty">등록된 게시글이 없습니다.<br>오른쪽에서 새 글을 작성해보세요.</div>';return;}
+    box.innerHTML=arr.map(x=>{
+      const unseen=isUnseen(x), fresh=isFresh(x), at=Array.isArray(x.attachments)?x.attachments:[];
+      return `<article class="boardItem ${x.pinned?'pinned':''} ${unseen?'unseen':''}" data-id="${esc(x.id)}">
+        <div class="boardItemTop"><span class="boardCat ${catClass(x.category)}">${esc(x.category)}</span>
+        ${x.pinned?'<span class="boardPin">📌 고정</span>':''}${x.important?'<span class="boardPin">필독</span>':''}
+        ${(unseen||fresh)?'<span class="boardNew">NEW</span>':''}<span class="boardItemDate">${fmt(x.updatedAt||x.createdAt)}</span></div>
+        <div class="boardItemTitle">${esc(x.title)}</div><div class="boardItemPreview">${esc(x.content)}</div>
+        <div class="boardItemFoot"><span class="boardAuthor">${esc(x.author||'작성자 미입력')}</span>
+        ${x.link?'<span>🔗 링크</span>':''}${at.length?`<span class="boardAttach">📎 ${at.length}개</span>`:''}</div></article>`;
+    }).join('');
+    box.querySelectorAll('.boardItem').forEach(el=>el.addEventListener('click',()=>showDetail(el.dataset.id)));
+  }
+  function renderAttachList(){
+    const box=$('boardAttachList'); if(!box)return;
+    const rows=[];
+    currentAttachments.forEach((a,i)=>rows.push(`<div class="boardAttachRow"><span>📎</span><span class="boardAttachName">${esc(a.name)}</span><span class="boardAttachSize">${sizeText(a.size)}</span><button type="button" class="boardAttachRemove" data-existing="${i}">제거</button></div>`));
+    pendingFiles.forEach((f,i)=>rows.push(`<div class="boardAttachRow"><span>⏳</span><span class="boardAttachName">${esc(f.name)}</span><span class="boardAttachSize">${sizeText(f.size)}</span><button type="button" class="boardAttachRemove" data-pending="${i}">제거</button></div>`));
+    box.innerHTML=rows.join('');
+    box.querySelectorAll('[data-existing]').forEach(b=>b.addEventListener('click',()=>{currentAttachments.splice(Number(b.dataset.existing),1);renderAttachList()}));
+    box.querySelectorAll('[data-pending]').forEach(b=>b.addEventListener('click',()=>{pendingFiles.splice(Number(b.dataset.pending),1);renderAttachList()}));
+  }
+  function clearForm(){
+    selectedId=null; currentAttachments=[]; pendingFiles=[];
+    $('boardEditId').value='';$('boardCategory').value=activeCat==='전체'?'공지사항':activeCat;
+    $('boardTitle').value='';$('boardContent').value='';$('boardLink').value='';$('boardFileInput').value='';
+    $('boardPinned').checked=false;$('boardImportant').checked=false;$('boardDeleteBtn').style.display='none';
+    $('boardSaveBtn').textContent='등록';$('boardSaveBtn').disabled=false;$('boardComposeTitle').textContent='새 글 작성';
+    $('boardEditor').classList.remove('detail-mode'); renderAttachList(); loadStats();
+  }
+  function fillForm(x){
+    selectedId=x.id;currentAttachments=Array.isArray(x.attachments)?JSON.parse(JSON.stringify(x.attachments)):[];pendingFiles=[];
+    $('boardEditId').value=x.id;$('boardCategory').value=x.category;$('boardTitle').value=x.title||'';$('boardContent').value=x.content||'';
+    $('boardAuthorInput').value=x.author||'';$('boardLink').value=x.link||'';$('boardFileInput').value='';
+    $('boardPinned').checked=!!x.pinned;$('boardImportant').checked=!!x.important;$('boardDeleteBtn').style.display='inline-flex';
+    $('boardSaveBtn').textContent='수정 저장';$('boardComposeTitle').textContent='게시글 수정';$('boardEditor').classList.remove('detail-mode');renderAttachList();
+  }
+  function showDetail(id){
+    const x=items.find(v=>String(v.id)===String(id)); if(!x)return; selectedId=x.id;
+    $('boardDetailCategory').className='boardCat '+catClass(x.category);$('boardDetailCategory').textContent=x.category;
+    $('boardDetailTitle').textContent=(x.pinned?'📌 ':'')+(x.important?'[필독] ':'')+(x.title||'');
+    $('boardDetailMeta').innerHTML=`<span>${esc(x.author||'작성자 미입력')}</span><span>등록 ${fmt(x.createdAt)}</span>${x.updatedAt&&x.updatedAt!==x.createdAt?`<span>수정 ${fmt(x.updatedAt)}</span>`:''}`;
+    $('boardDetailContent').textContent=x.content||'';
+    $('boardDetailLink').innerHTML=x.link?`관련 링크: <a href="${esc(x.link)}" target="_blank" rel="noopener noreferrer">${esc(x.link)}</a>`:'';
+    const at=Array.isArray(x.attachments)?x.attachments:[];
+    $('boardDetailAttachments').innerHTML=at.length?`<div class="boardDetailAttachmentsTitle">📎 첨부파일 ${at.length}개</div>${at.map(a=>`<a class="boardDetailAttachment" href="${esc(a.url)}" target="_blank" rel="noopener noreferrer"><span>📄</span><span style="min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(a.name)}</span><span>${sizeText(a.size)}</span></a>`).join('')}`:'';
+    $('boardEditor').classList.add('detail-mode');
+  }
+  function fileToBase64(file){
+    return new Promise((resolve,reject)=>{
+      const r=new FileReader();
+      r.onload=()=>resolve(String(r.result||'').split(',')[1]||'');
+      r.onerror=()=>reject(new Error(file.name+' 읽기 실패'));
+      r.readAsDataURL(file);
+    });
+  }
+  async function uploadFile(file,postId,index,total){
+    $('boardSaveBtn').textContent=`첨부 업로드 ${index}/${total}`;
+    const dataBase64=await fileToBase64(file);
+    const data=await api('uploadAttachment',{postId,name:file.name,mimeType:file.type||'application/octet-stream',size:file.size,dataBase64});
+    if(!data.attachment)throw new Error(file.name+' 업로드 결과가 없습니다.');
+    return data.attachment;
+  }
+  async function savePost(){
+    const id0=$('boardEditId').value.trim(); const author=$('boardAuthorInput').value.trim(), title=$('boardTitle').value.trim(), content=$('boardContent').value.trim();
+    if(!title){alert('제목을 입력하세요.');$('boardTitle').focus();return}
+    if(!content){alert('내용을 입력하세요.');$('boardContent').focus();return}
+    if(!author){alert('작성자를 입력하세요.');$('boardAuthorInput').focus();return}
+    if(currentAttachments.length+pendingFiles.length>MAX_FILES){alert('첨부파일은 최대 3개까지 가능합니다.');return}
+    localStorage.setItem(AUTHOR,author);
+    const old=items.find(x=>String(x.id)===String(id0));
+    const postId=id0||('b'+Date.now().toString(36)+Math.random().toString(36).slice(2,6));
+    $('boardSaveBtn').disabled=true;
+    try{
+      const uploaded=[];
+      for(let i=0;i<pendingFiles.length;i++) uploaded.push(await uploadFile(pendingFiles[i],postId,i+1,pendingFiles.length));
+      const post={id:postId,category:$('boardCategory').value,title,content,author,link:$('boardLink').value.trim(),pinned:$('boardPinned').checked,important:$('boardImportant').checked,createdAt:old?.createdAt||nowIso(),updatedAt:nowIso(),attachments:[...currentAttachments,...uploaded]};
+      await api('save',{item:post}); setStatus('online','공용 연동됨');
+      await loadBoard(); clearForm(); await loadStats();
+    }catch(e){
+      alert('저장하지 못했습니다.\n'+(e.message||e));
+      setStatus('error','저장 오류');
+    }finally{
+      $('boardSaveBtn').disabled=false;
+      $('boardSaveBtn').textContent=id0?'수정 저장':'등록';
+    }
+  }
+  async function deletePost(){
+    const id=$('boardEditId').value.trim();if(!id)return;if(!confirm('이 게시글과 첨부파일을 함께 삭제할까요?'))return;
+    try{await api('delete',{id});}catch(e){items=items.filter(x=>String(x.id)!==String(id));localSave();}
+    await loadBoard();clearForm();await loadStats();
+  }
+  function updateUnread(){
+    const seen=Number(localStorage.getItem(LASTSEEN)||0);
+    const n=items.filter(x=>new Date(x.createdAt||0).getTime()>seen).length;
+    const badge=$('boardUnread'), btn=$('boardOpenBtn'), notice=$('boardNewNotice');
+    badge.textContent=n>99?'99+':String(n);badge.classList.toggle('show',n>0);btn.classList.toggle('has-new',n>0);
+    notice.classList.toggle('show',n>0);$('boardNewNoticeText').textContent=n?`새 글 ${n}건`:'새 글';
+  }
+  function markSeen(){
+    const latest=items.reduce((m,x)=>Math.max(m,new Date(x.createdAt||0).getTime()||0),Date.now());
+    localStorage.setItem(LASTSEEN,String(Math.max(Date.now(),latest))); updateUnread(); render();
+  }
+  async function openBoard(){
+    const d=$('boardDialog');if(typeof d.showModal==='function')d.showModal();else d.setAttribute('open','');
+    await loadBoard(); await loadStats();
+  }
   function closeBoard(){markSeen();$('boardDialog').close();}
+  function onFilesSelected(e){
+    const incoming=[...e.target.files];
+    for(const f of incoming){
+      if(f.size>MAX_FILE_BYTES){alert(`${f.name}
+파일 1개는 10MB 이하만 첨부할 수 있습니다.`);continue}
+      if(currentAttachments.length+pendingFiles.length>=MAX_FILES){alert('첨부파일은 게시글당 최대 3개까지 가능합니다.');break}
+      pendingFiles.push(f);
+    }
+    e.target.value=''; renderAttachList();
+  }
   function init(){
-    if(!$('boardOpenBtn'))return; $('boardAuthorInput').value=localStorage.getItem(AUTHOR)||''; $('boardApiUrl').value=cfg().url||DEFAULT_API_URL;
-    $('boardOpenBtn').addEventListener('click',openBoard);$('boardCloseBtn').addEventListener('click',closeBoard);$('boardRefreshBtn').addEventListener('click',loadBoard);$('boardSearch').addEventListener('input',render);$('boardNewBtn').addEventListener('click',clearForm);$('boardResetBtn').addEventListener('click',clearForm);$('boardSaveBtn').addEventListener('click',savePost);$('boardDeleteBtn').addEventListener('click',deletePost);$('boardBackBtn').addEventListener('click',clearForm);$('boardEditBtn').addEventListener('click',()=>{const x=items.find(v=>String(v.id)===String(selectedId));if(x)fillForm(x)});
+    if(!$('boardOpenBtn'))return;
+    $('boardAuthorInput').value=localStorage.getItem(AUTHOR)||'';$('boardApiUrl').value=cfg().url||DEFAULT_API_URL;
+    $('boardOpenBtn').addEventListener('click',openBoard);$('boardCloseBtn').addEventListener('click',closeBoard);
+    $('boardRefreshBtn').addEventListener('click',loadBoard);$('boardSearch').addEventListener('input',render);
+    $('boardNewBtn').addEventListener('click',clearForm);$('boardResetBtn').addEventListener('click',clearForm);
+    $('boardSaveBtn').addEventListener('click',savePost);$('boardDeleteBtn').addEventListener('click',deletePost);
+    $('boardBackBtn').addEventListener('click',clearForm);$('boardEditBtn').addEventListener('click',()=>{const x=items.find(v=>String(v.id)===String(selectedId));if(x)fillForm(x)});
+    $('boardFileInput').addEventListener('change',onFilesSelected);
     $('boardTabs').querySelectorAll('.boardTab').forEach(b=>b.addEventListener('click',()=>{activeCat=b.dataset.cat;$('boardTabs').querySelectorAll('.boardTab').forEach(x=>x.classList.toggle('active',x===b));render();}));
     $('boardConfigBtn').addEventListener('click',()=> $('boardConfigBox').classList.toggle('show'));
     $('boardSaveConfigBtn').addEventListener('click',()=>{const url=$('boardApiUrl').value.trim();localStorage.setItem(CFG,JSON.stringify({url}));$('boardConfigBox').classList.remove('show');loadBoard();});
     $('boardDialog').addEventListener('click',e=>{if(e.target===$('boardDialog'))closeBoard()});
-    clearForm(); loadBoard(); setInterval(()=>{if($('boardDialog').open)loadBoard();},30000);
+    clearForm(); loadBoard();
+    setInterval(loadBoard,30000); // 게시판을 닫아둬도 새 글을 30초마다 확인
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
