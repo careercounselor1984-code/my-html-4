@@ -2831,6 +2831,7 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
     <label class="cc-auth-label" for="ccNewPasswordConfirm">새 비밀번호 확인</label>
     <input id="ccNewPasswordConfirm" class="cc-auth-input" type="password" autocomplete="new-password" placeholder="한 번 더 입력">
     <button id="ccPasswordChangeBtn" class="cc-auth-btn" type="button">비밀번호 변경하고 시작</button>
+    <button id="ccPasswordBackBtn" class="cc-auth-btn secondary" type="button">← 다른 계정으로 로그인</button>
     <div id="ccPasswordMsg" class="cc-auth-msg"></div>
     <div class="cc-auth-note">변경한 비밀번호는 관리자도 확인할 수 없습니다. 잊어버리면 관리자에서 임시 비밀번호를 다시 발급할 수 있습니다.</div>
   </div>
@@ -2908,6 +2909,7 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
   var newPassword=document.getElementById('ccNewPassword');
   var newPasswordConfirm=document.getElementById('ccNewPasswordConfirm');
   var passwordChangeBtn=document.getElementById('ccPasswordChangeBtn');
+  var passwordBackBtn=document.getElementById('ccPasswordBackBtn');
   var passwordMsg=document.getElementById('ccPasswordMsg');
   var adminOverlay=document.getElementById('ccAdminOverlay');
   var adminClose=document.getElementById('ccAdminClose');
@@ -3030,6 +3032,15 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
     msg(passwordMsg,'');
     if(heartbeatTimer){clearInterval(heartbeatTimer);heartbeatTimer=null;}
     setTimeout(function(){try{newPassword.focus()}catch(e){}},60);
+  }
+
+  async function backToLogin(){
+    try{
+      passwordOverlay.classList.remove('show');
+      await client.auth.signOut({scope:'local'}).catch(function(){});
+    }finally{
+      showLogin('다른 계정으로 로그인할 수 있습니다.');
+    }
   }
 
   async function submitPasswordChange(){
@@ -3544,6 +3555,7 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
   pinUnlockBtn.addEventListener('click',unlockPin);
   pinInput.addEventListener('keydown',function(e){if(e.key==='Enter') unlockPin()});
   passwordChangeBtn.addEventListener('click',submitPasswordChange);
+  passwordBackBtn.addEventListener('click',backToLogin);
   newPasswordConfirm.addEventListener('keydown',function(e){if(e.key==='Enter') submitPasswordChange()});
   adminBtn.addEventListener('click',openAdmin);
   adminClose.addEventListener('click',closeAdmin);
