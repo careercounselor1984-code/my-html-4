@@ -2821,6 +2821,21 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
   <button id="ccLogoutBtn" class="cc-mini-btn" type="button">로그아웃</button>
 </div>
 
+
+<div id="ccPasswordOverlay" class="cc-lock-overlay">
+  <div class="cc-lock-card">
+    <h3 class="cc-lock-title">새 비밀번호 설정</h3>
+    <p class="cc-lock-sub">임시 비밀번호로 처음 로그인했습니다.<br>통합본을 사용하려면 본인이 사용할 새 비밀번호로 변경해 주세요.</p>
+    <label class="cc-auth-label" for="ccNewPassword">새 비밀번호</label>
+    <input id="ccNewPassword" class="cc-auth-input" type="password" autocomplete="new-password" placeholder="8자 이상">
+    <label class="cc-auth-label" for="ccNewPasswordConfirm">새 비밀번호 확인</label>
+    <input id="ccNewPasswordConfirm" class="cc-auth-input" type="password" autocomplete="new-password" placeholder="한 번 더 입력">
+    <button id="ccPasswordChangeBtn" class="cc-auth-btn" type="button">비밀번호 변경하고 시작</button>
+    <div id="ccPasswordMsg" class="cc-auth-msg"></div>
+    <div class="cc-auth-note">변경한 비밀번호는 관리자도 확인할 수 없습니다. 잊어버리면 관리자에서 임시 비밀번호를 다시 발급할 수 있습니다.</div>
+  </div>
+</div>
+
 <div id="ccLockOverlay" class="cc-lock-overlay">
   <div class="cc-lock-card">
     <h3 class="cc-lock-title">화면 잠금</h3>
@@ -2834,7 +2849,7 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
 <div id="ccAdminOverlay" class="cc-admin-overlay" aria-hidden="true">
   <div class="cc-admin-panel">
     <div class="cc-admin-head">
-      <div><h3>상담사 계정 관리</h3><p>아이디 발급 · 비밀번호 초기화 · 등록 PC 초기화 · 사용중지</p></div>
+      <div><h3>상담사 계정 관리</h3><p>아이디 발급 · 비밀번호 초기화 · PC 초기화 · 사용중지 · 퇴사처리</p></div>
       <button id="ccAdminClose" class="cc-admin-close" type="button" title="닫기">×</button>
     </div>
     <div class="cc-admin-body">
@@ -2846,7 +2861,7 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
           <div class="cc-admin-field"><label>임시 비밀번호</label><input id="ccAdminPassword" type="password" placeholder="8자 이상"></div>
           <button id="ccAdminCreateBtn" class="cc-admin-create-btn" type="button">계정 발급</button>
         </div>
-        <div class="cc-admin-hint">아이디는 영문 소문자로 시작하고 영문·숫자·._-만 사용할 수 있습니다. 계정 발급 후 상담사가 최초 로그인하면 해당 브라우저가 주 사용 PC로 등록됩니다.</div>
+        <div class="cc-admin-hint">아이디는 영문 소문자로 시작하고 영문·숫자·._-만 사용할 수 있습니다. 계정 발급 후 최초 로그인 시 상담사가 임시 비밀번호를 본인 비밀번호로 반드시 변경한 뒤, 해당 브라우저가 주 사용 PC로 등록됩니다.</div>
         <div id="ccAdminMsg" class="cc-admin-msg"></div>
       </div>
       <div class="cc-admin-toolbar"><strong>발급된 계정</strong><button id="ccAdminRefresh" class="cc-admin-refresh" type="button">↻ 새로고침</button></div>
@@ -2889,6 +2904,11 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
   var pinInput=document.getElementById('ccPinInput');
   var pinUnlockBtn=document.getElementById('ccPinUnlockBtn');
   var pinMsg=document.getElementById('ccPinMsg');
+  var passwordOverlay=document.getElementById('ccPasswordOverlay');
+  var newPassword=document.getElementById('ccNewPassword');
+  var newPasswordConfirm=document.getElementById('ccNewPasswordConfirm');
+  var passwordChangeBtn=document.getElementById('ccPasswordChangeBtn');
+  var passwordMsg=document.getElementById('ccPasswordMsg');
   var adminOverlay=document.getElementById('ccAdminOverlay');
   var adminClose=document.getElementById('ccAdminClose');
   var adminEmployee=document.getElementById('ccAdminEmployee');
@@ -2976,6 +2996,7 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
     adminOverlay.classList.remove('show');
     adminOverlay.setAttribute('aria-hidden','true');
     lockOverlay.classList.remove('show');
+    passwordOverlay.classList.remove('show');
     loginPassword.value='';
     msg(loginMsg,text||'');
     if(heartbeatTimer){clearInterval(heartbeatTimer);heartbeatTimer=null;}
@@ -2991,6 +3012,77 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
     var when=binding && binding.bound_at ? new Date(binding.bound_at).toLocaleString('ko-KR') : '확인 불가';
     var label=(binding && binding.device_label) ? binding.device_label : '다른 브라우저';
     takeoverInfo.innerHTML='<b>현재 등록:</b> '+escapeHtml(label)+'<br><b>등록 시각:</b> '+escapeHtml(when);
+  }
+
+  function showPasswordChange(user,employee){
+    currentUser=user;
+    currentEmployee=employee;
+    pendingTakeover=null;
+    document.documentElement.classList.add('cc-auth-pending');
+    gate.classList.add('cc-hidden');
+    dock.classList.remove('show');
+    adminOverlay.classList.remove('show');
+    adminOverlay.setAttribute('aria-hidden','true');
+    lockOverlay.classList.remove('show');
+    passwordOverlay.classList.add('show');
+    newPassword.value='';
+    newPasswordConfirm.value='';
+    msg(passwordMsg,'');
+    if(heartbeatTimer){clearInterval(heartbeatTimer);heartbeatTimer=null;}
+    setTimeout(function(){try{newPassword.focus()}catch(e){}},60);
+  }
+
+  async function submitPasswordChange(){
+    var p1=newPassword.value;
+    var p2=newPasswordConfirm.value;
+    msg(passwordMsg,'');
+    if(p1.length<8){msg(passwordMsg,'새 비밀번호는 8자 이상으로 입력해 주세요.');return;}
+    if(p1!==p2){msg(passwordMsg,'새 비밀번호가 서로 일치하지 않습니다.');return;}
+
+    passwordChangeBtn.disabled=true;
+    passwordChangeBtn.textContent='변경 중...';
+    try{
+      var session=await getSession();
+      if(!session || !session.access_token) throw new Error('SESSION_MISSING');
+
+      var res=await fetch(LOGIN_FUNCTION,{
+        method:'POST',
+        headers:{
+          'Content-Type':'application/json',
+          'apikey':SUPABASE_KEY,
+          'Authorization':'Bearer '+session.access_token
+        },
+        body:JSON.stringify({action:'change_password',new_password:p1})
+      });
+      var data=await res.json().catch(function(){return {}});
+      if(!res.ok || !data.ok){
+        var e=new Error(data.error||'PASSWORD_CHANGE_FAILED');
+        e.code=data.error||'PASSWORD_CHANGE_FAILED';
+        throw e;
+      }
+
+      passwordOverlay.classList.remove('show');
+      var user=currentUser;
+      try{
+        var userRes=await client.auth.getUser();
+        if(userRes.data && userRes.data.user) user=userRes.data.user;
+      }catch(e){}
+
+      if(!user){
+        await client.auth.signOut({scope:'local'}).catch(function(){});
+        showLogin('비밀번호가 변경되었습니다. 새 비밀번호로 다시 로그인해 주세요.');
+        return;
+      }
+
+      await validateDevice(user,true);
+    }catch(err){
+      console.error('[CC Auth] password change',err);
+      if(err && err.code==='weak_password') msg(passwordMsg,'새 비밀번호는 8자 이상으로 입력해 주세요.');
+      else msg(passwordMsg,'비밀번호 변경에 실패했습니다. 다시 입력해 주세요.');
+    }finally{
+      passwordChangeBtn.disabled=false;
+      passwordChangeBtn.textContent='비밀번호 변경하고 시작';
+    }
   }
 
   function unlockApp(user,employee){
@@ -3054,7 +3146,13 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
   async function validateDevice(user,freshPassword){
     try{
       var profile=await checkAccountSession();
-      var employee={name:profile.name,system_role:profile.role,active:true,login_id:profile.login_id};
+      var employee={name:profile.name,system_role:profile.role,active:true,login_id:profile.login_id,must_change_password:profile.must_change_password===true};
+
+      if(profile.must_change_password===true){
+        showPasswordChange(user,employee);
+        return false;
+      }
+
       var binding=await getBinding(user.id);
       var myDevice=getDeviceId();
 
@@ -3169,7 +3267,17 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
     heartbeatTimer=setInterval(async function(){
       if(!currentUser || document.hidden) return;
       try{
-        await checkAccountSession();
+        var hbProfile=await checkAccountSession();
+        if(hbProfile && hbProfile.must_change_password===true){
+          showPasswordChange(currentUser,{
+            name:hbProfile.name,
+            system_role:hbProfile.role,
+            active:true,
+            login_id:hbProfile.login_id,
+            must_change_password:true
+          });
+          return;
+        }
         var binding=await getBinding(currentUser.id);
         if(!binding || binding.device_id!==getDeviceId()){
           await client.auth.signOut({scope:'local'}).catch(function(){});
@@ -3312,22 +3420,34 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
     }
 
     var rows=accounts.map(function(r){
+      var isTerminated=!!r.terminated_at;
       var device=r.device
         ? '<div class="cc-device"><b>'+escapeHtml(r.device.label||'등록 기기')+'</b><div class="cc-admin-meta">최근 '+escapeHtml(formatKst(r.device.last_seen_at))+'</div></div>'
         : '<span class="cc-admin-meta">등록된 PC 없음</span>';
-      var status=r.account_active
-        ? '<span class="cc-status on">사용중</span>'
-        : '<span class="cc-status off">중지</span>';
+
+      var status='';
+      if(isTerminated) status='<span class="cc-status off">퇴사</span><div class="cc-admin-meta">'+escapeHtml(formatKst(r.terminated_at))+'</div>';
+      else if(!r.account_active) status='<span class="cc-status off">중지</span>';
+      else if(r.must_change_password) status='<span class="cc-status on">초기비번</span><div class="cc-admin-meta">변경 필요</div>';
+      else status='<span class="cc-status on">사용중</span>';
+
+      var actions='';
+      if(isTerminated){
+        actions='<button class="cc-admin-action" data-act="restore" data-user="'+escapeHtml(r.user_id)+'" data-name="'+escapeHtml(r.name)+'">재직 복구</button>';
+      }else{
+        actions=
+          '<button class="cc-admin-action" data-act="password" data-user="'+escapeHtml(r.user_id)+'" data-name="'+escapeHtml(r.name)+'">비밀번호</button>'+
+          '<button class="cc-admin-action warn" data-act="device" data-user="'+escapeHtml(r.user_id)+'" data-name="'+escapeHtml(r.name)+'">PC 초기화</button>'+
+          '<button class="cc-admin-action '+(r.account_active?'danger':'')+'" data-act="toggle" data-user="'+escapeHtml(r.user_id)+'" data-name="'+escapeHtml(r.name)+'" data-active="'+(r.account_active?'1':'0')+'">'+(r.account_active?'사용중지':'재활성화')+'</button>'+
+          '<button class="cc-admin-action danger" data-act="terminate" data-user="'+escapeHtml(r.user_id)+'" data-name="'+escapeHtml(r.name)+'">퇴사처리</button>';
+      }
+
       return '<tr>'+
         '<td><div class="cc-admin-id">'+escapeHtml(r.login_id)+'</div></td>'+
         '<td><div class="cc-admin-name">'+escapeHtml(r.name)+'</div><div class="cc-admin-meta">'+escapeHtml([r.division,r.team,r.job_title].filter(Boolean).join(' · '))+'</div></td>'+
         '<td>'+status+'</td>'+
         '<td>'+device+'</td>'+
-        '<td><div class="cc-admin-actions">'+
-          '<button class="cc-admin-action" data-act="password" data-user="'+escapeHtml(r.user_id)+'" data-name="'+escapeHtml(r.name)+'">비밀번호</button>'+
-          '<button class="cc-admin-action warn" data-act="device" data-user="'+escapeHtml(r.user_id)+'" data-name="'+escapeHtml(r.name)+'">PC 초기화</button>'+
-          '<button class="cc-admin-action '+(r.account_active?'danger':'')+'" data-act="toggle" data-user="'+escapeHtml(r.user_id)+'" data-name="'+escapeHtml(r.name)+'" data-active="'+(r.account_active?'1':'0')+'">'+(r.account_active?'사용중지':'재활성화')+'</button>'+
-        '</div></td>'+
+        '<td><div class="cc-admin-actions">'+actions+'</div></td>'+
       '</tr>';
     }).join('');
 
@@ -3349,7 +3469,7 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
       await adminCall('create_account',{employee_id:employeeId,login_id:id,password:password});
       adminLoginId.value='';
       adminPassword.value='';
-      alert('계정이 발급되었습니다.\n아이디: '+id);
+      alert('계정이 발급되었습니다.\n아이디: '+id+'\n최초 로그인 시 새 비밀번호 설정이 필요합니다.');
       await loadAdmin();
     }catch(err){
       console.error('[CC Admin] create',err);
@@ -3375,7 +3495,7 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
         var p2=prompt('확인을 위해 한 번 더 입력해 주세요.');
         if(p2!==p1){alert('비밀번호가 일치하지 않습니다.');return}
         await adminCall('reset_password',{user_id:userId,password:p1});
-        alert('비밀번호를 변경했습니다.');
+        alert('임시 비밀번호로 초기화했습니다.\n다음 로그인 시 본인 비밀번호로 반드시 변경해야 합니다.');
       }else if(act==='device'){
         if(!confirm(name+'님의 등록 PC를 초기화할까요?\n다음 로그인한 브라우저가 새 PC로 등록됩니다.')) return;
         await adminCall('reset_device',{user_id:userId});
@@ -3383,14 +3503,28 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
       }else if(act==='toggle'){
         var isActive=btn.getAttribute('data-active')==='1';
         var next=!isActive;
-        if(!confirm(name+'님의 계정을 '+(next?'다시 사용하도록 활성화':'사용중지')+'할까요?')) return;
+        if(!confirm(name+'님의 계정을 '+(next?'다시 사용하도록 활성화':'일시 사용중지')+'할까요?')) return;
         await adminCall('set_active',{user_id:userId,active:next});
-        alert(next?'계정을 재활성화했습니다.':'계정을 사용중지했습니다.');
+        alert(next?'계정을 재활성화했습니다.':'계정을 일시 사용중지했습니다.');
+      }else if(act==='terminate'){
+        if(!confirm(name+'님을 퇴사처리할까요?\n\n· 통합본 로그인 즉시 차단\n· 등록 PC 해제\n· 계정 이력은 관리자 화면에 보관\n\n실제 삭제가 아니라 안전한 퇴사상태로 보관됩니다.')) return;
+        await adminCall('terminate_account',{user_id:userId});
+        alert('퇴사처리했습니다. 해당 계정은 더 이상 로그인할 수 없습니다.');
+      }else if(act==='restore'){
+        var temp=prompt(name+'님의 재직 복구용 임시 비밀번호를 입력해 주세요.\n(8자 이상)');
+        if(temp===null) return;
+        if(temp.length<8){alert('비밀번호는 8자 이상이어야 합니다.');return}
+        var temp2=prompt('확인을 위해 임시 비밀번호를 한 번 더 입력해 주세요.');
+        if(temp2!==temp){alert('비밀번호가 일치하지 않습니다.');return}
+        await adminCall('restore_account',{user_id:userId});
+        await adminCall('reset_password',{user_id:userId,password:temp});
+        alert('재직 상태로 복구했습니다.\n다음 로그인 시 새 비밀번호를 설정해야 합니다.');
       }
       await loadAdmin();
     }catch(err){
       console.error('[CC Admin] action',err);
       if(err.code==='cannot_disable_self') alert('현재 로그인한 관리자 자신의 계정은 사용중지할 수 없습니다.');
+      else if(err.code==='cannot_terminate_self') alert('현재 로그인한 관리자 자신의 계정은 퇴사처리할 수 없습니다.');
       else alert('처리 중 오류가 발생했습니다. 다시 시도해 주세요.');
     }
   }
@@ -3409,6 +3543,8 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
   lockBtn.addEventListener('click',lockNow);
   pinUnlockBtn.addEventListener('click',unlockPin);
   pinInput.addEventListener('keydown',function(e){if(e.key==='Enter') unlockPin()});
+  passwordChangeBtn.addEventListener('click',submitPasswordChange);
+  newPasswordConfirm.addEventListener('keydown',function(e){if(e.key==='Enter') submitPasswordChange()});
   adminBtn.addEventListener('click',openAdmin);
   adminClose.addEventListener('click',closeAdmin);
   adminRefresh.addEventListener('click',loadAdmin);
