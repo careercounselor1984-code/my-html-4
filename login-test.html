@@ -294,6 +294,17 @@ html.cc-auth-pending body>.app{visibility:hidden!important}
 .cc-auth-msg{display:none;margin-top:13px;padding:10px 11px;border-radius:10px;background:#fff7ed;border:1px solid #fed7aa;color:#9a4d0b;font-size:12px;line-height:1.5}
 .cc-auth-msg.show{display:block}
 .cc-auth-note{margin-top:16px;border-top:1px solid #edf1f6;padding-top:14px;color:#8390a3;font-size:11px;line-height:1.55}
+.cc-auth-help{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:12px;font-size:11px;color:#9aa6b7}
+.cc-auth-linkbtn{border:0;background:transparent;color:#4b6fab;font-size:11px;font-weight:850;cursor:pointer;padding:2px 3px}
+.cc-auth-linkbtn:hover{text-decoration:underline;color:#2563eb}
+.cc-recovery-tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:2px 0 14px}
+.cc-recovery-tab{height:36px;border:1px solid #dbe5f2;background:#f8fafc;border-radius:9px;color:#64748b;font-size:11px;font-weight:900;cursor:pointer}
+.cc-recovery-tab.active{background:#eaf2ff;border-color:#b9d0f6;color:#1d5fc5}
+.cc-recovery-result{margin-top:12px;padding:12px;border-radius:12px;background:#f0f7ff;border:1px solid #cfe0fb;color:#315b92;font-size:12px;line-height:1.5;display:none}
+.cc-recovery-result.show{display:block}
+.cc-recovery-result strong{font-size:15px;color:#174f9c}
+.cc-recovery-actions{display:flex;gap:8px;margin-top:10px}
+.cc-recovery-actions .cc-auth-btn{margin-top:0}
 .cc-auth-good{display:flex;align-items:center;gap:7px;color:#13865f;font-size:11px;font-weight:800;margin-top:10px}
 .cc-auth-dot{width:7px;height:7px;border-radius:50%;background:#10b981;box-shadow:0 0 0 3px #dff8ef}
 .cc-takeover-info{margin:14px 0 4px;padding:12px;border:1px solid #dbe5f2;background:#f8fafc;border-radius:12px;color:#526178;font-size:12px;line-height:1.6}
@@ -2796,6 +2807,11 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
         <input id="ccLoginPassword" class="cc-auth-input" type="password" autocomplete="current-password" placeholder="비밀번호 입력" required>
         <button id="ccLoginBtn" class="cc-auth-btn" type="submit">로그인</button>
       </form>
+      <div class="cc-auth-help">
+        <button id="ccFindIdOpenBtn" class="cc-auth-linkbtn" type="button">아이디 찾기</button>
+        <span>·</span>
+        <button id="ccResetOpenBtn" class="cc-auth-linkbtn" type="button">비밀번호 재설정</button>
+      </div>
       <div id="ccLoginMsg" class="cc-auth-msg"></div>
       <div class="cc-auth-good"><span class="cc-auth-dot"></span>비밀번호는 통합본 HTML에 저장하지 않습니다.</div>
       <div class="cc-auth-note">현재 관리자 테스트 아이디는 <b>jojo</b>입니다. 비밀번호는 기존에 설정한 Supabase 비밀번호를 그대로 사용합니다.</div>
@@ -2821,6 +2837,55 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
   <button id="ccLogoutBtn" class="cc-mini-btn" type="button">로그아웃</button>
 </div>
 
+
+
+<div id="ccAccountRecoveryOverlay" class="cc-lock-overlay">
+  <div class="cc-lock-card">
+    <h3 class="cc-lock-title">계정 찾기</h3>
+    <p class="cc-lock-sub">등록된 이름과 이메일로 아이디를 확인하거나 비밀번호 재설정 메일을 받을 수 있습니다.</p>
+
+    <div class="cc-recovery-tabs">
+      <button id="ccRecoveryFindTab" class="cc-recovery-tab active" type="button">아이디 찾기</button>
+      <button id="ccRecoveryResetTab" class="cc-recovery-tab" type="button">비밀번호 재설정</button>
+    </div>
+
+    <div id="ccRecoveryFindView">
+      <label class="cc-auth-label" for="ccFindName">이름</label>
+      <input id="ccFindName" class="cc-auth-input" type="text" placeholder="예: 안유리">
+      <label class="cc-auth-label" for="ccFindEmail">등록 이메일</label>
+      <input id="ccFindEmail" class="cc-auth-input" type="email" placeholder="name@ulsan1.kr">
+      <button id="ccFindIdBtn" class="cc-auth-btn" type="button">아이디 확인</button>
+      <div id="ccFindResult" class="cc-recovery-result"></div>
+      <div id="ccFindMsg" class="cc-auth-msg"></div>
+    </div>
+
+    <div id="ccRecoveryResetView" style="display:none">
+      <label class="cc-auth-label" for="ccResetLoginId">아이디</label>
+      <input id="ccResetLoginId" class="cc-auth-input" type="text" autocapitalize="none" spellcheck="false" placeholder="예: yuuuuul22">
+      <label class="cc-auth-label" for="ccResetEmail">등록 이메일</label>
+      <input id="ccResetEmail" class="cc-auth-input" type="email" placeholder="name@ulsan1.kr">
+      <button id="ccResetSendBtn" class="cc-auth-btn" type="button">재설정 메일 받기</button>
+      <div id="ccResetResult" class="cc-recovery-result"></div>
+      <div id="ccResetMsg" class="cc-auth-msg"></div>
+    </div>
+
+    <button id="ccRecoveryCloseBtn" class="cc-auth-btn secondary" type="button">로그인 화면으로 돌아가기</button>
+    <div class="cc-auth-note">등록 이메일을 사용할 수 없는 경우에만 관리자에게 비밀번호 초기화를 요청하면 됩니다.</div>
+  </div>
+</div>
+
+<div id="ccRecoveryPasswordOverlay" class="cc-lock-overlay">
+  <div class="cc-lock-card">
+    <h3 class="cc-lock-title">비밀번호 재설정</h3>
+    <p class="cc-lock-sub">이메일 인증이 완료되었습니다.<br>새로 사용할 비밀번호를 설정해 주세요.</p>
+    <label class="cc-auth-label" for="ccRecoveryNewPassword">새 비밀번호</label>
+    <input id="ccRecoveryNewPassword" class="cc-auth-input" type="password" autocomplete="new-password" placeholder="8자 이상">
+    <label class="cc-auth-label" for="ccRecoveryNewPasswordConfirm">새 비밀번호 확인</label>
+    <input id="ccRecoveryNewPasswordConfirm" class="cc-auth-input" type="password" autocomplete="new-password" placeholder="한 번 더 입력">
+    <button id="ccRecoveryPasswordBtn" class="cc-auth-btn" type="button">새 비밀번호로 변경</button>
+    <div id="ccRecoveryPasswordMsg" class="cc-auth-msg"></div>
+  </div>
+</div>
 
 <div id="ccPasswordOverlay" class="cc-lock-overlay">
   <div class="cc-lock-card">
@@ -2879,6 +2944,7 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
   var SUPABASE_KEY='sb_publishable_H_OzeWaIff410mkxFD6NGQ_kiHNm8Ha';
   var LOGIN_FUNCTION=SUPABASE_URL+'/functions/v1/counselor-login';
   var ADMIN_FUNCTION=SUPABASE_URL+'/functions/v1/counselor-admin';
+  var RECOVERY_FUNCTION=SUPABASE_URL+'/functions/v1/counselor-recovery';
   var DEVICE_KEY='cc_device_id_v1';
   var PIN_KEY='cc_local_pin_hash_v1';
   var IDLE_MS=60*60*1000;
@@ -2892,6 +2958,29 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
   var loginPassword=document.getElementById('ccLoginPassword');
   var loginBtn=document.getElementById('ccLoginBtn');
   var loginMsg=document.getElementById('ccLoginMsg');
+  var findIdOpenBtn=document.getElementById('ccFindIdOpenBtn');
+  var resetOpenBtn=document.getElementById('ccResetOpenBtn');
+  var accountRecoveryOverlay=document.getElementById('ccAccountRecoveryOverlay');
+  var recoveryFindTab=document.getElementById('ccRecoveryFindTab');
+  var recoveryResetTab=document.getElementById('ccRecoveryResetTab');
+  var recoveryFindView=document.getElementById('ccRecoveryFindView');
+  var recoveryResetView=document.getElementById('ccRecoveryResetView');
+  var findName=document.getElementById('ccFindName');
+  var findEmail=document.getElementById('ccFindEmail');
+  var findIdBtn=document.getElementById('ccFindIdBtn');
+  var findResult=document.getElementById('ccFindResult');
+  var findMsg=document.getElementById('ccFindMsg');
+  var resetLoginId=document.getElementById('ccResetLoginId');
+  var resetEmail=document.getElementById('ccResetEmail');
+  var resetSendBtn=document.getElementById('ccResetSendBtn');
+  var resetResult=document.getElementById('ccResetResult');
+  var resetMsg=document.getElementById('ccResetMsg');
+  var recoveryCloseBtn=document.getElementById('ccRecoveryCloseBtn');
+  var recoveryPasswordOverlay=document.getElementById('ccRecoveryPasswordOverlay');
+  var recoveryNewPassword=document.getElementById('ccRecoveryNewPassword');
+  var recoveryNewPasswordConfirm=document.getElementById('ccRecoveryNewPasswordConfirm');
+  var recoveryPasswordBtn=document.getElementById('ccRecoveryPasswordBtn');
+  var recoveryPasswordMsg=document.getElementById('ccRecoveryPasswordMsg');
   var takeoverInfo=document.getElementById('ccTakeoverInfo');
   var takeoverCancel=document.getElementById('ccTakeoverCancel');
   var takeoverConfirm=document.getElementById('ccTakeoverConfirm');
@@ -2999,6 +3088,8 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
     adminOverlay.setAttribute('aria-hidden','true');
     lockOverlay.classList.remove('show');
     passwordOverlay.classList.remove('show');
+    accountRecoveryOverlay.classList.remove('show');
+    recoveryPasswordOverlay.classList.remove('show');
     loginPassword.value='';
     msg(loginMsg,text||'');
     if(heartbeatTimer){clearInterval(heartbeatTimer);heartbeatTimer=null;}
@@ -3014,6 +3105,146 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
     var when=binding && binding.bound_at ? new Date(binding.bound_at).toLocaleString('ko-KR') : '확인 불가';
     var label=(binding && binding.device_label) ? binding.device_label : '다른 브라우저';
     takeoverInfo.innerHTML='<b>현재 등록:</b> '+escapeHtml(label)+'<br><b>등록 시각:</b> '+escapeHtml(when);
+  }
+
+  function setRecoveryMode(mode){
+    var findMode=mode!=='reset';
+    recoveryFindView.style.display=findMode?'':'none';
+    recoveryResetView.style.display=findMode?'none':'';
+    recoveryFindTab.classList.toggle('active',findMode);
+    recoveryResetTab.classList.toggle('active',!findMode);
+    msg(findMsg,''); msg(resetMsg,'');
+    findResult.classList.remove('show'); findResult.innerHTML='';
+    resetResult.classList.remove('show'); resetResult.innerHTML='';
+    setTimeout(function(){
+      try{(findMode?findName:resetLoginId).focus()}catch(e){}
+    },50);
+  }
+
+  function openAccountRecovery(mode){
+    accountRecoveryOverlay.classList.add('show');
+    setRecoveryMode(mode);
+  }
+
+  function closeAccountRecovery(){
+    accountRecoveryOverlay.classList.remove('show');
+  }
+
+  async function recoveryApi(action,payload){
+    var res=await fetch(RECOVERY_FUNCTION,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','apikey':SUPABASE_KEY},
+      body:JSON.stringify(Object.assign({action:action},payload||{}))
+    });
+    var data=await res.json().catch(function(){return {}});
+    if(!res.ok){
+      var e=new Error(data.error||'RECOVERY_FAILED');
+      e.code=data.error||'RECOVERY_FAILED';
+      throw e;
+    }
+    return data;
+  }
+
+  async function findLoginId(){
+    msg(findMsg,'');
+    findResult.classList.remove('show');
+    var name=findName.value.trim();
+    var email=findEmail.value.trim().toLowerCase();
+    if(name.length<2 || email.indexOf('@')<1){
+      msg(findMsg,'이름과 등록 이메일을 정확하게 입력해 주세요.');
+      return;
+    }
+    findIdBtn.disabled=true;
+    findIdBtn.textContent='확인 중...';
+    try{
+      var data=await recoveryApi('find_id',{name:name,email:email});
+      findResult.innerHTML='등록된 아이디는 <strong>'+escapeHtml(data.login_id||'')+'</strong> 입니다.';
+      findResult.classList.add('show');
+      resetLoginId.value=data.login_id||'';
+      resetEmail.value=email;
+    }catch(err){
+      if(err && err.code==='not_found') msg(findMsg,'입력한 이름과 이메일에 일치하는 계정을 찾지 못했습니다.');
+      else msg(findMsg,'아이디 확인 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+    }finally{
+      findIdBtn.disabled=false;
+      findIdBtn.textContent='아이디 확인';
+    }
+  }
+
+  async function sendPasswordReset(){
+    msg(resetMsg,'');
+    resetResult.classList.remove('show');
+    var id=resetLoginId.value.trim().toLowerCase();
+    var email=resetEmail.value.trim().toLowerCase();
+    if(!/^[a-z][a-z0-9._-]{2,30}$/.test(id) || email.indexOf('@')<1){
+      msg(resetMsg,'아이디와 등록 이메일을 정확하게 입력해 주세요.');
+      return;
+    }
+    resetSendBtn.disabled=true;
+    resetSendBtn.textContent='발송 중...';
+    try{
+      await recoveryApi('request_reset',{login_id:id,email:email});
+      resetResult.innerHTML='입력한 정보가 계정과 일치하면 <strong>비밀번호 재설정 메일</strong>을 보냈습니다.<br>메일의 링크를 눌러 새 비밀번호를 설정해 주세요.';
+      resetResult.classList.add('show');
+    }catch(err){
+      msg(resetMsg,'메일 발송 요청 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+    }finally{
+      resetSendBtn.disabled=false;
+      resetSendBtn.textContent='재설정 메일 받기';
+    }
+  }
+
+  function showRecoveryPassword(){
+    currentUser=null;
+    currentEmployee=null;
+    document.documentElement.classList.add('cc-auth-pending');
+    gate.classList.add('cc-hidden');
+    dock.classList.remove('show');
+    accountRecoveryOverlay.classList.remove('show');
+    passwordOverlay.classList.remove('show');
+    recoveryPasswordOverlay.classList.add('show');
+    recoveryNewPassword.value='';
+    recoveryNewPasswordConfirm.value='';
+    msg(recoveryPasswordMsg,'');
+    if(heartbeatTimer){clearInterval(heartbeatTimer);heartbeatTimer=null;}
+    setTimeout(function(){try{recoveryNewPassword.focus()}catch(e){}},60);
+  }
+
+  async function submitRecoveryPassword(){
+    var p1=recoveryNewPassword.value;
+    var p2=recoveryNewPasswordConfirm.value;
+    msg(recoveryPasswordMsg,'');
+    if(p1.length<8){msg(recoveryPasswordMsg,'새 비밀번호는 8자 이상으로 입력해 주세요.');return;}
+    if(p1!==p2){msg(recoveryPasswordMsg,'새 비밀번호가 서로 일치하지 않습니다.');return;}
+
+    recoveryPasswordBtn.disabled=true;
+    recoveryPasswordBtn.textContent='변경 중...';
+    try{
+      var session=await getSession();
+      if(!session || !session.access_token) throw new Error('RECOVERY_SESSION_MISSING');
+      var res=await fetch(LOGIN_FUNCTION,{
+        method:'POST',
+        headers:{
+          'Content-Type':'application/json',
+          'apikey':SUPABASE_KEY,
+          'Authorization':'Bearer '+session.access_token
+        },
+        body:JSON.stringify({action:'change_password',new_password:p1})
+      });
+      var data=await res.json().catch(function(){return {}});
+      if(!res.ok || !data.ok) throw new Error(data.error||'PASSWORD_CHANGE_FAILED');
+
+      await client.auth.signOut({scope:'global'}).catch(function(){});
+      try{history.replaceState(null,'',location.pathname)}catch(e){}
+      recoveryPasswordOverlay.classList.remove('show');
+      showLogin('비밀번호가 변경되었습니다. 새 비밀번호로 로그인해 주세요.');
+    }catch(err){
+      console.error('[CC Recovery] password',err);
+      msg(recoveryPasswordMsg,'재설정 링크가 만료되었거나 비밀번호 변경에 실패했습니다. 다시 재설정 메일을 요청해 주세요.');
+    }finally{
+      recoveryPasswordBtn.disabled=false;
+      recoveryPasswordBtn.textContent='새 비밀번호로 변경';
+    }
   }
 
   function showPasswordChange(user,employee){
@@ -3484,7 +3715,11 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
       await loadAdmin();
     }catch(err){
       console.error('[CC Admin] create',err);
-      var text=err.code==='login_id_taken'?'이미 사용 중인 아이디입니다.':'계정 발급에 실패했습니다.';
+      var text=err.code==='login_id_taken'
+        ? '이미 사용 중인 아이디입니다.'
+        : err.code==='employee_email_required'
+          ? '직원 이메일이 등록되어 있지 않습니다. 직원정보에 이메일을 먼저 등록해 주세요.'
+          : '계정 발급에 실패했습니다.';
       msg(adminMsg,text);
     }finally{
       adminCreateBtn.disabled=false;
@@ -3547,6 +3782,17 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
   });
 
   loginForm.addEventListener('submit',doLogin);
+  findIdOpenBtn.addEventListener('click',function(){openAccountRecovery('find')});
+  resetOpenBtn.addEventListener('click',function(){openAccountRecovery('reset')});
+  recoveryFindTab.addEventListener('click',function(){setRecoveryMode('find')});
+  recoveryResetTab.addEventListener('click',function(){setRecoveryMode('reset')});
+  recoveryCloseBtn.addEventListener('click',closeAccountRecovery);
+  findIdBtn.addEventListener('click',findLoginId);
+  resetSendBtn.addEventListener('click',sendPasswordReset);
+  findEmail.addEventListener('keydown',function(e){if(e.key==='Enter') findLoginId()});
+  resetEmail.addEventListener('keydown',function(e){if(e.key==='Enter') sendPasswordReset()});
+  recoveryPasswordBtn.addEventListener('click',submitRecoveryPassword);
+  recoveryNewPasswordConfirm.addEventListener('keydown',function(e){if(e.key==='Enter') submitRecoveryPassword()});
   takeoverConfirm.addEventListener('click',confirmTakeover);
   takeoverCancel.addEventListener('click',cancelTakeover);
   logoutBtn.addEventListener('click',logout);
@@ -3572,10 +3818,36 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
       showLogin('로그인 모듈을 불러오지 못했습니다. 인터넷 연결을 확인해 주세요.');
       return;
     }
+
+    var recoveryRequested=false;
+    try{recoveryRequested=new URLSearchParams(location.search).get('recover')==='1'}catch(e){}
+
     client=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{
-      auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}
+      auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}
     });
+
+    client.auth.onAuthStateChange(function(event,session){
+      if(event==='PASSWORD_RECOVERY' && session){
+        showRecoveryPassword();
+      }
+    });
+
     try{
+      if(recoveryRequested){
+        await new Promise(function(resolve){setTimeout(resolve,250)});
+        var recoverySession=await getSession();
+        if(!recoverySession){
+          await new Promise(function(resolve){setTimeout(resolve,500)});
+          recoverySession=await getSession();
+        }
+        if(recoverySession){
+          showRecoveryPassword();
+          return;
+        }
+        showLogin('재설정 링크가 만료되었거나 유효하지 않습니다. 비밀번호 재설정을 다시 요청해 주세요.');
+        return;
+      }
+
       var res=await client.auth.getUser();
       if(res.data && res.data.user){
         await validateDevice(res.data.user,false);
