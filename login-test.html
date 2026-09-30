@@ -2756,7 +2756,7 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
 .cc-admin-body{padding:18px 20px;overflow:auto}
 .cc-admin-create{border:1px solid #dbe5f2;background:#f8fbff;border-radius:16px;padding:14px}
 .cc-admin-create-title{font-size:13px;font-weight:950;color:#31425f;margin-bottom:10px}
-.cc-admin-grid{display:grid;grid-template-columns:1.4fr 1fr 1fr auto;gap:8px;align-items:end}
+.cc-admin-grid{display:grid;grid-template-columns:1.4fr 1fr auto;gap:8px;align-items:end}
 .cc-admin-field label{display:block;font-size:10.5px;font-weight:850;color:#68778e;margin:0 0 5px}
 .cc-admin-field select,.cc-admin-field input{width:100%;height:40px;border:1px solid #cbd8e8;border-radius:10px;background:#fff;padding:0 10px;font-size:12px;color:#172033;outline:none}
 .cc-admin-field select:focus,.cc-admin-field input:focus{border-color:#7ca5e7;box-shadow:0 0 0 3px rgba(37,99,235,.08)}
@@ -2803,8 +2803,8 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
       <form id="ccLoginForm">
         <label class="cc-auth-label" for="ccLoginId">아이디</label>
         <input id="ccLoginId" class="cc-auth-input" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="예: jojo" required>
-        <label class="cc-auth-label" for="ccLoginPassword">비밀번호</label>
-        <input id="ccLoginPassword" class="cc-auth-input" type="password" autocomplete="current-password" placeholder="비밀번호 입력" required>
+        <label class="cc-auth-label" for="ccLoginPassword">비밀번호 / 초기 PIN</label>
+        <input id="ccLoginPassword" class="cc-auth-input" type="password" autocomplete="current-password" placeholder="최초 접속은 1234" required>
         <button id="ccLoginBtn" class="cc-auth-btn" type="submit">로그인</button>
       </form>
       <div class="cc-auth-help">
@@ -2814,7 +2814,7 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
       </div>
       <div id="ccLoginMsg" class="cc-auth-msg"></div>
       <div class="cc-auth-good"><span class="cc-auth-dot"></span>비밀번호는 통합본 HTML에 저장하지 않습니다.</div>
-      <div class="cc-auth-note">현재 관리자 테스트 아이디는 <b>jojo</b>입니다. 비밀번호는 기존에 설정한 Supabase 비밀번호를 그대로 사용합니다.</div>
+      <div class="cc-auth-note">처음 발급받은 계정은 <b>초기 PIN 1234</b>로 로그인합니다. 첫 로그인 후에는 반드시 본인 비밀번호로 변경해야 합니다.</div>
     </div>
     <div id="ccTakeoverView" style="display:none">
       <h2 class="cc-auth-title">다른 PC에 등록된 계정</h2>
@@ -2890,7 +2890,7 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
 <div id="ccPasswordOverlay" class="cc-lock-overlay">
   <div class="cc-lock-card">
     <h3 class="cc-lock-title">새 비밀번호 설정</h3>
-    <p class="cc-lock-sub">임시 비밀번호로 처음 로그인했습니다.<br>통합본을 사용하려면 본인이 사용할 새 비밀번호로 변경해 주세요.</p>
+    <p class="cc-lock-sub">초기 PIN으로 처음 로그인했습니다.<br>통합본을 사용하려면 본인이 사용할 새 비밀번호로 변경해 주세요.</p>
     <label class="cc-auth-label" for="ccNewPassword">새 비밀번호</label>
     <input id="ccNewPassword" class="cc-auth-input" type="password" autocomplete="new-password" placeholder="8자 이상">
     <label class="cc-auth-label" for="ccNewPasswordConfirm">새 비밀번호 확인</label>
@@ -2924,10 +2924,9 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
         <div class="cc-admin-grid">
           <div class="cc-admin-field"><label>직원 선택</label><select id="ccAdminEmployee"></select></div>
           <div class="cc-admin-field"><label>아이디</label><input id="ccAdminLoginId" type="text" placeholder="예: hong01" autocapitalize="none"></div>
-          <div class="cc-admin-field"><label>임시 비밀번호</label><input id="ccAdminPassword" type="password" placeholder="8자 이상"></div>
           <button id="ccAdminCreateBtn" class="cc-admin-create-btn" type="button">계정 발급</button>
         </div>
-        <div class="cc-admin-hint">아이디는 영문 소문자로 시작하고 영문·숫자·._-만 사용할 수 있습니다. 계정 발급 후 최초 로그인 시 상담사가 임시 비밀번호를 본인 비밀번호로 반드시 변경한 뒤, 해당 브라우저가 주 사용 PC로 등록됩니다.</div>
+        <div class="cc-admin-hint">아이디는 영문 소문자로 시작하고 영문·숫자·._-만 사용할 수 있습니다. 계정 발급 시 초기 PIN은 자동으로 1234가 적용됩니다. 최초 로그인 후 상담사가 본인 비밀번호로 반드시 변경한 뒤, 해당 브라우저가 주 사용 PC로 등록됩니다.</div>
         <div id="ccAdminMsg" class="cc-admin-msg"></div>
       </div>
       <div class="cc-admin-toolbar"><strong>발급된 계정</strong><button id="ccAdminRefresh" class="cc-admin-refresh" type="button">↻ 새로고침</button></div>
@@ -3004,7 +3003,6 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
   var adminClose=document.getElementById('ccAdminClose');
   var adminEmployee=document.getElementById('ccAdminEmployee');
   var adminLoginId=document.getElementById('ccAdminLoginId');
-  var adminPassword=document.getElementById('ccAdminPassword');
   var adminCreateBtn=document.getElementById('ccAdminCreateBtn');
   var adminMsg=document.getElementById('ccAdminMsg');
   var adminRefresh=document.getElementById('ccAdminRefresh');
@@ -3467,7 +3465,8 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
       await validateDevice(user,true);
     }catch(err){
       console.error('[CC Auth] login',err);
-      msg(loginMsg,'아이디 또는 비밀번호를 확인해 주세요.');
+      if(err && err.message==='initial_locked') msg(loginMsg,'초기 PIN 입력을 여러 번 틀려 15분간 잠겼습니다. 잠시 후 다시 시도해 주세요.');
+      else msg(loginMsg,'아이디 또는 비밀번호를 확인해 주세요. 최초 로그인이라면 초기 PIN은 1234입니다.');
     }finally{
       loginBtn.disabled=false;
       loginBtn.textContent='로그인';
@@ -3699,19 +3698,16 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
   async function createAccount(){
     var employeeId=Number(adminEmployee.value);
     var id=adminLoginId.value.trim().toLowerCase();
-    var password=adminPassword.value;
     msg(adminMsg,'');
     if(!employeeId){msg(adminMsg,'계정을 발급할 직원을 선택해 주세요.');return}
     if(!/^[a-z][a-z0-9._-]{2,30}$/.test(id)){msg(adminMsg,'아이디는 영문 소문자로 시작하는 3~31자로 입력해 주세요.');return}
-    if(password.length<8){msg(adminMsg,'임시 비밀번호는 8자 이상으로 입력해 주세요.');return}
 
     adminCreateBtn.disabled=true;
     adminCreateBtn.textContent='발급 중...';
     try{
-      await adminCall('create_account',{employee_id:employeeId,login_id:id,password:password});
+      await adminCall('create_account',{employee_id:employeeId,login_id:id});
       adminLoginId.value='';
-      adminPassword.value='';
-      alert('계정이 발급되었습니다.\n아이디: '+id+'\n최초 로그인 시 새 비밀번호 설정이 필요합니다.');
+      alert('계정이 발급되었습니다.\n아이디: '+id+'\n초기 PIN: 1234\n최초 로그인 후 본인 비밀번호로 변경해야 합니다.');
       await loadAdmin();
     }catch(err){
       console.error('[CC Admin] create',err);
@@ -3735,13 +3731,9 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
 
     try{
       if(act==='password'){
-        var p1=prompt(name+'님의 새 임시 비밀번호를 입력해 주세요.\n(8자 이상)');
-        if(p1===null) return;
-        if(p1.length<8){alert('비밀번호는 8자 이상이어야 합니다.');return}
-        var p2=prompt('확인을 위해 한 번 더 입력해 주세요.');
-        if(p2!==p1){alert('비밀번호가 일치하지 않습니다.');return}
-        await adminCall('reset_password',{user_id:userId,password:p1});
-        alert('임시 비밀번호로 초기화했습니다.\n다음 로그인 시 본인 비밀번호로 반드시 변경해야 합니다.');
+        if(!confirm(name+'님의 비밀번호를 초기화할까요?\n\n초기 PIN은 1234가 되며, 다음 로그인 시 본인 비밀번호로 반드시 변경해야 합니다.')) return;
+        await adminCall('reset_password',{user_id:userId});
+        alert('비밀번호를 초기화했습니다.\n초기 PIN: 1234');
       }else if(act==='device'){
         if(!confirm(name+'님의 등록 PC를 초기화할까요?\n다음 로그인한 브라우저가 새 PC로 등록됩니다.')) return;
         await adminCall('reset_device',{user_id:userId});
@@ -3757,14 +3749,9 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
         await adminCall('terminate_account',{user_id:userId});
         alert('퇴사처리했습니다. 해당 계정은 더 이상 로그인할 수 없습니다.');
       }else if(act==='restore'){
-        var temp=prompt(name+'님의 재직 복구용 임시 비밀번호를 입력해 주세요.\n(8자 이상)');
-        if(temp===null) return;
-        if(temp.length<8){alert('비밀번호는 8자 이상이어야 합니다.');return}
-        var temp2=prompt('확인을 위해 임시 비밀번호를 한 번 더 입력해 주세요.');
-        if(temp2!==temp){alert('비밀번호가 일치하지 않습니다.');return}
+        if(!confirm(name+'님을 재직 상태로 복구할까요?\n복구 후 초기 PIN은 1234가 됩니다.')) return;
         await adminCall('restore_account',{user_id:userId});
-        await adminCall('reset_password',{user_id:userId,password:temp});
-        alert('재직 상태로 복구했습니다.\n다음 로그인 시 새 비밀번호를 설정해야 합니다.');
+        alert('재직 상태로 복구했습니다.\n초기 PIN: 1234\n다음 로그인 시 새 비밀번호를 설정해야 합니다.');
       }
       await loadAdmin();
     }catch(err){
