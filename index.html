@@ -2151,8 +2151,11 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
   const LASTSEEN='clg_shared_board_lastseen_v2';
   const REPLY_MARKER='\n\n[[CLG_REPLIES_V1]]\n';
   const MAX_FILES=3, MAX_FILE_BYTES=10*1024*1024;
+  const BOARD_GET_TIMEOUT_MS=10000;
+  const BOARD_WRITE_TIMEOUT_MS=35000;
   let activeCat='전체', items=[], selectedId=null, currentAttachments=[], pendingFiles=[];
   let initializedSeen=false;
+  let boardLoadPromise=null;
 
   const catClass=c=>c==='사례공유'?'case':c==='채용정보'?'job':c==='Q&A'?'qa':c==='기타'?'etc':'';
   const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
@@ -2180,30 +2183,69 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
   function setStatus(mode,text){const el=$('boardSyncStatus'); if(!el)return; el.classList.remove('online','error'); if(mode)el.classList.add(mode); $('boardSyncText').textContent=text}
   function localLoad(){try{return JSON.parse(localStorage.getItem(STORAGE)||'[]')}catch{return []}}
   function localSave(){localStorage.setItem(STORAGE,JSON.stringify(items))}
-  async function api(action,payload={}){
+  async function api(action,payload={},timeoutMs){
     const url=(cfg().url||DEFAULT_API_URL||'').trim(); if(!url) throw new Error('NO_API');
     const isGet=action==='list'||action==='stats';
     const opts=isGet?{}:{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action,...payload})};
     const target=isGet?url+(url.includes('?')?'&':'?')+'action='+encodeURIComponent(action)+'&_='+Date.now():url;
-    const r=await fetch(target,opts); if(!r.ok) throw new Error('HTTP '+r.status);
-    const data=await r.json(); if(data.ok===false)throw new Error(data.error||'API 오류'); return data;
-  }
-  async function loadBoard(){
-    const wasOnline=$('boardSyncStatus')?.classList.contains('online');
-    if(!wasOnline)setStatus('', '불러오는 중');
+    const ctrl=new AbortController();
+    const ms=Number(timeoutMs|| (isGet?BOARD_GET_TIMEOUT_MS:BOARD_WRITE_TIMEOUT_MS));
+    const timer=setTimeout(()=>ctrl.abort(),ms);
     try{
-      const data=await api('list');
-      items=Array.isArray(data.items)?data.items:[];
-      setStatus('online','공용 연동됨');
-      if(!localStorage.getItem(LASTSEEN) && !initializedSeen){
-        localStorage.setItem(LASTSEEN,String(Date.now()));
-        initializedSeen=true;
+      const r=await fetch(target,{...opts,signal:ctrl.signal});
+      if(!r.ok) throw new Error('HTTP '+r.status);
+      const data=await r.json();
+      if(data.ok===false)throw new Error(data.error||'API 오류');
+      return data;
+    }catch(e){
+      if(e && e.name==='AbortError'){
+        const timeoutError=new Error('TIMEOUT');
+        timeoutError.code='TIMEOUT';
+        throw timeoutError;
       }
-    } catch(e){
-      items=localLoad();
-      setStatus(e.message==='NO_API'?'':'error',e.message==='NO_API'?'이 PC 시험모드':'연동 오류 · 로컬 표시');
+      throw e;
+    }finally{
+      clearTimeout(timer);
     }
-    render(); updateUnread();
+  }
+  async function loadBoard(options={}){
+    const silent=!!(options&&options.silent);
+    if(boardLoadPromise) return boardLoadPromise;
+    boardLoadPromise=(async()=>{
+      const cached=localLoad();
+      if(!items.length && cached.length){
+        items=cached;
+        render();
+        updateUnread();
+      }
+      if(!silent) setStatus('',items.length?'새 글 확인 중':'불러오는 중');
+      try{
+        const data=await api('list');
+        items=Array.isArray(data.items)?data.items:[];
+        localSave();
+        setStatus('online','공용 연동됨');
+        if(!localStorage.getItem(LASTSEEN) && !initializedSeen){
+          localStorage.setItem(LASTSEEN,String(Date.now()));
+          initializedSeen=true;
+        }
+      }catch(e){
+        if(!items.length) items=localLoad();
+        if(e && (e.code==='TIMEOUT'||e.message==='TIMEOUT')){
+          setStatus('error',items.length?'연결 지연 · 최근 내용 표시':'연결 지연 · 새로고침');
+        }else if(e && e.message==='NO_API'){
+          setStatus('', '이 PC 시험모드');
+        }else{
+          setStatus('error',items.length?'연동 오류 · 최근 내용 표시':'연동 오류 · 새로고침');
+        }
+      }
+      render();
+      updateUnread();
+    })();
+    try{
+      await boardLoadPromise;
+    }finally{
+      boardLoadPromise=null;
+    }
   }
   async function loadStats(){
     try{
@@ -2256,7 +2298,7 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
     $('boardTitle').value='';$('boardContent').value='';$('boardLink').value='';$('boardFileInput').value='';
     $('boardPinned').checked=false;$('boardImportant').checked=false;$('boardDeleteBtn').style.display='none';
     $('boardSaveBtn').textContent='등록';$('boardSaveBtn').disabled=false;$('boardComposeTitle').textContent='새 글 작성';
-    $('boardEditor').classList.remove('detail-mode'); renderAttachList(); loadStats();
+    $('boardEditor').classList.remove('detail-mode'); renderAttachList();
   }
   function fillForm(x){
     selectedId=x.id;currentAttachments=Array.isArray(x.attachments)?JSON.parse(JSON.stringify(x.attachments)):[];pendingFiles=[];
@@ -2361,7 +2403,15 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
   }
   async function openBoard(){
     const d=$('boardDialog');if(typeof d.showModal==='function')d.showModal();else d.setAttribute('open','');
-    await loadBoard(); await loadStats();
+    const cached=localLoad();
+    if(!items.length && cached.length){
+      items=cached;
+      render();
+      updateUnread();
+      setStatus('', '최근 내용 표시 · 새 글 확인 중');
+    }
+    await loadBoard();
+    loadStats();
   }
   function closeBoard(){markSeen();$('boardDialog').close();}
   function onFilesSelected(e){
@@ -2378,7 +2428,7 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
     if(!$('boardOpenBtn'))return;
     $('boardAuthorInput').value=localStorage.getItem(AUTHOR)||'';$('boardReplyAuthor').value=localStorage.getItem(AUTHOR)||'';$('boardApiUrl').value=cfg().url||DEFAULT_API_URL;
     $('boardOpenBtn').addEventListener('click',openBoard);$('boardCloseBtn').addEventListener('click',closeBoard);
-    $('boardRefreshBtn').addEventListener('click',loadBoard);$('boardSearch').addEventListener('input',render);
+    $('boardRefreshBtn').addEventListener('click',()=>loadBoard());$('boardSearch').addEventListener('input',render);
     $('boardNewBtn').addEventListener('click',clearForm);$('boardResetBtn').addEventListener('click',clearForm);
     $('boardSaveBtn').addEventListener('click',savePost);$('boardDeleteBtn').addEventListener('click',deletePost);
     $('boardBackBtn').addEventListener('click',clearForm);$('boardEditBtn').addEventListener('click',()=>{const x=items.find(v=>String(v.id)===String(selectedId));if(x)fillForm(x)});
@@ -2387,8 +2437,13 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
     $('boardConfigBtn').addEventListener('click',()=> $('boardConfigBox').classList.toggle('show'));
     $('boardSaveConfigBtn').addEventListener('click',()=>{const url=$('boardApiUrl').value.trim();localStorage.setItem(CFG,JSON.stringify({url}));$('boardConfigBox').classList.remove('show');loadBoard();});
     $('boardDialog').addEventListener('click',e=>{if(e.target===$('boardDialog'))closeBoard()});
-    clearForm(); loadBoard();
-    setInterval(loadBoard,30000); // 게시판을 닫아둬도 새 글을 30초마다 확인
+    clearForm();
+    items=localLoad();
+    render();
+    updateUnread();
+    setStatus('',items.length?'최근 내용 준비됨':'연결 대기');
+    setTimeout(()=>loadBoard({silent:true}),1200);
+    setInterval(()=>{if(!document.hidden)loadBoard({silent:true})},60000);
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
