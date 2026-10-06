@@ -4174,9 +4174,18 @@ html.cc-auth-checking .cc-auth-gate{display:none!important}
   });
 
   async function bootstrap(){
-    // 로컬에서 직접 연 index.html(file://)은 편집·테스트용으로 로그인 없이 사용
-    // GitHub Pages(https://)에서는 기존 로그인 보호를 그대로 적용
-    if(location.protocol==='file:'){
+    // PC에 내려받은 index.html 및 로컬 미리보기는 편집·테스트용으로 로그인 없이 사용
+    // 실제 GitHub Pages(https://)에서는 기존 로그인 보호를 그대로 적용
+    var localHost=(location.hostname||'').toLowerCase();
+    var isLocalEditMode=
+      location.protocol==='file:' ||
+      localHost==='localhost' ||
+      localHost==='127.0.0.1' ||
+      localHost==='0.0.0.0' ||
+      localHost==='[::1]' ||
+      localHost.endsWith('.localhost');
+
+    if(isLocalEditMode){
       document.documentElement.classList.remove('cc-auth-pending','cc-auth-checking');
       gate.classList.add('cc-hidden');
       dock.classList.remove('show');
