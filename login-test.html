@@ -273,10 +273,11 @@ body.clg-fixed-scroll .viewer iframe{height:100%!important}
 
 
 <!-- CC_AUTH_TEST_BEGIN -->
-<script>document.documentElement.classList.add('cc-auth-pending');</script>
+<script>document.documentElement.classList.add('cc-auth-pending','cc-auth-checking');</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2"></script>
 <style>
 html.cc-auth-pending body>.app{visibility:hidden!important}
+html.cc-auth-checking .cc-auth-gate{display:none!important}
 .cc-auth-gate{position:fixed;inset:0;z-index:2147483000;display:flex;align-items:center;justify-content:center;padding:22px;background:linear-gradient(145deg,#eff5ff 0%,#f8fbff 48%,#eefbf6 100%);font-family:Pretendard,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans KR",sans-serif}
 .cc-auth-gate.cc-hidden{display:none}
 .cc-auth-card{width:min(420px,100%);background:#fff;border:1px solid #dbe5f2;border-radius:22px;padding:28px;box-shadow:0 22px 70px rgba(37,58,92,.16)}
@@ -3077,6 +3078,7 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
     currentEmployee=null;
     pendingTakeover=null;
     document.documentElement.classList.add('cc-auth-pending');
+    document.documentElement.classList.remove('cc-auth-checking');
     gate.classList.remove('cc-hidden');
     loginView.style.display='';
     takeoverView.style.display='none';
@@ -3097,6 +3099,7 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
   function showTakeover(binding,user,employee){
     pendingTakeover={binding:binding,user:user,employee:employee};
     document.documentElement.classList.add('cc-auth-pending');
+    document.documentElement.classList.remove('cc-auth-checking');
     gate.classList.remove('cc-hidden');
     loginView.style.display='none';
     takeoverView.style.display='';
@@ -3328,7 +3331,7 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
   function unlockApp(user,employee){
     currentUser=user;
     currentEmployee=employee;
-    document.documentElement.classList.remove('cc-auth-pending');
+    document.documentElement.classList.remove('cc-auth-pending','cc-auth-checking');
     gate.classList.add('cc-hidden');
     dock.classList.add('show');
     userName.textContent=(employee && employee.name ? employee.name : '상담사')+' · 인증됨';
