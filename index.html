@@ -2666,7 +2666,61 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
       const doc=frame.contentDocument || frame.contentWindow?.document;
       if(!doc) throw new Error('인쇄 프레임을 만들 수 없습니다.');
       doc.open();
-      doc.write(`<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>상담 증빙 캡처 출력</title><style>@page{margin:10mm}html,body{margin:0;padding:0;background:#fff}body{display:flex;justify-content:center;align-items:flex-start}img{display:block;max-width:100%;height:auto;object-fit:contain}</style></head><body><img id="img" src="${data}" alt="캡처 이미지"></body></html>`);
+      doc.write(`<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>상담 증빙 캡처 출력</title><style>@page{margin:10mm}html,body{margin:0;padding:0;background:#fff}body{display:flex;justify-content:center;align-items:flex-start}img{display:block;max-width:100%;height:auto;object-fit:contain}</style>
+
+<!-- CC_AUTH_TEST_BEGIN -->
+<script>document.documentElement.classList.add('cc-auth-pending');</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2"></script>
+<style>
+html.cc-auth-pending body>.app{visibility:hidden!important}
+.cc-auth-gate{position:fixed;inset:0;z-index:2147483000;display:flex;align-items:center;justify-content:center;padding:22px;background:linear-gradient(145deg,#eff5ff 0%,#f8fbff 48%,#eefbf6 100%);font-family:Pretendard,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans KR",sans-serif}
+.cc-auth-gate.cc-hidden{display:none}
+.cc-auth-card{width:min(420px,100%);background:#fff;border:1px solid #dbe5f2;border-radius:22px;padding:28px;box-shadow:0 22px 70px rgba(37,58,92,.16)}
+.cc-auth-logo{width:52px;height:52px;border-radius:16px;background:linear-gradient(145deg,#2563eb,#1d4ed8);display:grid;place-items:center;color:#fff;font-size:20px;font-weight:950;box-shadow:0 10px 24px rgba(37,99,235,.25);margin-bottom:17px}
+.cc-auth-title{font-size:23px;font-weight:950;letter-spacing:-.6px;color:#172033;margin:0}
+.cc-auth-sub{margin:7px 0 22px;color:#6b7890;font-size:13px;line-height:1.55}
+.cc-auth-label{display:block;font-size:12px;font-weight:850;color:#46566f;margin:12px 0 6px}
+.cc-auth-input{width:100%;height:46px;border:1px solid #cbd8e8;border-radius:12px;background:#fff;padding:0 13px;font-size:14px;color:#172033;outline:none}
+.cc-auth-input:focus{border-color:#7ca5e7;box-shadow:0 0 0 3px rgba(37,99,235,.10)}
+.cc-auth-btn{width:100%;height:47px;border:0;border-radius:12px;background:#2563eb;color:#fff;font-weight:900;font-size:14px;cursor:pointer;margin-top:18px}
+.cc-auth-btn:hover{background:#1d4ed8}
+.cc-auth-btn:disabled{opacity:.58;cursor:wait}
+.cc-auth-btn.secondary{background:#fff;color:#42536e;border:1px solid #cbd8e8}
+.cc-auth-btn.danger{background:#fff;color:#c2413b;border:1px solid #f0c7c4}
+.cc-auth-msg{display:none;margin-top:13px;padding:10px 11px;border-radius:10px;background:#fff7ed;border:1px solid #fed7aa;color:#9a4d0b;font-size:12px;line-height:1.5}
+.cc-auth-msg.show{display:block}
+.cc-auth-note{margin-top:16px;border-top:1px solid #edf1f6;padding-top:14px;color:#8390a3;font-size:11px;line-height:1.55}
+.cc-auth-help{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:12px;font-size:11px;color:#9aa6b7}
+.cc-auth-linkbtn{border:0;background:transparent;color:#4b6fab;font-size:11px;font-weight:850;cursor:pointer;padding:2px 3px}
+.cc-auth-linkbtn:hover{text-decoration:underline;color:#2563eb}
+.cc-recovery-tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:2px 0 14px}
+.cc-recovery-tab{height:36px;border:1px solid #dbe5f2;background:#f8fafc;border-radius:9px;color:#64748b;font-size:11px;font-weight:900;cursor:pointer}
+.cc-recovery-tab.active{background:#eaf2ff;border-color:#b9d0f6;color:#1d5fc5}
+.cc-recovery-result{margin-top:12px;padding:12px;border-radius:12px;background:#f0f7ff;border:1px solid #cfe0fb;color:#315b92;font-size:12px;line-height:1.5;display:none}
+.cc-recovery-result.show{display:block}
+.cc-recovery-result strong{font-size:15px;color:#174f9c}
+.cc-recovery-actions{display:flex;gap:8px;margin-top:10px}
+.cc-recovery-actions .cc-auth-btn{margin-top:0}
+.cc-auth-good{display:flex;align-items:center;gap:7px;color:#13865f;font-size:11px;font-weight:800;margin-top:10px}
+.cc-auth-dot{width:7px;height:7px;border-radius:50%;background:#10b981;box-shadow:0 0 0 3px #dff8ef}
+.cc-takeover-info{margin:14px 0 4px;padding:12px;border:1px solid #dbe5f2;background:#f8fafc;border-radius:12px;color:#526178;font-size:12px;line-height:1.6}
+.cc-auth-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.cc-user-dock{position:fixed;right:14px;bottom:14px;z-index:2147482000;display:none;align-items:center;gap:7px;background:rgba(255,255,255,.96);border:1px solid #dbe5f2;border-radius:999px;padding:6px 7px 6px 11px;box-shadow:0 8px 24px rgba(37,58,92,.12);font-family:Pretendard,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans KR",sans-serif}
+.cc-user-dock.show{display:flex}
+.cc-user-name{font-size:11px;font-weight:900;color:#44536b;max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cc-mini-btn{border:1px solid #dbe5f2;background:#fff;color:#64748b;border-radius:999px;height:28px;padding:0 9px;font-size:10px;font-weight:850;cursor:pointer}
+.cc-mini-btn:hover{background:#f1f5f9;color:#2563eb}
+.cc-lock-overlay{position:fixed;inset:0;z-index:2147483500;display:none;align-items:center;justify-content:center;padding:22px;background:rgba(19,32,51,.28);backdrop-filter:blur(9px)}
+.cc-lock-overlay.show{display:flex}
+.cc-lock-card{width:min(360px,100%);background:#fff;border-radius:20px;border:1px solid #dbe5f2;padding:24px;box-shadow:0 20px 60px rgba(22,36,58,.22)}
+.cc-lock-title{font-size:19px;font-weight:950;color:#172033;margin:0 0 6px}
+.cc-lock-sub{font-size:12px;color:#77859a;line-height:1.5;margin:0 0 15px}
+.cc-pin-input{width:100%;height:48px;text-align:center;letter-spacing:8px;font-size:20px;border:1px solid #cbd8e8;border-radius:12px;outline:none}
+.cc-pin-input:focus{border-color:#7ca5e7;box-shadow:0 0 0 3px rgba(37,99,235,.10)}
+@media(max-width:640px){.cc-auth-card{padding:22px;border-radius:18px}.cc-user-dock{right:8px;bottom:8px}.cc-user-name{display:none}}
+</style>
+<!-- CC_AUTH_TEST_END -->
+</head><body><img id="img" src="${data}" alt="캡처 이미지"></body></html>`);
       doc.close();
       const img=doc.getElementById('img');
       const go=()=>{
@@ -3003,5 +3057,1114 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
 </script>
 </div>
 
+
+
+<!-- CC_AUTH_TEST_UI_BEGIN -->
+<style>
+.cc-admin-overlay{position:fixed;inset:0;z-index:2147483600;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(19,32,51,.34);backdrop-filter:blur(8px);font-family:Pretendard,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans KR",sans-serif}
+.cc-admin-overlay.show{display:flex}
+.cc-admin-panel{width:min(980px,100%);max-height:min(86vh,900px);background:#fff;border:1px solid #dbe5f2;border-radius:22px;box-shadow:0 24px 80px rgba(22,36,58,.24);display:flex;flex-direction:column;overflow:hidden}
+.cc-admin-head{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:18px 20px;border-bottom:1px solid #e8eef6}
+.cc-admin-head h3{margin:0;font-size:19px;font-weight:950;color:#172033}
+.cc-admin-head p{margin:4px 0 0;font-size:11.5px;color:#7a879a}
+.cc-admin-close{width:34px;height:34px;border:1px solid #dbe5f2;border-radius:10px;background:#fff;color:#66758c;font-size:18px;cursor:pointer}
+.cc-admin-body{padding:18px 20px;overflow:auto}
+.cc-admin-create{border:1px solid #dbe5f2;background:#f8fbff;border-radius:16px;padding:14px}
+.cc-admin-create-title{font-size:13px;font-weight:950;color:#31425f;margin-bottom:10px}
+.cc-admin-grid{display:grid;grid-template-columns:1.4fr 1fr auto;gap:8px;align-items:end}
+.cc-admin-field label{display:block;font-size:10.5px;font-weight:850;color:#68778e;margin:0 0 5px}
+.cc-admin-field select,.cc-admin-field input{width:100%;height:40px;border:1px solid #cbd8e8;border-radius:10px;background:#fff;padding:0 10px;font-size:12px;color:#172033;outline:none}
+.cc-admin-field select:focus,.cc-admin-field input:focus{border-color:#7ca5e7;box-shadow:0 0 0 3px rgba(37,99,235,.08)}
+.cc-admin-create-btn{height:40px;border:0;border-radius:10px;background:#2563eb;color:#fff;padding:0 15px;font-size:11.5px;font-weight:900;cursor:pointer}
+.cc-admin-create-btn:disabled{opacity:.55;cursor:wait}
+.cc-admin-hint{margin-top:8px;font-size:10.5px;color:#8693a6;line-height:1.45}
+.cc-admin-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:16px 0 8px}
+.cc-admin-toolbar strong{font-size:13px;color:#3f4f68}
+.cc-admin-refresh{border:1px solid #dbe5f2;background:#fff;color:#607089;border-radius:9px;height:32px;padding:0 10px;font-size:10.5px;font-weight:850;cursor:pointer}
+.cc-admin-list{border:1px solid #e1e8f1;border-radius:14px;overflow:hidden}
+.cc-admin-table{width:100%;border-collapse:collapse;font-size:11px}
+.cc-admin-table th{background:#f8fafc;color:#66758c;font-weight:900;text-align:left;padding:10px;border-bottom:1px solid #e1e8f1;white-space:nowrap}
+.cc-admin-table td{padding:10px;border-bottom:1px solid #edf1f6;color:#43536c;vertical-align:middle}
+.cc-admin-table tr:last-child td{border-bottom:0}
+.cc-admin-id{font-weight:950;color:#1f5ebd}
+.cc-admin-name{font-weight:900;color:#263750}
+.cc-admin-meta{font-size:9.5px;color:#8a97aa;margin-top:2px}
+.cc-status{display:inline-flex;align-items:center;border-radius:999px;padding:3px 7px;font-size:9.5px;font-weight:900}
+.cc-status.on{background:#eafaf3;color:#087a4b;border:1px solid #bfead6}
+.cc-status.off{background:#fff1f2;color:#b4232c;border:1px solid #fecdd3}
+.cc-device{max-width:180px;line-height:1.35}
+.cc-admin-actions{display:flex;gap:4px;flex-wrap:wrap}
+.cc-admin-action{border:1px solid #dbe5f2;background:#fff;color:#607089;border-radius:8px;height:27px;padding:0 7px;font-size:9.5px;font-weight:850;cursor:pointer}
+.cc-admin-action:hover{background:#f1f5f9;color:#2563eb}
+.cc-admin-action.warn{color:#b45309;border-color:#f4d3a2}
+.cc-admin-action.danger{color:#b4232c;border-color:#fecdd3}
+.cc-admin-empty{padding:26px;text-align:center;color:#8997aa;font-size:12px}
+.cc-admin-msg{display:none;margin-top:10px;padding:9px 10px;border-radius:10px;background:#fff7ed;border:1px solid #fed7aa;color:#9a4d0b;font-size:11px;line-height:1.45}
+.cc-admin-msg.show{display:block}
+@media(max-width:760px){
+  .cc-admin-panel{max-height:92vh;border-radius:17px}
+  .cc-admin-grid{grid-template-columns:1fr}
+  .cc-admin-list{overflow:auto}
+  .cc-admin-table{min-width:760px}
+}
+</style>
+
+<div id="ccAuthGate" class="cc-auth-gate">
+  <div class="cc-auth-card">
+    <div class="cc-auth-logo">상</div>
+    <div id="ccLoginView">
+      <h2 class="cc-auth-title">상담일지 통합본</h2>
+      <p class="cc-auth-sub">상담사 전용 로그인입니다.<br>최초 로그인 후 이 브라우저에서는 30일간 자동으로 접속합니다.</p>
+      <form id="ccLoginForm">
+        <label class="cc-auth-label" for="ccLoginId">아이디</label>
+        <input id="ccLoginId" class="cc-auth-input" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="예: jojo" required>
+        <label class="cc-auth-label" for="ccLoginPassword">비밀번호 / 초기 PIN</label>
+        <input id="ccLoginPassword" class="cc-auth-input" type="password" autocomplete="current-password" placeholder="최초 접속은 1234" required>
+        <button id="ccLoginBtn" class="cc-auth-btn" type="submit">로그인</button>
+      </form>
+      <div class="cc-auth-help">
+        <button id="ccFindIdOpenBtn" class="cc-auth-linkbtn" type="button">아이디 찾기</button>
+        <span>·</span>
+        <button id="ccResetOpenBtn" class="cc-auth-linkbtn" type="button">비밀번호 재설정</button>
+      </div>
+      <div id="ccLoginMsg" class="cc-auth-msg"></div>
+      <div class="cc-auth-good"><span class="cc-auth-dot"></span>비밀번호는 통합본 HTML에 저장하지 않습니다.</div>
+      <div class="cc-auth-note">처음 발급받은 계정은 <b>초기 PIN 1234</b>로 로그인합니다. 첫 로그인 후에는 반드시 본인 비밀번호로 변경해야 합니다.</div>
+    </div>
+    <div id="ccTakeoverView" style="display:none">
+      <h2 class="cc-auth-title">다른 PC에 등록된 계정</h2>
+      <p class="cc-auth-sub">이 계정은 현재 다른 브라우저에 등록되어 있습니다.</p>
+      <div id="ccTakeoverInfo" class="cc-takeover-info"></div>
+      <div class="cc-auth-row">
+        <button id="ccTakeoverCancel" class="cc-auth-btn secondary" type="button">취소</button>
+        <button id="ccTakeoverConfirm" class="cc-auth-btn" type="button">이 PC로 변경</button>
+      </div>
+      <div class="cc-auth-note">이 PC로 변경하면 기존 PC는 다음 접속 확인 시 자동으로 로그아웃됩니다.</div>
+    </div>
+  </div>
+</div>
+
+<div id="ccUserDock" class="cc-user-dock">
+  <span id="ccUserName" class="cc-user-name">로그인됨</span>
+  <button id="ccAdminBtn" class="cc-mini-btn" type="button" style="display:none">계정관리</button>
+  <button id="ccPinBtn" class="cc-mini-btn" type="button">PIN 설정</button>
+  <button id="ccLockBtn" class="cc-mini-btn" type="button">잠금</button>
+  <button id="ccLogoutBtn" class="cc-mini-btn" type="button">로그아웃</button>
+</div>
+
+
+
+<div id="ccAccountRecoveryOverlay" class="cc-lock-overlay">
+  <div class="cc-lock-card">
+    <h3 class="cc-lock-title">계정 찾기</h3>
+    <p class="cc-lock-sub">등록된 이름과 이메일로 아이디를 확인하거나 비밀번호 재설정 메일을 받을 수 있습니다.</p>
+
+    <div class="cc-recovery-tabs">
+      <button id="ccRecoveryFindTab" class="cc-recovery-tab active" type="button">아이디 찾기</button>
+      <button id="ccRecoveryResetTab" class="cc-recovery-tab" type="button">비밀번호 재설정</button>
+    </div>
+
+    <div id="ccRecoveryFindView">
+      <label class="cc-auth-label" for="ccFindName">이름</label>
+      <input id="ccFindName" class="cc-auth-input" type="text" placeholder="예: 안유리">
+      <label class="cc-auth-label" for="ccFindEmail">등록 이메일</label>
+      <input id="ccFindEmail" class="cc-auth-input" type="email" placeholder="name@ulsan1.kr">
+      <button id="ccFindIdBtn" class="cc-auth-btn" type="button">아이디 확인</button>
+      <div id="ccFindResult" class="cc-recovery-result"></div>
+      <div id="ccFindMsg" class="cc-auth-msg"></div>
+    </div>
+
+    <div id="ccRecoveryResetView" style="display:none">
+      <label class="cc-auth-label" for="ccResetLoginId">아이디</label>
+      <input id="ccResetLoginId" class="cc-auth-input" type="text" autocapitalize="none" spellcheck="false" placeholder="예: yuuuuul22">
+      <label class="cc-auth-label" for="ccResetEmail">등록 이메일</label>
+      <input id="ccResetEmail" class="cc-auth-input" type="email" placeholder="name@ulsan1.kr">
+      <button id="ccResetSendBtn" class="cc-auth-btn" type="button">재설정 메일 받기</button>
+      <div id="ccResetResult" class="cc-recovery-result"></div>
+      <div id="ccResetMsg" class="cc-auth-msg"></div>
+    </div>
+
+    <button id="ccRecoveryCloseBtn" class="cc-auth-btn secondary" type="button">로그인 화면으로 돌아가기</button>
+    <div class="cc-auth-note">등록 이메일을 사용할 수 없는 경우에만 관리자에게 비밀번호 초기화를 요청하면 됩니다.</div>
+  </div>
+</div>
+
+<div id="ccRecoveryPasswordOverlay" class="cc-lock-overlay">
+  <div class="cc-lock-card">
+    <h3 class="cc-lock-title">비밀번호 재설정</h3>
+    <p class="cc-lock-sub">이메일 인증이 완료되었습니다.<br>새로 사용할 비밀번호를 설정해 주세요.</p>
+    <label class="cc-auth-label" for="ccRecoveryNewPassword">새 비밀번호</label>
+    <input id="ccRecoveryNewPassword" class="cc-auth-input" type="password" autocomplete="new-password" placeholder="8자 이상">
+    <label class="cc-auth-label" for="ccRecoveryNewPasswordConfirm">새 비밀번호 확인</label>
+    <input id="ccRecoveryNewPasswordConfirm" class="cc-auth-input" type="password" autocomplete="new-password" placeholder="한 번 더 입력">
+    <button id="ccRecoveryPasswordBtn" class="cc-auth-btn" type="button">새 비밀번호로 변경</button>
+    <div id="ccRecoveryPasswordMsg" class="cc-auth-msg"></div>
+  </div>
+</div>
+
+<div id="ccPasswordOverlay" class="cc-lock-overlay">
+  <div class="cc-lock-card">
+    <h3 class="cc-lock-title">새 비밀번호 설정</h3>
+    <p class="cc-lock-sub">초기 PIN으로 처음 로그인했습니다.<br>통합본을 사용하려면 본인이 사용할 새 비밀번호로 변경해 주세요.</p>
+    <label class="cc-auth-label" for="ccNewPassword">새 비밀번호</label>
+    <input id="ccNewPassword" class="cc-auth-input" type="password" autocomplete="new-password" placeholder="8자 이상">
+    <label class="cc-auth-label" for="ccNewPasswordConfirm">새 비밀번호 확인</label>
+    <input id="ccNewPasswordConfirm" class="cc-auth-input" type="password" autocomplete="new-password" placeholder="한 번 더 입력">
+    <button id="ccPasswordChangeBtn" class="cc-auth-btn" type="button">비밀번호 변경하고 시작</button>
+    <button id="ccPasswordBackBtn" class="cc-auth-btn secondary" type="button">← 다른 계정으로 로그인</button>
+    <div id="ccPasswordMsg" class="cc-auth-msg"></div>
+    <div class="cc-auth-note">변경한 비밀번호는 관리자도 확인할 수 없습니다. 잊어버리면 관리자에서 임시 비밀번호를 다시 발급할 수 있습니다.</div>
+  </div>
+</div>
+
+<div id="ccLockOverlay" class="cc-lock-overlay">
+  <div class="cc-lock-card">
+    <h3 class="cc-lock-title">화면 잠금</h3>
+    <p id="ccLockSub" class="cc-lock-sub">4자리 PIN을 입력하면 바로 사용할 수 있습니다.</p>
+    <input id="ccPinInput" class="cc-pin-input" type="password" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="••••">
+    <button id="ccPinUnlockBtn" class="cc-auth-btn" type="button">잠금 해제</button>
+    <div id="ccPinMsg" class="cc-auth-msg"></div>
+  </div>
+</div>
+
+<div id="ccAdminOverlay" class="cc-admin-overlay" aria-hidden="true">
+  <div class="cc-admin-panel">
+    <div class="cc-admin-head">
+      <div><h3>상담사 계정 관리</h3><p>아이디 발급 · 비밀번호 초기화 · PC 초기화 · 사용중지 · 퇴사처리</p></div>
+      <button id="ccAdminClose" class="cc-admin-close" type="button" title="닫기">×</button>
+    </div>
+    <div class="cc-admin-body">
+      <div class="cc-admin-create">
+        <div class="cc-admin-create-title">새 계정 발급</div>
+        <div class="cc-admin-grid">
+          <div class="cc-admin-field"><label>직원 선택</label><select id="ccAdminEmployee"></select></div>
+          <div class="cc-admin-field"><label>아이디</label><input id="ccAdminLoginId" type="text" placeholder="예: hong01" autocapitalize="none"></div>
+          <button id="ccAdminCreateBtn" class="cc-admin-create-btn" type="button">계정 발급</button>
+        </div>
+        <div class="cc-admin-hint">아이디는 영문 소문자로 시작하고 영문·숫자·._-만 사용할 수 있습니다. 계정 발급 시 초기 PIN은 자동으로 1234가 적용됩니다. 최초 로그인 후 상담사가 본인 비밀번호로 반드시 변경한 뒤, 해당 브라우저가 주 사용 PC로 등록됩니다.</div>
+        <div id="ccAdminMsg" class="cc-admin-msg"></div>
+      </div>
+      <div class="cc-admin-toolbar"><strong>발급된 계정</strong><button id="ccAdminRefresh" class="cc-admin-refresh" type="button">↻ 새로고침</button></div>
+      <div id="ccAdminList" class="cc-admin-list"><div class="cc-admin-empty">불러오는 중...</div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+
+  var SUPABASE_URL='https://bowxlaiyjxknqccoughl.supabase.co';
+  var SUPABASE_KEY='sb_publishable_H_OzeWaIff410mkxFD6NGQ_kiHNm8Ha';
+  var LOGIN_FUNCTION=SUPABASE_URL+'/functions/v1/counselor-login';
+  var ADMIN_FUNCTION=SUPABASE_URL+'/functions/v1/counselor-admin';
+  var RECOVERY_FUNCTION=SUPABASE_URL+'/functions/v1/counselor-recovery';
+  var DEVICE_KEY='cc_device_id_v1';
+  var PIN_KEY='cc_local_pin_hash_v1';
+  var IDLE_MS=60*60*1000;
+  var HEARTBEAT_MS=60*1000;
+
+  var gate=document.getElementById('ccAuthGate');
+  var loginView=document.getElementById('ccLoginView');
+  var takeoverView=document.getElementById('ccTakeoverView');
+  var loginForm=document.getElementById('ccLoginForm');
+  var loginId=document.getElementById('ccLoginId');
+  var loginPassword=document.getElementById('ccLoginPassword');
+  var loginBtn=document.getElementById('ccLoginBtn');
+  var loginMsg=document.getElementById('ccLoginMsg');
+  var findIdOpenBtn=document.getElementById('ccFindIdOpenBtn');
+  var resetOpenBtn=document.getElementById('ccResetOpenBtn');
+  var accountRecoveryOverlay=document.getElementById('ccAccountRecoveryOverlay');
+  var recoveryFindTab=document.getElementById('ccRecoveryFindTab');
+  var recoveryResetTab=document.getElementById('ccRecoveryResetTab');
+  var recoveryFindView=document.getElementById('ccRecoveryFindView');
+  var recoveryResetView=document.getElementById('ccRecoveryResetView');
+  var findName=document.getElementById('ccFindName');
+  var findEmail=document.getElementById('ccFindEmail');
+  var findIdBtn=document.getElementById('ccFindIdBtn');
+  var findResult=document.getElementById('ccFindResult');
+  var findMsg=document.getElementById('ccFindMsg');
+  var resetLoginId=document.getElementById('ccResetLoginId');
+  var resetEmail=document.getElementById('ccResetEmail');
+  var resetSendBtn=document.getElementById('ccResetSendBtn');
+  var resetResult=document.getElementById('ccResetResult');
+  var resetMsg=document.getElementById('ccResetMsg');
+  var recoveryCloseBtn=document.getElementById('ccRecoveryCloseBtn');
+  var recoveryPasswordOverlay=document.getElementById('ccRecoveryPasswordOverlay');
+  var recoveryNewPassword=document.getElementById('ccRecoveryNewPassword');
+  var recoveryNewPasswordConfirm=document.getElementById('ccRecoveryNewPasswordConfirm');
+  var recoveryPasswordBtn=document.getElementById('ccRecoveryPasswordBtn');
+  var recoveryPasswordMsg=document.getElementById('ccRecoveryPasswordMsg');
+  var takeoverInfo=document.getElementById('ccTakeoverInfo');
+  var takeoverCancel=document.getElementById('ccTakeoverCancel');
+  var takeoverConfirm=document.getElementById('ccTakeoverConfirm');
+  var dock=document.getElementById('ccUserDock');
+  var userName=document.getElementById('ccUserName');
+  var adminBtn=document.getElementById('ccAdminBtn');
+  var logoutBtn=document.getElementById('ccLogoutBtn');
+  var pinBtn=document.getElementById('ccPinBtn');
+  var lockBtn=document.getElementById('ccLockBtn');
+  var lockOverlay=document.getElementById('ccLockOverlay');
+  var pinInput=document.getElementById('ccPinInput');
+  var pinUnlockBtn=document.getElementById('ccPinUnlockBtn');
+  var pinMsg=document.getElementById('ccPinMsg');
+  var passwordOverlay=document.getElementById('ccPasswordOverlay');
+  var newPassword=document.getElementById('ccNewPassword');
+  var newPasswordConfirm=document.getElementById('ccNewPasswordConfirm');
+  var passwordChangeBtn=document.getElementById('ccPasswordChangeBtn');
+  var passwordBackBtn=document.getElementById('ccPasswordBackBtn');
+  var passwordMsg=document.getElementById('ccPasswordMsg');
+  var adminOverlay=document.getElementById('ccAdminOverlay');
+  var adminClose=document.getElementById('ccAdminClose');
+  var adminEmployee=document.getElementById('ccAdminEmployee');
+  var adminLoginId=document.getElementById('ccAdminLoginId');
+  var adminCreateBtn=document.getElementById('ccAdminCreateBtn');
+  var adminMsg=document.getElementById('ccAdminMsg');
+  var adminRefresh=document.getElementById('ccAdminRefresh');
+  var adminList=document.getElementById('ccAdminList');
+
+  var client=null;
+  var currentUser=null;
+  var currentEmployee=null;
+  var pendingTakeover=null;
+  var idleTimer=null;
+  var heartbeatTimer=null;
+  var adminRows=[];
+
+  function msg(el,text){
+    if(!text){el.classList.remove('show');el.textContent='';return;}
+    el.textContent=text;el.classList.add('show');
+  }
+
+  function escapeHtml(s){
+    return String(s||'').replace(/[&<>"']/g,function(ch){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[ch]});
+  }
+
+  function getDeviceId(){
+    var id=localStorage.getItem(DEVICE_KEY);
+    if(id) return id;
+    if(window.crypto && crypto.randomUUID) id=crypto.randomUUID();
+    else id='dev-'+Date.now()+'-'+Math.random().toString(36).slice(2)+Math.random().toString(36).slice(2);
+    localStorage.setItem(DEVICE_KEY,id);
+    return id;
+  }
+
+  function deviceLabel(){
+    var ua=navigator.userAgent||'';
+    var os=/Windows/i.test(ua)?'Windows':/Macintosh|Mac OS/i.test(ua)?'Mac':/Android/i.test(ua)?'Android':/iPhone|iPad/i.test(ua)?'iPhone/iPad':'기기';
+    var browser=/Edg\//.test(ua)?'Edge':/Chrome\//.test(ua)?'Chrome':/Firefox\//.test(ua)?'Firefox':/Safari\//.test(ua)?'Safari':'브라우저';
+    return os+' · '+browser;
+  }
+
+  function addDaysIso(days){
+    return new Date(Date.now()+days*24*60*60*1000).toISOString();
+  }
+
+  async function getSession(){
+    var out=await client.auth.getSession();
+    if(out.error) throw out.error;
+    return out.data && out.data.session ? out.data.session : null;
+  }
+
+  async function checkAccountSession(){
+    var session=await getSession();
+    if(!session || !session.access_token) throw new Error('SESSION_MISSING');
+    var res=await fetch(LOGIN_FUNCTION,{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'apikey':SUPABASE_KEY,
+        'Authorization':'Bearer '+session.access_token
+      },
+      body:JSON.stringify({action:'check_session'})
+    });
+    var data=await res.json().catch(function(){return {}});
+    if(!res.ok || !data.ok){
+      var err=new Error(data.error||'SESSION_DENIED');
+      err.code=data.error||'SESSION_DENIED';
+      throw err;
+    }
+    return data.user;
+  }
+
+  function showLogin(text){
+    currentUser=null;
+    currentEmployee=null;
+    pendingTakeover=null;
+    document.documentElement.classList.add('cc-auth-pending');
+    gate.classList.remove('cc-hidden');
+    loginView.style.display='';
+    takeoverView.style.display='none';
+    dock.classList.remove('show');
+    adminBtn.style.display='none';
+    adminOverlay.classList.remove('show');
+    adminOverlay.setAttribute('aria-hidden','true');
+    lockOverlay.classList.remove('show');
+    passwordOverlay.classList.remove('show');
+    accountRecoveryOverlay.classList.remove('show');
+    recoveryPasswordOverlay.classList.remove('show');
+    loginPassword.value='';
+    msg(loginMsg,text||'');
+    if(heartbeatTimer){clearInterval(heartbeatTimer);heartbeatTimer=null;}
+    setTimeout(function(){try{loginId.focus()}catch(e){}},50);
+  }
+
+  function showTakeover(binding,user,employee){
+    pendingTakeover={binding:binding,user:user,employee:employee};
+    document.documentElement.classList.add('cc-auth-pending');
+    gate.classList.remove('cc-hidden');
+    loginView.style.display='none';
+    takeoverView.style.display='';
+    var when=binding && binding.bound_at ? new Date(binding.bound_at).toLocaleString('ko-KR') : '확인 불가';
+    var label=(binding && binding.device_label) ? binding.device_label : '다른 브라우저';
+    takeoverInfo.innerHTML='<b>현재 등록:</b> '+escapeHtml(label)+'<br><b>등록 시각:</b> '+escapeHtml(when);
+  }
+
+  function setRecoveryMode(mode){
+    var findMode=mode!=='reset';
+    recoveryFindView.style.display=findMode?'':'none';
+    recoveryResetView.style.display=findMode?'none':'';
+    recoveryFindTab.classList.toggle('active',findMode);
+    recoveryResetTab.classList.toggle('active',!findMode);
+    msg(findMsg,''); msg(resetMsg,'');
+    findResult.classList.remove('show'); findResult.innerHTML='';
+    resetResult.classList.remove('show'); resetResult.innerHTML='';
+    setTimeout(function(){
+      try{(findMode?findName:resetLoginId).focus()}catch(e){}
+    },50);
+  }
+
+  function openAccountRecovery(mode){
+    accountRecoveryOverlay.classList.add('show');
+    setRecoveryMode(mode);
+  }
+
+  function closeAccountRecovery(){
+    accountRecoveryOverlay.classList.remove('show');
+  }
+
+  async function recoveryApi(action,payload){
+    var res=await fetch(RECOVERY_FUNCTION,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','apikey':SUPABASE_KEY},
+      body:JSON.stringify(Object.assign({action:action},payload||{}))
+    });
+    var data=await res.json().catch(function(){return {}});
+    if(!res.ok){
+      var e=new Error(data.error||'RECOVERY_FAILED');
+      e.code=data.error||'RECOVERY_FAILED';
+      throw e;
+    }
+    return data;
+  }
+
+  async function findLoginId(){
+    msg(findMsg,'');
+    findResult.classList.remove('show');
+    var name=findName.value.trim();
+    var email=findEmail.value.trim().toLowerCase();
+    if(name.length<2 || email.indexOf('@')<1){
+      msg(findMsg,'이름과 등록 이메일을 정확하게 입력해 주세요.');
+      return;
+    }
+    findIdBtn.disabled=true;
+    findIdBtn.textContent='확인 중...';
+    try{
+      var data=await recoveryApi('find_id',{name:name,email:email});
+      findResult.innerHTML='등록된 아이디는 <strong>'+escapeHtml(data.login_id||'')+'</strong> 입니다.';
+      findResult.classList.add('show');
+      resetLoginId.value=data.login_id||'';
+      resetEmail.value=email;
+    }catch(err){
+      if(err && err.code==='not_found') msg(findMsg,'입력한 이름과 이메일에 일치하는 계정을 찾지 못했습니다.');
+      else msg(findMsg,'아이디 확인 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+    }finally{
+      findIdBtn.disabled=false;
+      findIdBtn.textContent='아이디 확인';
+    }
+  }
+
+  async function sendPasswordReset(){
+    msg(resetMsg,'');
+    resetResult.classList.remove('show');
+    var id=resetLoginId.value.trim().toLowerCase();
+    var email=resetEmail.value.trim().toLowerCase();
+    if(!/^[a-z][a-z0-9._-]{2,30}$/.test(id) || email.indexOf('@')<1){
+      msg(resetMsg,'아이디와 등록 이메일을 정확하게 입력해 주세요.');
+      return;
+    }
+    resetSendBtn.disabled=true;
+    resetSendBtn.textContent='발송 중...';
+    try{
+      await recoveryApi('request_reset',{login_id:id,email:email});
+      resetResult.innerHTML='입력한 정보가 계정과 일치하면 <strong>비밀번호 재설정 메일</strong>을 보냈습니다.<br>메일의 링크를 눌러 새 비밀번호를 설정해 주세요.';
+      resetResult.classList.add('show');
+    }catch(err){
+      msg(resetMsg,'메일 발송 요청 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+    }finally{
+      resetSendBtn.disabled=false;
+      resetSendBtn.textContent='재설정 메일 받기';
+    }
+  }
+
+  function showRecoveryPassword(){
+    currentUser=null;
+    currentEmployee=null;
+    document.documentElement.classList.add('cc-auth-pending');
+    gate.classList.add('cc-hidden');
+    dock.classList.remove('show');
+    accountRecoveryOverlay.classList.remove('show');
+    passwordOverlay.classList.remove('show');
+    recoveryPasswordOverlay.classList.add('show');
+    recoveryNewPassword.value='';
+    recoveryNewPasswordConfirm.value='';
+    msg(recoveryPasswordMsg,'');
+    if(heartbeatTimer){clearInterval(heartbeatTimer);heartbeatTimer=null;}
+    setTimeout(function(){try{recoveryNewPassword.focus()}catch(e){}},60);
+  }
+
+  async function submitRecoveryPassword(){
+    var p1=recoveryNewPassword.value;
+    var p2=recoveryNewPasswordConfirm.value;
+    msg(recoveryPasswordMsg,'');
+    if(p1.length<8){msg(recoveryPasswordMsg,'새 비밀번호는 8자 이상으로 입력해 주세요.');return;}
+    if(p1!==p2){msg(recoveryPasswordMsg,'새 비밀번호가 서로 일치하지 않습니다.');return;}
+
+    recoveryPasswordBtn.disabled=true;
+    recoveryPasswordBtn.textContent='변경 중...';
+    try{
+      var session=await getSession();
+      if(!session || !session.access_token) throw new Error('RECOVERY_SESSION_MISSING');
+      var res=await fetch(LOGIN_FUNCTION,{
+        method:'POST',
+        headers:{
+          'Content-Type':'application/json',
+          'apikey':SUPABASE_KEY,
+          'Authorization':'Bearer '+session.access_token
+        },
+        body:JSON.stringify({action:'change_password',new_password:p1})
+      });
+      var data=await res.json().catch(function(){return {}});
+      if(!res.ok || !data.ok) throw new Error(data.error||'PASSWORD_CHANGE_FAILED');
+
+      await client.auth.signOut({scope:'global'}).catch(function(){});
+      try{history.replaceState(null,'',location.pathname)}catch(e){}
+      recoveryPasswordOverlay.classList.remove('show');
+      showLogin('비밀번호가 변경되었습니다. 새 비밀번호로 로그인해 주세요.');
+    }catch(err){
+      console.error('[CC Recovery] password',err);
+      msg(recoveryPasswordMsg,'재설정 링크가 만료되었거나 비밀번호 변경에 실패했습니다. 다시 재설정 메일을 요청해 주세요.');
+    }finally{
+      recoveryPasswordBtn.disabled=false;
+      recoveryPasswordBtn.textContent='새 비밀번호로 변경';
+    }
+  }
+
+  function showPasswordChange(user,employee){
+    currentUser=user;
+    currentEmployee=employee;
+    pendingTakeover=null;
+    document.documentElement.classList.add('cc-auth-pending');
+    gate.classList.add('cc-hidden');
+    dock.classList.remove('show');
+    adminOverlay.classList.remove('show');
+    adminOverlay.setAttribute('aria-hidden','true');
+    lockOverlay.classList.remove('show');
+    passwordOverlay.classList.add('show');
+    newPassword.value='';
+    newPasswordConfirm.value='';
+    msg(passwordMsg,'');
+    if(heartbeatTimer){clearInterval(heartbeatTimer);heartbeatTimer=null;}
+    setTimeout(function(){try{newPassword.focus()}catch(e){}},60);
+  }
+
+  async function backToLogin(){
+    try{
+      passwordOverlay.classList.remove('show');
+      await client.auth.signOut({scope:'local'}).catch(function(){});
+    }finally{
+      showLogin('다른 계정으로 로그인할 수 있습니다.');
+    }
+  }
+
+  async function submitPasswordChange(){
+    var p1=newPassword.value;
+    var p2=newPasswordConfirm.value;
+    msg(passwordMsg,'');
+    if(p1.length<8){msg(passwordMsg,'새 비밀번호는 8자 이상으로 입력해 주세요.');return;}
+    if(p1!==p2){msg(passwordMsg,'새 비밀번호가 서로 일치하지 않습니다.');return;}
+
+    passwordChangeBtn.disabled=true;
+    passwordChangeBtn.textContent='변경 중...';
+    try{
+      var session=await getSession();
+      if(!session || !session.access_token) throw new Error('SESSION_MISSING');
+
+      var res=await fetch(LOGIN_FUNCTION,{
+        method:'POST',
+        headers:{
+          'Content-Type':'application/json',
+          'apikey':SUPABASE_KEY,
+          'Authorization':'Bearer '+session.access_token
+        },
+        body:JSON.stringify({action:'change_password',new_password:p1})
+      });
+      var data=await res.json().catch(function(){return {}});
+      if(!res.ok || !data.ok){
+        var e=new Error(data.error||'PASSWORD_CHANGE_FAILED');
+        e.code=data.error||'PASSWORD_CHANGE_FAILED';
+        throw e;
+      }
+
+      passwordOverlay.classList.remove('show');
+      var user=currentUser;
+      try{
+        var userRes=await client.auth.getUser();
+        if(userRes.data && userRes.data.user) user=userRes.data.user;
+      }catch(e){}
+
+      if(!user){
+        await client.auth.signOut({scope:'local'}).catch(function(){});
+        showLogin('비밀번호가 변경되었습니다. 새 비밀번호로 다시 로그인해 주세요.');
+        return;
+      }
+
+      await validateDevice(user,true);
+    }catch(err){
+      console.error('[CC Auth] password change',err);
+      if(err && err.code==='weak_password') msg(passwordMsg,'새 비밀번호는 8자 이상으로 입력해 주세요.');
+      else msg(passwordMsg,'비밀번호 변경에 실패했습니다. 다시 입력해 주세요.');
+    }finally{
+      passwordChangeBtn.disabled=false;
+      passwordChangeBtn.textContent='비밀번호 변경하고 시작';
+    }
+  }
+
+  function unlockApp(user,employee){
+    currentUser=user;
+    currentEmployee=employee;
+    document.documentElement.classList.remove('cc-auth-pending');
+    gate.classList.add('cc-hidden');
+    dock.classList.add('show');
+    userName.textContent=(employee && employee.name ? employee.name : '상담사')+' · 인증됨';
+    pinBtn.textContent=localStorage.getItem(PIN_KEY)?'PIN 변경':'PIN 설정';
+    adminBtn.style.display=employee && employee.system_role==='admin' ? '' : 'none';
+    startHeartbeat();
+    resetIdle();
+  }
+
+  async function getBinding(userId){
+    var res=await client.from('counselor_device_bindings')
+      .select('user_id,device_id,device_label,bound_at,expires_at,last_seen_at')
+      .eq('user_id',userId)
+      .maybeSingle();
+    if(res.error) throw res.error;
+    return res.data;
+  }
+
+  async function insertBinding(userId){
+    var row={
+      user_id:userId,
+      device_id:getDeviceId(),
+      device_label:deviceLabel(),
+      bound_at:new Date().toISOString(),
+      expires_at:addDaysIso(30),
+      last_seen_at:new Date().toISOString(),
+      updated_at:new Date().toISOString()
+    };
+    var res=await client.from('counselor_device_bindings').insert(row);
+    if(res.error) throw res.error;
+  }
+
+  async function refreshBinding(userId){
+    var res=await client.from('counselor_device_bindings')
+      .update({
+        device_id:getDeviceId(),
+        device_label:deviceLabel(),
+        bound_at:new Date().toISOString(),
+        expires_at:addDaysIso(30),
+        last_seen_at:new Date().toISOString(),
+        updated_at:new Date().toISOString()
+      })
+      .eq('user_id',userId);
+    if(res.error) throw res.error;
+  }
+
+  async function touchBinding(userId){
+    var res=await client.from('counselor_device_bindings')
+      .update({last_seen_at:new Date().toISOString(),updated_at:new Date().toISOString()})
+      .eq('user_id',userId)
+      .eq('device_id',getDeviceId());
+    if(res.error) throw res.error;
+  }
+
+  async function validateDevice(user,freshPassword){
+    try{
+      var profile=await checkAccountSession();
+      var employee={name:profile.name,system_role:profile.role,active:true,login_id:profile.login_id,must_change_password:profile.must_change_password===true};
+
+      if(profile.must_change_password===true){
+        showPasswordChange(user,employee);
+        return false;
+      }
+
+      var binding=await getBinding(user.id);
+      var myDevice=getDeviceId();
+
+      if(!binding){
+        await insertBinding(user.id);
+        unlockApp(user,employee);
+        return true;
+      }
+
+      var expired=!!binding.expires_at && new Date(binding.expires_at).getTime()<=Date.now();
+
+      if(binding.device_id!==myDevice){
+        if(freshPassword){
+          showTakeover(binding,user,employee);
+          return false;
+        }
+        await client.auth.signOut({scope:'local'}).catch(function(){});
+        showLogin('현재 다른 PC에 등록된 계정입니다. 이 PC에서 사용하려면 비밀번호로 다시 로그인해 주세요.');
+        return false;
+      }
+
+      if(expired){
+        if(!freshPassword){
+          await client.auth.signOut({scope:'local'}).catch(function(){});
+          showLogin('자동 로그인 기간 30일이 지나 다시 로그인이 필요합니다.');
+          return false;
+        }
+        await refreshBinding(user.id);
+      }else{
+        await touchBinding(user.id);
+      }
+
+      unlockApp(user,employee);
+      return true;
+    }catch(err){
+      console.error('[CC Auth] validateDevice',err);
+      await client.auth.signOut({scope:'local'}).catch(function(){});
+      var disabled=err && err.code==='account_inactive';
+      showLogin(disabled?'현재 사용이 중지된 계정입니다. 관리자에게 문의해 주세요.':'로그인 상태 또는 통합본 사용권한을 확인하지 못했습니다.');
+      return false;
+    }
+  }
+
+  async function doLogin(ev){
+    if(ev) ev.preventDefault();
+    msg(loginMsg,'');
+    loginBtn.disabled=true;
+    loginBtn.textContent='확인 중...';
+    try{
+      var id=loginId.value.trim().toLowerCase();
+      var password=loginPassword.value;
+      if(!/^[a-z][a-z0-9._-]{2,30}$/.test(id)) throw new Error('INVALID_ID');
+
+      var res=await fetch(LOGIN_FUNCTION,{
+        method:'POST',
+        headers:{'Content-Type':'application/json','apikey':SUPABASE_KEY},
+        body:JSON.stringify({action:'login',login_id:id,password:password})
+      });
+      var data=await res.json().catch(function(){return {}});
+      if(!res.ok || !data.access_token || !data.refresh_token) throw new Error(data.error||'LOGIN_FAILED');
+
+      var setRes=await client.auth.setSession({
+        access_token:data.access_token,
+        refresh_token:data.refresh_token
+      });
+      if(setRes.error) throw setRes.error;
+      var user=setRes.data && setRes.data.user;
+      if(!user) throw new Error('USER_MISSING');
+
+      await validateDevice(user,true);
+    }catch(err){
+      console.error('[CC Auth] login',err);
+      if(err && err.message==='initial_locked') msg(loginMsg,'초기 PIN 입력을 여러 번 틀려 15분간 잠겼습니다. 잠시 후 다시 시도해 주세요.');
+      else msg(loginMsg,'아이디 또는 비밀번호를 확인해 주세요. 최초 로그인이라면 초기 PIN은 1234입니다.');
+    }finally{
+      loginBtn.disabled=false;
+      loginBtn.textContent='로그인';
+    }
+  }
+
+  async function confirmTakeover(){
+    if(!pendingTakeover) return;
+    takeoverConfirm.disabled=true;
+    takeoverConfirm.textContent='변경 중...';
+    try{
+      await refreshBinding(pendingTakeover.user.id);
+      var p=pendingTakeover;
+      pendingTakeover=null;
+      unlockApp(p.user,p.employee);
+    }catch(err){
+      console.error('[CC Auth] takeover',err);
+      alert('PC 등록 변경에 실패했습니다. 다시 시도해 주세요.');
+    }finally{
+      takeoverConfirm.disabled=false;
+      takeoverConfirm.textContent='이 PC로 변경';
+    }
+  }
+
+  async function cancelTakeover(){
+    pendingTakeover=null;
+    await client.auth.signOut({scope:'local'}).catch(function(){});
+    showLogin('기존 PC 등록을 유지했습니다.');
+  }
+
+  async function logout(){
+    if(!confirm('이 브라우저에서 로그아웃할까요?\n등록 PC 자체는 유지되므로 다시 로그인하면 바로 사용할 수 있습니다.')) return;
+    await client.auth.signOut({scope:'local'}).catch(function(){});
+    showLogin('로그아웃되었습니다.');
+  }
+
+  function startHeartbeat(){
+    if(heartbeatTimer) clearInterval(heartbeatTimer);
+    heartbeatTimer=setInterval(async function(){
+      if(!currentUser || document.hidden) return;
+      try{
+        var hbProfile=await checkAccountSession();
+        if(hbProfile && hbProfile.must_change_password===true){
+          showPasswordChange(currentUser,{
+            name:hbProfile.name,
+            system_role:hbProfile.role,
+            active:true,
+            login_id:hbProfile.login_id,
+            must_change_password:true
+          });
+          return;
+        }
+        var binding=await getBinding(currentUser.id);
+        if(!binding || binding.device_id!==getDeviceId()){
+          await client.auth.signOut({scope:'local'}).catch(function(){});
+          showLogin('이 계정이 다른 PC로 변경되어 현재 PC에서 자동 로그아웃되었습니다.');
+          return;
+        }
+        if(binding.expires_at && new Date(binding.expires_at).getTime()<=Date.now()){
+          await client.auth.signOut({scope:'local'}).catch(function(){});
+          showLogin('자동 로그인 기간 30일이 지나 다시 로그인이 필요합니다.');
+          return;
+        }
+        await touchBinding(currentUser.id);
+      }catch(err){
+        console.warn('[CC Auth] heartbeat',err);
+        await client.auth.signOut({scope:'local'}).catch(function(){});
+        showLogin(err && err.code==='account_inactive'?'현재 사용이 중지된 계정입니다. 관리자에게 문의해 주세요.':'로그인 상태를 다시 확인해 주세요.');
+      }
+    },HEARTBEAT_MS);
+  }
+
+  async function sha256(text){
+    var data=new TextEncoder().encode(text);
+    var hash=await crypto.subtle.digest('SHA-256',data);
+    return Array.from(new Uint8Array(hash)).map(function(b){return b.toString(16).padStart(2,'0')}).join('');
+  }
+
+  async function setPin(){
+    var p1=prompt('자리비움 잠금에 사용할 4자리 PIN을 입력해 주세요.');
+    if(p1===null) return;
+    if(!/^\d{4}$/.test(p1)){alert('숫자 4자리로 입력해 주세요.');return;}
+    var p2=prompt('확인을 위해 PIN을 한 번 더 입력해 주세요.');
+    if(p2!==p1){alert('PIN이 일치하지 않습니다.');return;}
+    var h=await sha256(getDeviceId()+':'+p1);
+    localStorage.setItem(PIN_KEY,h);
+    pinBtn.textContent='PIN 변경';
+    alert('PIN이 설정되었습니다. 60분 동안 사용하지 않으면 화면이 잠깁니다.');
+    resetIdle();
+  }
+
+  function lockNow(){
+    if(!currentUser) return;
+    if(!localStorage.getItem(PIN_KEY)){
+      setPin();
+      return;
+    }
+    msg(pinMsg,'');
+    pinInput.value='';
+    lockOverlay.classList.add('show');
+    setTimeout(function(){pinInput.focus()},60);
+  }
+
+  async function unlockPin(){
+    var pin=pinInput.value.trim();
+    if(!/^\d{4}$/.test(pin)){msg(pinMsg,'숫자 4자리 PIN을 입력해 주세요.');return;}
+    var h=await sha256(getDeviceId()+':'+pin);
+    if(h!==localStorage.getItem(PIN_KEY)){
+      msg(pinMsg,'PIN이 맞지 않습니다.');
+      pinInput.select();
+      return;
+    }
+    lockOverlay.classList.remove('show');
+    msg(pinMsg,'');
+    pinInput.value='';
+    resetIdle();
+  }
+
+  function resetIdle(){
+    if(idleTimer) clearTimeout(idleTimer);
+    if(!currentUser || !localStorage.getItem(PIN_KEY)) return;
+    idleTimer=setTimeout(lockNow,IDLE_MS);
+  }
+
+  async function adminCall(action,payload){
+    var session=await getSession();
+    if(!session || !session.access_token) throw new Error('로그인이 필요합니다.');
+    var body=Object.assign({action:action},payload||{});
+    var res=await fetch(ADMIN_FUNCTION,{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'apikey':SUPABASE_KEY,
+        'Authorization':'Bearer '+session.access_token
+      },
+      body:JSON.stringify(body)
+    });
+    var data=await res.json().catch(function(){return {}});
+    if(!res.ok){
+      var e=new Error(data.error||'관리자 작업에 실패했습니다.');
+      e.code=data.error||'ADMIN_ERROR';
+      throw e;
+    }
+    return data;
+  }
+
+  function openAdmin(){
+    if(!currentEmployee || currentEmployee.system_role!=='admin') return;
+    adminOverlay.classList.add('show');
+    adminOverlay.setAttribute('aria-hidden','false');
+    loadAdmin();
+  }
+
+  function closeAdmin(){
+    adminOverlay.classList.remove('show');
+    adminOverlay.setAttribute('aria-hidden','true');
+  }
+
+  function formatKst(v){
+    if(!v) return '-';
+    try{return new Date(v).toLocaleString('ko-KR',{year:'2-digit',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'})}
+    catch(e){return '-'}
+  }
+
+  async function loadAdmin(){
+    adminList.innerHTML='<div class="cc-admin-empty">불러오는 중...</div>';
+    msg(adminMsg,'');
+    try{
+      var data=await adminCall('list');
+      adminRows=Array.isArray(data.rows)?data.rows:[];
+      renderAdmin();
+    }catch(err){
+      console.error('[CC Admin] list',err);
+      adminList.innerHTML='<div class="cc-admin-empty">계정 목록을 불러오지 못했습니다.</div>';
+      msg(adminMsg,'관리자 목록 조회에 실패했습니다. 다시 시도해 주세요.');
+    }
+  }
+
+  function renderAdmin(){
+    var available=adminRows.filter(function(r){return r.employee_active && !r.login_id});
+    adminEmployee.innerHTML=available.length
+      ? available.map(function(r){
+          var label=[r.division,r.team,r.name,r.job_title].filter(Boolean).join(' · ');
+          return '<option value="'+escapeHtml(r.employee_id)+'">'+escapeHtml(label)+'</option>';
+        }).join('')
+      : '<option value="">발급 가능한 직원 없음</option>';
+
+    var accounts=adminRows.filter(function(r){return !!r.login_id});
+    if(!accounts.length){
+      adminList.innerHTML='<div class="cc-admin-empty">아직 발급된 계정이 없습니다.</div>';
+      return;
+    }
+
+    var rows=accounts.map(function(r){
+      var isTerminated=!!r.terminated_at;
+      var device=r.device
+        ? '<div class="cc-device"><b>'+escapeHtml(r.device.label||'등록 기기')+'</b><div class="cc-admin-meta">최근 '+escapeHtml(formatKst(r.device.last_seen_at))+'</div></div>'
+        : '<span class="cc-admin-meta">등록된 PC 없음</span>';
+
+      var status='';
+      if(isTerminated) status='<span class="cc-status off">퇴사</span><div class="cc-admin-meta">'+escapeHtml(formatKst(r.terminated_at))+'</div>';
+      else if(!r.account_active) status='<span class="cc-status off">중지</span>';
+      else if(r.must_change_password) status='<span class="cc-status on">초기비번</span><div class="cc-admin-meta">변경 필요</div>';
+      else status='<span class="cc-status on">사용중</span>';
+
+      var actions='';
+      if(isTerminated){
+        actions='<button class="cc-admin-action" data-act="restore" data-user="'+escapeHtml(r.user_id)+'" data-name="'+escapeHtml(r.name)+'">재직 복구</button>';
+      }else{
+        actions=
+          '<button class="cc-admin-action" data-act="password" data-user="'+escapeHtml(r.user_id)+'" data-name="'+escapeHtml(r.name)+'">비밀번호</button>'+
+          '<button class="cc-admin-action warn" data-act="device" data-user="'+escapeHtml(r.user_id)+'" data-name="'+escapeHtml(r.name)+'">PC 초기화</button>'+
+          '<button class="cc-admin-action '+(r.account_active?'danger':'')+'" data-act="toggle" data-user="'+escapeHtml(r.user_id)+'" data-name="'+escapeHtml(r.name)+'" data-active="'+(r.account_active?'1':'0')+'">'+(r.account_active?'사용중지':'재활성화')+'</button>'+
+          '<button class="cc-admin-action danger" data-act="terminate" data-user="'+escapeHtml(r.user_id)+'" data-name="'+escapeHtml(r.name)+'">퇴사처리</button>';
+      }
+
+      return '<tr>'+
+        '<td><div class="cc-admin-id">'+escapeHtml(r.login_id)+'</div></td>'+
+        '<td><div class="cc-admin-name">'+escapeHtml(r.name)+'</div><div class="cc-admin-meta">'+escapeHtml([r.division,r.team,r.job_title].filter(Boolean).join(' · '))+'</div></td>'+
+        '<td>'+status+'</td>'+
+        '<td>'+device+'</td>'+
+        '<td><div class="cc-admin-actions">'+actions+'</div></td>'+
+      '</tr>';
+    }).join('');
+
+    adminList.innerHTML='<table class="cc-admin-table"><thead><tr><th>아이디</th><th>상담사</th><th>상태</th><th>등록 PC</th><th>관리</th></tr></thead><tbody>'+rows+'</tbody></table>';
+  }
+
+  async function createAccount(){
+    var employeeId=Number(adminEmployee.value);
+    var id=adminLoginId.value.trim().toLowerCase();
+    msg(adminMsg,'');
+    if(!employeeId){msg(adminMsg,'계정을 발급할 직원을 선택해 주세요.');return}
+    if(!/^[a-z][a-z0-9._-]{2,30}$/.test(id)){msg(adminMsg,'아이디는 영문 소문자로 시작하는 3~31자로 입력해 주세요.');return}
+
+    adminCreateBtn.disabled=true;
+    adminCreateBtn.textContent='발급 중...';
+    try{
+      await adminCall('create_account',{employee_id:employeeId,login_id:id});
+      adminLoginId.value='';
+      alert('계정이 발급되었습니다.\n아이디: '+id+'\n초기 PIN: 1234\n최초 로그인 후 본인 비밀번호로 변경해야 합니다.');
+      await loadAdmin();
+    }catch(err){
+      console.error('[CC Admin] create',err);
+      var text=err.code==='login_id_taken'
+        ? '이미 사용 중인 아이디입니다.'
+        : err.code==='employee_email_required'
+          ? '직원 이메일이 등록되어 있지 않습니다. 직원정보에 이메일을 먼저 등록해 주세요.'
+          : '계정 발급에 실패했습니다.';
+      msg(adminMsg,text);
+    }finally{
+      adminCreateBtn.disabled=false;
+      adminCreateBtn.textContent='계정 발급';
+    }
+  }
+
+  async function handleAdminAction(btn){
+    var act=btn.getAttribute('data-act');
+    var userId=btn.getAttribute('data-user');
+    var name=btn.getAttribute('data-name')||'상담사';
+    if(!userId) return;
+
+    try{
+      if(act==='password'){
+        if(!confirm(name+'님의 비밀번호를 초기화할까요?\n\n초기 PIN은 1234가 되며, 다음 로그인 시 본인 비밀번호로 반드시 변경해야 합니다.')) return;
+        await adminCall('reset_password',{user_id:userId});
+        alert('비밀번호를 초기화했습니다.\n초기 PIN: 1234');
+      }else if(act==='device'){
+        if(!confirm(name+'님의 등록 PC를 초기화할까요?\n다음 로그인한 브라우저가 새 PC로 등록됩니다.')) return;
+        await adminCall('reset_device',{user_id:userId});
+        alert('등록 PC를 초기화했습니다.');
+      }else if(act==='toggle'){
+        var isActive=btn.getAttribute('data-active')==='1';
+        var next=!isActive;
+        if(!confirm(name+'님의 계정을 '+(next?'다시 사용하도록 활성화':'일시 사용중지')+'할까요?')) return;
+        await adminCall('set_active',{user_id:userId,active:next});
+        alert(next?'계정을 재활성화했습니다.':'계정을 일시 사용중지했습니다.');
+      }else if(act==='terminate'){
+        if(!confirm(name+'님을 퇴사처리할까요?\n\n· 통합본 로그인 즉시 차단\n· 등록 PC 해제\n· 계정 이력은 관리자 화면에 보관\n\n실제 삭제가 아니라 안전한 퇴사상태로 보관됩니다.')) return;
+        await adminCall('terminate_account',{user_id:userId});
+        alert('퇴사처리했습니다. 해당 계정은 더 이상 로그인할 수 없습니다.');
+      }else if(act==='restore'){
+        if(!confirm(name+'님을 재직 상태로 복구할까요?\n복구 후 초기 PIN은 1234가 됩니다.')) return;
+        await adminCall('restore_account',{user_id:userId});
+        alert('재직 상태로 복구했습니다.\n초기 PIN: 1234\n다음 로그인 시 새 비밀번호를 설정해야 합니다.');
+      }
+      await loadAdmin();
+    }catch(err){
+      console.error('[CC Admin] action',err);
+      if(err.code==='cannot_disable_self') alert('현재 로그인한 관리자 자신의 계정은 사용중지할 수 없습니다.');
+      else if(err.code==='cannot_terminate_self') alert('현재 로그인한 관리자 자신의 계정은 퇴사처리할 수 없습니다.');
+      else alert('처리 중 오류가 발생했습니다. 다시 시도해 주세요.');
+    }
+  }
+
+  ['pointerdown','keydown','touchstart','wheel'].forEach(function(evt){
+    document.addEventListener(evt,function(){
+      if(currentUser && !lockOverlay.classList.contains('show')) resetIdle();
+    },{passive:true});
+  });
+
+  loginForm.addEventListener('submit',doLogin);
+  findIdOpenBtn.addEventListener('click',function(){openAccountRecovery('find')});
+  resetOpenBtn.addEventListener('click',function(){openAccountRecovery('reset')});
+  recoveryFindTab.addEventListener('click',function(){setRecoveryMode('find')});
+  recoveryResetTab.addEventListener('click',function(){setRecoveryMode('reset')});
+  recoveryCloseBtn.addEventListener('click',closeAccountRecovery);
+  findIdBtn.addEventListener('click',findLoginId);
+  resetSendBtn.addEventListener('click',sendPasswordReset);
+  findEmail.addEventListener('keydown',function(e){if(e.key==='Enter') findLoginId()});
+  resetEmail.addEventListener('keydown',function(e){if(e.key==='Enter') sendPasswordReset()});
+  recoveryPasswordBtn.addEventListener('click',submitRecoveryPassword);
+  recoveryNewPasswordConfirm.addEventListener('keydown',function(e){if(e.key==='Enter') submitRecoveryPassword()});
+  takeoverConfirm.addEventListener('click',confirmTakeover);
+  takeoverCancel.addEventListener('click',cancelTakeover);
+  logoutBtn.addEventListener('click',logout);
+  pinBtn.addEventListener('click',setPin);
+  lockBtn.addEventListener('click',lockNow);
+  pinUnlockBtn.addEventListener('click',unlockPin);
+  pinInput.addEventListener('keydown',function(e){if(e.key==='Enter') unlockPin()});
+  passwordChangeBtn.addEventListener('click',submitPasswordChange);
+  passwordBackBtn.addEventListener('click',backToLogin);
+  newPasswordConfirm.addEventListener('keydown',function(e){if(e.key==='Enter') submitPasswordChange()});
+  adminBtn.addEventListener('click',openAdmin);
+  adminClose.addEventListener('click',closeAdmin);
+  adminRefresh.addEventListener('click',loadAdmin);
+  adminCreateBtn.addEventListener('click',createAccount);
+  adminOverlay.addEventListener('click',function(e){if(e.target===adminOverlay) closeAdmin()});
+  adminList.addEventListener('click',function(e){
+    var btn=e.target.closest && e.target.closest('[data-act]');
+    if(btn) handleAdminAction(btn);
+  });
+
+  async function bootstrap(){
+    if(!window.supabase || !window.supabase.createClient){
+      showLogin('로그인 모듈을 불러오지 못했습니다. 인터넷 연결을 확인해 주세요.');
+      return;
+    }
+
+    var recoveryRequested=false;
+    try{recoveryRequested=new URLSearchParams(location.search).get('recover')==='1'}catch(e){}
+
+    client=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{
+      auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}
+    });
+
+    client.auth.onAuthStateChange(function(event,session){
+      if(event==='PASSWORD_RECOVERY' && session){
+        showRecoveryPassword();
+      }
+    });
+
+    try{
+      if(recoveryRequested){
+        await new Promise(function(resolve){setTimeout(resolve,250)});
+        var recoverySession=await getSession();
+        if(!recoverySession){
+          await new Promise(function(resolve){setTimeout(resolve,500)});
+          recoverySession=await getSession();
+        }
+        if(recoverySession){
+          showRecoveryPassword();
+          return;
+        }
+        showLogin('재설정 링크가 만료되었거나 유효하지 않습니다. 비밀번호 재설정을 다시 요청해 주세요.');
+        return;
+      }
+
+      var res=await client.auth.getUser();
+      if(res.data && res.data.user){
+        await validateDevice(res.data.user,false);
+      }else{
+        showLogin('');
+      }
+    }catch(err){
+      console.error('[CC Auth] bootstrap',err);
+      showLogin('로그인 상태를 확인하지 못했습니다. 다시 로그인해 주세요.');
+    }
+  }
+
+  bootstrap();
+})();
+</script>
+<!-- CC_AUTH_TEST_UI_END -->
 </body>
 </html>
