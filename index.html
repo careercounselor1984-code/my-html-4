@@ -4174,6 +4174,15 @@ html.cc-auth-checking .cc-auth-gate{display:none!important}
   });
 
   async function bootstrap(){
+    // 로컬에서 직접 연 index.html(file://)은 편집·테스트용으로 로그인 없이 사용
+    // GitHub Pages(https://)에서는 기존 로그인 보호를 그대로 적용
+    if(location.protocol==='file:'){
+      document.documentElement.classList.remove('cc-auth-pending','cc-auth-checking');
+      gate.classList.add('cc-hidden');
+      dock.classList.remove('show');
+      return;
+    }
+
     if(!window.supabase || !window.supabase.createClient){
       showLogin('로그인 모듈을 불러오지 못했습니다. 인터넷 연결을 확인해 주세요.');
       return;
