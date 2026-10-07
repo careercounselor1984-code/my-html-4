@@ -4580,11 +4580,6 @@ html.cc-auth-checking .cc-auth-gate{display:none!important}
   }
   function syncPageVisibility(){
     if(!panel)return;
-    if(isIapPage()){
-      panel.hidden=true;
-      if(launcher) launcher.hidden=true;
-      return;
-    }
     if(userHidden){
       panel.hidden=true;
       if(launcher) launcher.hidden=false;
@@ -4608,8 +4603,13 @@ html.cc-auth-checking .cc-auth-gate{display:none!important}
     quickAction='';
     if(quickBtn){
       quickBtn.hidden=true;
-      if(mode==='pending'){quickAction='apply';quickBtn.textContent=quickLabel||'반영';quickBtn.hidden=false;}
-      else if(mode==='disconnected'){quickAction='retry';quickBtn.textContent='재확인';quickBtn.hidden=false;}
+      if(mode==='disconnected'){quickAction='retry';quickBtn.textContent='재확인';quickBtn.hidden=false;}
+      else if(isIapPage() && mode!=='waiting'){
+        quickAction='iap-send';
+        quickBtn.textContent='IAP 전송';
+        quickBtn.hidden=false;
+      }
+      else if(mode==='pending'){quickAction='apply';quickBtn.textContent=quickLabel||'반영';quickBtn.hidden=false;}
     }
     syncPageVisibility();
   }
@@ -4641,7 +4641,16 @@ html.cc-auth-checking .cc-auth-gate{display:none!important}
     setDetails([['확인','파일 URL 액세스 및 확장프로그램 버전을 확인하세요.']]);
     showMessage('국취 전산 상담 도우미 1.4.0이 설치·활성화되어 있는지 확인하고, GitHub Pages 주소에서 통합본을 열어주세요.','warn');
   }
+  function showIapConnected(){
+    if(panel)panel.hidden=false; currentKind='';
+    setCompactMode('connected');
+    setTitle('Work24 연결됨','IAP 수립내용을 국취전산으로 바로 보낼 수 있습니다.','IAP 전산 연계 준비');
+    setDetails([['IAP 전송','사전점검 후 현재 IAP 계획을 국취 전산 상담 도우미로 저장합니다.']]);
+    $('clgBridgeApplyBtn').textContent='IAP 전송';
+    showMessage('미니바의 “IAP 전송” 또는 IAP 화면 상단의 “국취전산으로 보내기”를 사용할 수 있습니다.','ok');
+  }
   function showConnectedEmpty(){
+    if(isIapPage()){showIapConnected();return;}
     if(panel)panel.hidden=false; currentKind='';
     setCompactMode('connected');
     setTitle('Work24 연결됨','확장프로그램 브리지 정상 · 전달 대기자료가 없습니다.','연결 정상');
@@ -4688,6 +4697,10 @@ html.cc-auth-checking .cc-auth-gate{display:none!important}
   function renderState(s){
     state={basic:s?.basic||null,allowance:s?.allowance||null,termination:s?.termination||null};
     if(panel)panel.hidden=false;
+    if(isIapPage()){
+      if(bridgeReady)showIapConnected();
+      return;
+    }
     const k=latestKind();
     if(!k){if(bridgeReady)showConnectedEmpty();return;}
     if(k==='termination')renderTermination(state.termination);
@@ -4798,8 +4811,23 @@ html.cc-auth-checking .cc-auth-gate{display:none!important}
     },170);
     frame?.addEventListener('load',go,{once:true}); window.loadPage('p11');
   }
+  function triggerIapSend(){
+    const frame=$('frame');
+    try{
+      const doc=frame?.contentDocument;
+      const btn=doc?.getElementById('iapSendWork24Btn');
+      if(btn){
+        btn.click();
+        showMessage('IAP 사전점검 후 국취전산 전송을 실행했습니다. IAP 화면의 전송 상태를 확인해주세요.','ok');
+        return;
+      }
+    }catch(e){}
+    setExpanded(true);
+    showMessage('IAP 전송 버튼을 찾지 못했습니다. IAP 수립 화면을 다시 연 뒤 재시도해주세요.','warn');
+  }
   function apply(){
     if(typeof window.loadPage!=='function'){showMessage('통합본 메뉴 함수를 찾지 못했습니다.','warn');return;}
+    if(isIapPage()){triggerIapSend();return;}
     if(currentKind==='termination'&&state.termination){applyTermination(state.termination);return;}
     if(currentKind==='allowance'&&state.allowance){applyAllowance(state.allowance);return;}
     if(currentKind==='basic'&&state.basic){applyBasic(state.basic);return;}
@@ -4810,12 +4838,18 @@ html.cc-auth-checking .cc-auth-gate{display:none!important}
   $('clgBridgeApplyBtn')?.addEventListener('click',apply);
   $('clgBridgeRetryBtn')?.addEventListener('click',request);
   $('clgBridgeClearBtn')?.addEventListener('click',()=>{if(currentKind==='termination')window.postMessage({marker:MARKER,type:'CLEAR_PENDING_TERMINATION'},'*');else if(currentKind==='allowance')window.postMessage({marker:MARKER,type:'CLEAR_PENDING_ALLOWANCE'},'*');else if(currentKind==='basic')window.postMessage({marker:MARKER,type:'CLEAR_PENDING_BASIC'},'*');else showMessage('지울 대기자료가 없습니다.','warn');});
-  quickBtn?.addEventListener('click',()=>{if(quickAction==='apply')apply();else if(quickAction==='retry')request();});
+  quickBtn?.addEventListener('click',()=>{if(quickAction==='apply')apply();else if(quickAction==='retry')request();else if(quickAction==='iap-send')triggerIapSend();});
   expandBtn?.addEventListener('click',()=>setExpanded(!panel?.classList.contains('is-expanded')));
   $('clgBridgeHeadText')?.addEventListener('click',()=>setExpanded(!panel?.classList.contains('is-expanded')));
   $('clgBridgeCloseBtn')?.addEventListener('click',()=>{userHidden=true;syncPageVisibility();});
   launcher?.addEventListener('click',()=>{userHidden=false;syncPageVisibility();setExpanded(false);});
-  window.addEventListener('clg-page-change',syncPageVisibility);
+  function refreshBridgeForPage(){
+    syncPageVisibility();
+    if(!bridgeReady)return;
+    if(isIapPage()) showIapConnected();
+    else renderState(state);
+  }
+  window.addEventListener('clg-page-change',()=>setTimeout(refreshBridgeForPage,80));
   syncPageVisibility();
   request();setTimeout(()=>{if(!bridgeReady)request();},400);
 })();
