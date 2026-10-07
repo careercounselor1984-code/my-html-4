@@ -272,8 +272,34 @@ body.clg-fixed-scroll .viewer iframe{height:100%!important}
 </style>
 
 <style id="clg-work24-counsel-bridge-v113-style">
-#clgBridgePanel{position:fixed;right:18px;bottom:18px;z-index:2200;width:min(440px,calc(100vw - 28px));border:1px solid #a9c6ef;border-radius:16px;background:#fff;box-shadow:0 18px 52px rgba(37,58,92,.22);overflow:hidden;font-family:Pretendard,-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans KR",sans-serif}
-#clgBridgePanel[hidden]{display:none!important}.clgBridgeHead{display:flex;align-items:flex-start;gap:10px;padding:13px 14px 10px;background:linear-gradient(135deg,#eef5ff,#fff);border-bottom:1px solid #dfe9f6}.clgBridgeIcon{width:34px;height:34px;border-radius:10px;background:#2563eb;color:#fff;display:grid;place-items:center;font-weight:950;flex:0 0 auto}.clgBridgeTitle{font-size:13px;font-weight:950;color:#20324c}.clgBridgeSub{margin-top:3px;color:#70819a;font-size:10.5px;line-height:1.4}.clgBridgeClose{margin-left:auto;border:0;background:transparent;color:#8491a5;font-size:19px;cursor:pointer;line-height:1}.clgBridgeBody{padding:12px 14px}.clgBridgeWho{font-size:12px;font-weight:950;color:#25344c;margin-bottom:8px}.clgBridgeGrid{display:grid;grid-template-columns:105px minmax(0,1fr);gap:5px 9px;font-size:10.8px;line-height:1.45}.clgBridgeGrid b{color:#6c7c92}.clgBridgeGrid span{color:#32445e;word-break:break-word}.clgBridgeActions{display:flex;gap:7px;padding:0 14px 13px}.clgBridgeBtn{height:36px;border-radius:9px;border:1px solid #cbd8e8;background:#fff;color:#526178;padding:0 11px;font-size:11px;font-weight:900;cursor:pointer}.clgBridgeBtn.primary{flex:1;background:#2563eb;border-color:#2563eb;color:#fff}.clgBridgeBtn:hover{filter:brightness(.98)}.clgBridgeMsg{margin:0 14px 12px;padding:8px 9px;border:1px solid #dce6f3;border-radius:9px;background:#f8fbff;color:#64758d;font-size:10.5px;line-height:1.5}.clgBridgeMsg.ok{border-color:#b9e5cf;background:#f0fbf5;color:#17613b}.clgBridgeMsg.warn{border-color:#f3d99c;background:#fff9ed;color:#8a5a00}.clgBridgeMsg.error{border-color:#fecaca;background:#fff5f5;color:#b42318}
+/* ===== Work24 연결 미니바 v124 ===== */
+#clgBridgePanel{position:fixed;right:12px;bottom:76px;z-index:2200;width:min(330px,calc(100vw - 24px));border:1px solid #bfd2ef;border-radius:14px;background:rgba(255,255,255,.98);box-shadow:0 10px 28px rgba(37,58,92,.16);overflow:hidden;font-family:Pretendard,-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans KR",sans-serif;transition:width .16s ease,box-shadow .16s ease}
+#clgBridgePanel[hidden]{display:none!important}
+#clgBridgePanel.is-expanded{width:min(410px,calc(100vw - 24px));box-shadow:0 16px 42px rgba(37,58,92,.22)}
+.clgBridgeHead{min-height:48px;display:flex;align-items:center;gap:8px;padding:7px 8px;background:linear-gradient(135deg,#f3f7ff,#fff);border-bottom:0}
+#clgBridgePanel.is-expanded .clgBridgeHead{border-bottom:1px solid #e2eaf5}
+.clgBridgeIcon{width:29px;height:29px;border-radius:9px;background:#2563eb;color:#fff;display:grid;place-items:center;font-size:12px;font-weight:950;flex:0 0 auto;box-shadow:0 4px 10px rgba(37,99,235,.18)}
+#clgBridgePanel[data-mode="connected"] .clgBridgeIcon{background:#10b981}
+#clgBridgePanel[data-mode="disconnected"] .clgBridgeIcon{background:#ef4444}
+#clgBridgePanel[data-mode="waiting"] .clgBridgeIcon{background:#f59e0b}
+.clgBridgeHeadText{min-width:0;flex:1;cursor:pointer}
+.clgBridgeTitle{font-size:11.5px;font-weight:950;color:#20324c;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.clgBridgeSub{margin-top:2px;color:#718198;font-size:9.5px;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.clgBridgeHeadActions{display:flex;align-items:center;gap:4px;flex:0 0 auto}
+.clgBridgeQuick{height:29px;max-width:116px;border:1px solid #2563eb;background:#2563eb;color:#fff;border-radius:8px;padding:0 9px;font-size:10px;font-weight:950;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.clgBridgeQuick:hover{background:#1d4ed8}.clgBridgeQuick[hidden]{display:none!important}
+.clgBridgeExpand,.clgBridgeClose{width:29px;height:29px;border:1px solid #dbe5f1;background:#fff;color:#73839a;border-radius:8px;display:grid;place-items:center;cursor:pointer;font-size:13px;font-weight:950;padding:0;line-height:1}
+.clgBridgeExpand:hover,.clgBridgeClose:hover{border-color:#a9c1e9;background:#edf5ff;color:#2563eb}
+.clgBridgeBody,#clgBridgePanel .clgBridgeMsg,#clgBridgePanel .clgBridgeActions{display:none}
+#clgBridgePanel.is-expanded .clgBridgeBody{display:block;padding:11px 13px 8px}
+#clgBridgePanel.is-expanded .clgBridgeMsg{display:block;margin:0 13px 10px;padding:7px 9px;border:1px solid #dce6f3;border-radius:9px;background:#f8fbff;color:#64758d;font-size:10px;line-height:1.45}
+#clgBridgePanel.is-expanded .clgBridgeActions{display:flex;gap:6px;padding:0 13px 12px}
+.clgBridgeWho{font-size:11px;font-weight:950;color:#25344c;margin-bottom:7px}.clgBridgeGrid{display:grid;grid-template-columns:92px minmax(0,1fr);gap:4px 8px;font-size:10.2px;line-height:1.4}.clgBridgeGrid b{color:#6c7c92}.clgBridgeGrid span{color:#32445e;word-break:break-word}
+.clgBridgeBtn{height:32px;border-radius:8px;border:1px solid #cbd8e8;background:#fff;color:#526178;padding:0 9px;font-size:10.3px;font-weight:900;cursor:pointer}.clgBridgeBtn.primary{flex:1;background:#2563eb;border-color:#2563eb;color:#fff}.clgBridgeBtn:hover{filter:brightness(.98)}
+.clgBridgeMsg.ok{border-color:#b9e5cf!important;background:#f0fbf5!important;color:#17613b!important}.clgBridgeMsg.warn{border-color:#f3d99c!important;background:#fff9ed!important;color:#8a5a00!important}.clgBridgeMsg.error{border-color:#fecaca!important;background:#fff5f5!important;color:#b42318!important}
+#clgBridgeLauncher{position:fixed;right:12px;bottom:76px;z-index:2199;width:38px;height:38px;border:1px solid #b9cae3;border-radius:12px;background:#fff;color:#2563eb;box-shadow:0 8px 22px rgba(37,58,92,.16);font-size:13px;font-weight:950;cursor:pointer}
+#clgBridgeLauncher:hover{background:#edf5ff;border-color:#8eb2e5}#clgBridgeLauncher[hidden]{display:none!important}
+@media(max-width:620px){#clgBridgePanel{right:8px;bottom:66px;width:min(320px,calc(100vw - 16px))}#clgBridgePanel.is-expanded{width:min(390px,calc(100vw - 16px))}#clgBridgeLauncher{right:8px;bottom:66px}.clgBridgeQuick{max-width:104px;padding:0 7px}}
 </style>
 
 </head>
@@ -4502,11 +4528,18 @@ html.cc-auth-checking .cc-auth-gate{display:none!important}
 </script>
 
 
-<div id="clgBridgePanel">
+<div id="clgBridgePanel" class="is-mini" data-mode="waiting">
   <div class="clgBridgeHead">
     <div class="clgBridgeIcon">전</div>
-    <div><div class="clgBridgeTitle" id="clgBridgeTitle">Work24 연결 확인</div><div class="clgBridgeSub" id="clgBridgeSub">확장프로그램 연결상태를 확인하고 있습니다.</div></div>
-    <button class="clgBridgeClose" id="clgBridgeCloseBtn" type="button" title="알림 숨기기">×</button>
+    <div class="clgBridgeHeadText" id="clgBridgeHeadText" title="클릭해서 상세 보기">
+      <div class="clgBridgeTitle" id="clgBridgeTitle">Work24 연결 확인</div>
+      <div class="clgBridgeSub" id="clgBridgeSub">연결상태를 확인하고 있습니다.</div>
+    </div>
+    <div class="clgBridgeHeadActions">
+      <button class="clgBridgeQuick" id="clgBridgeQuickBtn" type="button" hidden>반영</button>
+      <button class="clgBridgeExpand" id="clgBridgeExpandBtn" type="button" title="상세 보기" aria-expanded="false">⌄</button>
+      <button class="clgBridgeClose" id="clgBridgeCloseBtn" type="button" title="미니 아이콘으로 숨기기">×</button>
+    </div>
   </div>
   <div class="clgBridgeBody">
     <div class="clgBridgeWho" id="clgBridgeWho">확장프로그램 연결 확인 중…</div>
@@ -4519,6 +4552,7 @@ html.cc-auth-checking .cc-auth-gate{display:none!important}
     <button class="clgBridgeBtn primary" id="clgBridgeApplyBtn" type="button">반영</button>
   </div>
 </div>
+<button id="clgBridgeLauncher" type="button" title="Work24 연결창 열기" hidden>전</button>
 
 <script id="clg-work24-counsel-bridge-v113-script">
 (function(){
@@ -4531,6 +4565,31 @@ html.cc-auth-checking .cc-auth-gate{display:none!important}
   const $=id=>document.getElementById(id);
   const panel=$('clgBridgePanel');
   const msg=$('clgBridgeMsg');
+  const quickBtn=$('clgBridgeQuickBtn');
+  const expandBtn=$('clgBridgeExpandBtn');
+  const launcher=$('clgBridgeLauncher');
+  let quickAction='';
+
+  function setExpanded(on){
+    if(!panel)return;
+    panel.classList.toggle('is-expanded',!!on);
+    expandBtn?.setAttribute('aria-expanded',on?'true':'false');
+    if(expandBtn) expandBtn.textContent=on?'⌃':'⌄';
+    if(expandBtn) expandBtn.title=on?'접기':'상세 보기';
+  }
+  function setCompactMode(mode,quickLabel=''){
+    if(!panel)return;
+    panel.hidden=false;
+    panel.dataset.mode=mode||'';
+    setExpanded(false);
+    if(launcher) launcher.hidden=true;
+    quickAction='';
+    if(quickBtn){
+      quickBtn.hidden=true;
+      if(mode==='pending'){quickAction='apply';quickBtn.textContent=quickLabel||'반영';quickBtn.hidden=false;}
+      else if(mode==='disconnected'){quickAction='retry';quickBtn.textContent='재확인';quickBtn.hidden=false;}
+    }
+  }
   const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const num=v=>{const n=Number(String(v??'').replace(/[^0-9.-]/g,''));return Number.isFinite(n)?n:null;};
   const money=v=>{const n=num(v);return n===null?'-':n.toLocaleString('ko-KR')+'원';};
@@ -4547,24 +4606,28 @@ html.cc-auth-checking .cc-auth-gate{display:none!important}
   }
   function showWaiting(){
     if(panel)panel.hidden=false; currentKind='';
+    setCompactMode('waiting');
     setTitle('Work24 연결 확인','확장프로그램 연결상태를 확인하고 있습니다.','확장프로그램 연결 확인 중…');
     setDetails([['상태','연결 확인 중']]); $('clgBridgeApplyBtn').textContent='반영';
     showMessage('잠시만 기다려 주세요. 연결 여부를 확인하고 있습니다.','warn');
   }
   function showDisconnected(){
     if(bridgeReady)return; if(panel)panel.hidden=false;
+    setCompactMode('disconnected');
     setTitle('Work24 연결 안 됨','상담일지 페이지에서 확장프로그램 브리지가 실행되지 않았습니다.','국취 전산 상담 도우미 1.4.0 연결 필요');
     setDetails([['확인','파일 URL 액세스 및 확장프로그램 버전을 확인하세요.']]);
     showMessage('국취 전산 상담 도우미 1.4.0이 설치·활성화되어 있는지 확인하고, GitHub Pages 주소에서 통합본을 열어주세요.','warn');
   }
   function showConnectedEmpty(){
     if(panel)panel.hidden=false; currentKind='';
+    setCompactMode('connected');
     setTitle('Work24 연결됨','확장프로그램 브리지 정상 · 전달 대기자료가 없습니다.','연결 정상');
     setDetails([['다음 단계','Work24에서 기본정보·구촉수당·취업종료를 읽고 상담일지로 보내주세요.']]); $('clgBridgeApplyBtn').textContent='반영';
     showMessage('Work24 확장프로그램에서 “상담일지 통합본으로 보내기”를 누른 뒤 연결 다시 확인을 눌러주세요.','ok');
   }
   function renderBasic(p){
     currentKind='basic';
+    setCompactMode('pending','초기상담 반영');
     setTitle('Work24 기본정보 도착','확인 후 초기상담 화면에 필요한 날짜만 반영합니다.',`${p.name||'이름 미인식'} · ${p.type||'유형 미인식'}`);
     setDetails([['IAP번호',p.iapNo||'-'],['유형',p.type||'-'],['초기상담일',p.initialCounselDate||'-'],['인정통지일',p.noticeReceivedDate||'-']]);
     $('clgBridgeApplyBtn').textContent='초기상담에 반영';
@@ -4573,6 +4636,7 @@ html.cc-auth-checking .cc-auth-gate{display:none!important}
   function reviewText(p){ return p.reviewResult || p.data?.review?.result || p.data?.review?.reportStatus || '-'; }
   function renderAllowance(p){
     currentKind='allowance'; const d=p.data||{}; const inc=d.income||{}; const emp=d.employment||{};
+    setCompactMode('pending','구촉수당 반영');
     const incText=Number(inc.count||0)===0?'없음':`${inc.count||0}건 / ${money(inc.total||0)}`;
     const empText=emp.reported ? `${emp.reported}${emp.company?' · '+emp.company:''}` : '-';
     setTitle('Work24 구촉수당 도착','현재 회차의 확정 화면값을 구촉수당 상담일지에 반영합니다.',`${p.round||d.round||'?'}회차 · ${d.processStatus||p.processStatus||'처리상태 미인식'}`);
@@ -4586,6 +4650,7 @@ html.cc-auth-checking .cc-auth-gate{display:none!important}
   }
   function renderTermination(p){
     currentKind='termination'; const d=p.data||{}; const ins=d.insurance||{}, cmp=d.compare||{};
+    setCompactMode('pending','취업종료 반영');
     const reason=[d.reason,d.reasonDetail].filter(Boolean).join(' / ')||'-';
     const compare=`사업장 ${yn(cmp.company)} · 취업일 ${yn(cmp.employmentDate)} · 시간 ${yn(cmp.weeklyHours)} · 임금 ${yn(cmp.wage)}`;
     setTitle('Work24 취업종료 도착','취업 종료 탭에 직접 입력 가능한 항목만 반영하고 나머지는 전산 확인값으로 표시합니다.',`${d.company||p.company||'사업장 미인식'} · ${d.employmentDate||p.employmentDate||'취업일 미인식'}`);
@@ -4722,7 +4787,11 @@ html.cc-auth-checking .cc-auth-gate{display:none!important}
   $('clgBridgeApplyBtn')?.addEventListener('click',apply);
   $('clgBridgeRetryBtn')?.addEventListener('click',request);
   $('clgBridgeClearBtn')?.addEventListener('click',()=>{if(currentKind==='termination')window.postMessage({marker:MARKER,type:'CLEAR_PENDING_TERMINATION'},'*');else if(currentKind==='allowance')window.postMessage({marker:MARKER,type:'CLEAR_PENDING_ALLOWANCE'},'*');else if(currentKind==='basic')window.postMessage({marker:MARKER,type:'CLEAR_PENDING_BASIC'},'*');else showMessage('지울 대기자료가 없습니다.','warn');});
-  $('clgBridgeCloseBtn')?.addEventListener('click',()=>{if(panel)panel.hidden=true;});
+  quickBtn?.addEventListener('click',()=>{if(quickAction==='apply')apply();else if(quickAction==='retry')request();});
+  expandBtn?.addEventListener('click',()=>setExpanded(!panel?.classList.contains('is-expanded')));
+  $('clgBridgeHeadText')?.addEventListener('click',()=>setExpanded(!panel?.classList.contains('is-expanded')));
+  $('clgBridgeCloseBtn')?.addEventListener('click',()=>{if(panel)panel.hidden=true;if(launcher)launcher.hidden=false;});
+  launcher?.addEventListener('click',()=>{if(panel)panel.hidden=false;launcher.hidden=true;setExpanded(false);});
   request();setTimeout(()=>{if(!bridgeReady)request();},400);
 })();
 </script>
