@@ -5006,5 +5006,283 @@ html.cc-auth-checking .cc-auth-gate{display:none!important}
   });
 })();
 </script>
+
+
+<style id="clg-multi-work-tabs-v1-style">
+/* ===== 하단 멀티 작업 탭 v1 ===== */
+body.clg-tabs-enabled{overflow:hidden!important;height:100vh!important;min-height:0!important}
+body.clg-tabs-enabled .app{height:100vh!important;min-height:0!important;align-items:stretch!important}
+body.clg-tabs-enabled .main{height:100vh!important;min-height:0!important;overflow:hidden!important}
+body.clg-tabs-enabled .topbar{position:relative!important;top:auto!important;flex:0 0 auto!important}
+body.clg-tabs-enabled .workspace{flex:1!important;height:auto!important;min-height:0!important;padding-bottom:10px!important}
+body.clg-tabs-enabled .workspaceCard{height:100%!important;min-height:0!important;overflow:hidden!important}
+body.clg-tabs-enabled .frameToolbar{position:relative!important;top:auto!important;flex:0 0 42px!important}
+body.clg-tabs-enabled .viewer{position:relative!important;flex:1!important;height:auto!important;min-height:0!important;overflow:hidden!important;background:#f8fafc}
+body.clg-tabs-enabled .viewer iframe.clgWorkFrame{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;min-height:0!important;border:0!important;background:#fff!important;display:none!important}
+body.clg-tabs-enabled .viewer iframe.clgWorkFrame.is-active{display:block!important}
+body.clg-tabs-enabled .appFooter{display:none!important}
+
+.clgWorkTabs{height:42px;flex:0 0 42px;display:flex;align-items:center;gap:6px;padding:5px 8px;border-top:1px solid #dfe7f1;background:linear-gradient(180deg,#fbfcfe,#f4f7fb);min-width:0;box-shadow:0 -3px 12px rgba(37,58,92,.035)}
+.clgWorkTabsScroller{display:flex;align-items:center;gap:5px;min-width:0;flex:1;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin;scrollbar-color:#c8d5e7 transparent;padding-bottom:1px}
+.clgWorkTabsScroller::-webkit-scrollbar{height:5px}.clgWorkTabsScroller::-webkit-scrollbar-thumb{background:#c8d5e7;border-radius:999px}
+.clgWorkTab{height:31px;max-width:235px;min-width:112px;display:flex;align-items:center;border:1px solid #dbe4ef;border-radius:9px;background:#fff;color:#5d6c82;overflow:hidden;flex:0 0 auto;transition:.15s;box-shadow:0 1px 2px rgba(37,58,92,.02)}
+.clgWorkTab:hover{border-color:#afc4e2;background:#f8fbff}
+.clgWorkTab.active{border-color:#9cb9e7;background:#edf4ff;color:#1d4ed8;box-shadow:0 2px 6px rgba(37,99,235,.08)}
+.clgWorkTabMain{height:100%;min-width:0;flex:1;border:0;background:transparent;color:inherit;display:flex;align-items:center;gap:6px;padding:0 7px 0 9px;cursor:pointer;text-align:left}
+.clgWorkTabIcon{font-size:11px;flex:0 0 auto}.clgWorkTabTitle{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10.8px;font-weight:900}
+.clgWorkTabDirty{display:none;width:6px;height:6px;border-radius:50%;background:#f59e0b;flex:0 0 auto}.clgWorkTab.dirty .clgWorkTabDirty{display:block}
+.clgWorkTabClose{width:27px;height:27px;flex:0 0 27px;border:0;border-left:1px solid transparent;background:transparent;color:#94a3b8;cursor:pointer;font-size:15px;line-height:1;padding:0;display:grid;place-items:center}
+.clgWorkTabClose:hover{background:#fff1f2;color:#dc2626;border-left-color:#fecdd3}
+.clgWorkTab.active .clgWorkTabClose{color:#6f87ad}.clgWorkTab.active .clgWorkTabClose:hover{color:#dc2626}
+.clgWorkTabsAdd{height:31px;flex:0 0 auto;border:1px solid #c8d7eb;border-radius:9px;background:#fff;color:#2563eb;padding:0 10px;font-size:11px;font-weight:950;cursor:pointer;white-space:nowrap}
+.clgWorkTabsAdd:hover{background:#edf5ff;border-color:#8fb0df}.clgWorkTabsAdd:disabled{opacity:.45;cursor:not-allowed;background:#f4f6f8;color:#8a97aa}
+.clgWorkTabsCount{font-size:9.5px;font-weight:850;color:#8391a4;white-space:nowrap;padding:0 2px}
+@media(max-width:760px){
+  body.clg-tabs-enabled .main{height:100vh!important;min-height:0!important}
+  body.clg-tabs-enabled .workspace{padding:6px!important}
+  .clgWorkTabs{height:46px;flex-basis:46px;padding:6px}.clgWorkTab{min-width:104px;max-width:185px;height:33px}.clgWorkTabsAdd{height:33px;padding:0 8px}.clgWorkTabsCount{display:none}
+}
+</style>
+
+<script id="clg-multi-work-tabs-v1-script">
+(function(){
+  'use strict';
+  if(window.__CLG_MULTI_WORK_TABS_V1__) return;
+  window.__CLG_MULTI_WORK_TABS_V1__=true;
+
+  const MAX_TABS=6;
+  const viewer=document.querySelector('.viewer');
+  const card=document.querySelector('.workspaceCard');
+  const primaryFrame=document.getElementById('frame');
+  if(!viewer || !card || !primaryFrame || typeof PAGES==='undefined') return;
+
+  document.body.classList.add('clg-tabs-enabled');
+  primaryFrame.classList.add('clgWorkFrame','is-active');
+  primaryFrame.dataset.clgPrimary='1';
+
+  const bar=document.createElement('div');
+  bar.className='clgWorkTabs';
+  bar.setAttribute('role','tablist');
+  bar.setAttribute('aria-label','작업 탭');
+  bar.innerHTML='<div class="clgWorkTabsScroller" id="clgWorkTabsScroller"></div><span class="clgWorkTabsCount" id="clgWorkTabsCount"></span><button class="clgWorkTabsAdd" id="clgWorkTabsAdd" type="button" title="새 작업 탭을 만든 뒤 메뉴에서 화면을 선택합니다">＋ 새 탭</button>';
+  card.appendChild(bar);
+  const scroller=bar.querySelector('#clgWorkTabsScroller');
+  const addBtn=bar.querySelector('#clgWorkTabsAdd');
+  const countEl=bar.querySelector('#clgWorkTabsCount');
+
+  let seq=1;
+  let forceNextNew=false;
+  let activeTabId='tab-1';
+  const tabs=[];
+
+  function pageOf(pageId){ return PAGES.find(x=>x.id===pageId); }
+  function iconForTitle(title){
+    try{ return typeof uiIconFor==='function' ? uiIconFor(title||'') : '▣'; }
+    catch(e){ return '▣'; }
+  }
+  function groupFor(pageId){
+    try{ return typeof uiGroupFor==='function' ? uiGroupFor(pageId) : null; }
+    catch(e){ return null; }
+  }
+  function descFor(title){
+    try{ return typeof uiDescriptionFor==='function' ? uiDescriptionFor(title||'') : '현재 선택한 상담 화면입니다.'; }
+    catch(e){ return '현재 선택한 상담 화면입니다.'; }
+  }
+  function currentTab(){ return tabs.find(t=>t.id===activeTabId) || null; }
+  function tabById(id){ return tabs.find(t=>t.id===id) || null; }
+
+  function configureFrame(fr){
+    fr.classList.add('clgWorkFrame');
+    fr.setAttribute('title','상담 도구 화면');
+    fr.setAttribute('sandbox','allow-scripts allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-downloads allow-same-origin');
+    fr.setAttribute('allow','clipboard-read; clipboard-write');
+    fr.setAttribute('scrolling','auto');
+  }
+
+  function updateHeader(tab){
+    const p=pageOf(tab?.pageId); if(!p) return;
+    const g=groupFor(tab.pageId);
+    const title=document.getElementById('currentTitle'); if(title) title.textContent=p.title;
+    const bc=document.getElementById('breadcrumbTitle'); if(bc) bc.textContent=p.title;
+    const badge=document.getElementById('pageBadge'); if(badge) badge.textContent=g?.title || '상담 도구';
+    const sub=document.getElementById('pageSubtitle'); if(sub) sub.textContent=descFor(p.title);
+    const hint=document.querySelector('.toolbarHint');
+    if(hint) hint.textContent=`작업 탭 ${tabs.length}개 · 다른 탭으로 이동해도 입력 내용이 유지됩니다.`;
+    const status=document.getElementById('frameStatus'); if(status) status.textContent='준비됨';
+    document.getElementById('statusDot')?.classList.remove('loading');
+  }
+
+  function renderTabs(){
+    scroller.innerHTML='';
+    const sameTitleCounts={};
+    tabs.forEach(t=>{ const k=t.title||t.pageId; sameTitleCounts[k]=(sameTitleCounts[k]||0)+1; });
+    const seen={};
+    tabs.forEach(tab=>{
+      const key=tab.title||tab.pageId; seen[key]=(seen[key]||0)+1;
+      const label=sameTitleCounts[key]>1 ? `${key} ${seen[key]}` : key;
+      const wrap=document.createElement('div');
+      wrap.className='clgWorkTab'+(tab.id===activeTabId?' active':'')+(tab.dirty?' dirty':'');
+      wrap.dataset.tabId=tab.id;
+      wrap.setAttribute('role','tab');
+      wrap.setAttribute('aria-selected',tab.id===activeTabId?'true':'false');
+      const main=document.createElement('button');
+      main.type='button'; main.className='clgWorkTabMain'; main.title=label;
+      main.innerHTML=`<span class="clgWorkTabIcon">${iconForTitle(tab.title)}</span><span class="clgWorkTabTitle"></span><span class="clgWorkTabDirty" title="이 탭에서 입력한 내용이 있습니다"></span>`;
+      main.querySelector('.clgWorkTabTitle').textContent=label;
+      main.addEventListener('click',()=>activateTab(tab.id));
+      const close=document.createElement('button');
+      close.type='button'; close.className='clgWorkTabClose'; close.textContent='×'; close.title='탭 닫기'; close.setAttribute('aria-label',label+' 탭 닫기');
+      close.addEventListener('click',e=>{e.stopPropagation();closeTab(tab.id)});
+      wrap.append(main,close); scroller.appendChild(wrap);
+    });
+    countEl.textContent=`${tabs.length}/${MAX_TABS}`;
+    addBtn.disabled=tabs.length>=MAX_TABS;
+    requestAnimationFrame(()=>{
+      const a=scroller.querySelector('.clgWorkTab.active');
+      a?.scrollIntoView?.({block:'nearest',inline:'nearest'});
+    });
+  }
+
+  function markDirty(tab){
+    if(tab.dirty) return;
+    tab.dirty=true; renderTabs();
+  }
+
+  function wireDirty(tab){
+    const fr=tab.frame;
+    setTimeout(()=>{
+      try{
+        const doc=fr.contentDocument; if(!doc || doc.documentElement?.dataset.clgTabDirtyWired==='1') return;
+        doc.documentElement.dataset.clgTabDirtyWired='1';
+        const onEdit=e=>{ if(e.isTrusted) markDirty(tab); };
+        doc.addEventListener('input',onEdit,true);
+        doc.addEventListener('change',onEdit,true);
+      }catch(e){}
+    },900);
+  }
+
+  function loadFrame(tab){
+    const p=pageOf(tab.pageId); if(!p) return;
+    const fr=tab.frame;
+    if(tab.id===activeTabId && typeof uiSetLoading==='function') uiSetLoading(true);
+    fr.onload=()=>{
+      if(tab.id===activeTabId && typeof uiSetLoading==='function') uiSetLoading(false);
+      wireDirty(tab);
+      try{ window.dispatchEvent(new CustomEvent('clg-tab-frame-load',{detail:{tabId:tab.id,pageId:tab.pageId,frame:fr}})); }catch(e){}
+    };
+    if(p.url){
+      fr.dataset.external='1'; fr.removeAttribute('srcdoc'); fr.src=p.url;
+    }else{
+      fr.dataset.external='0'; fr.removeAttribute('src'); fr.srcdoc=b64ToUtf8(p.b64);
+    }
+  }
+
+  function activateTab(id){
+    const tab=tabById(id); if(!tab) return;
+    tabs.forEach(t=>{
+      t.frame.classList.toggle('is-active',t.id===id);
+      t.frame.removeAttribute('id');
+      t.frame.setAttribute('aria-hidden',t.id===id?'false':'true');
+    });
+    tab.frame.id='frame';
+    activeTabId=id;
+    activePageId=tab.pageId;
+    updateHeader(tab);
+    if(typeof setActive==='function') setActive(tab.pageId);
+    renderTabs();
+    try{ window.dispatchEvent(new CustomEvent('clg-tab-switch',{detail:{tabId:id,pageId:tab.pageId,frame:tab.frame}})); }catch(e){}
+  }
+
+  function createTab(pageId, options={}){
+    const p=pageOf(pageId); if(!p) return null;
+    const newInstance=!!options.newInstance || forceNextNew;
+    forceNextNew=false;
+    if(!newInstance){
+      const existing=tabs.find(t=>t.pageId===pageId);
+      if(existing){ activateTab(existing.id); return existing; }
+    }
+    if(tabs.length>=MAX_TABS){
+      alert(`작업 탭은 최대 ${MAX_TABS}개까지 열 수 있습니다.\n사용하지 않는 탭을 닫은 뒤 다시 열어주세요.`);
+      return null;
+    }
+    const fr=options.frame || document.createElement('iframe');
+    configureFrame(fr);
+    if(!options.frame) viewer.appendChild(fr);
+    const tab={id:`tab-${++seq}`,pageId,title:p.title,frame:fr,dirty:false};
+    fr.dataset.clgTabId=tab.id; fr.dataset.pageId=pageId;
+    tabs.push(tab);
+    activateTab(tab.id);
+    loadFrame(tab);
+    return tab;
+  }
+
+  function closeTab(id){
+    const tab=tabById(id); if(!tab) return;
+    if(tabs.length===1){
+      alert('마지막 작업 탭은 닫을 수 없습니다. 다른 화면을 먼저 열어주세요.');
+      return;
+    }
+    if(tab.dirty && !confirm(`“${tab.title}” 탭에서 입력한 내용이 있습니다.\n이 탭을 닫을까요?`)) return;
+    const idx=tabs.indexOf(tab);
+    const wasActive=id===activeTabId;
+    tabs.splice(idx,1);
+    try{ tab.frame.remove(); }catch(e){}
+    if(wasActive){
+      const next=tabs[Math.min(idx,tabs.length-1)] || tabs[0];
+      activateTab(next.id);
+    }else renderTabs();
+  }
+
+  function reloadActive(){
+    const tab=currentTab(); if(!tab) return;
+    if(tab.dirty && !confirm(`“${tab.title}” 탭을 새로고침하면 현재 입력내용이 초기화될 수 있습니다.\n새로고침할까요?`)) return;
+    tab.dirty=false; renderTabs(); loadFrame(tab);
+  }
+
+  // 이미 열려 있는 기존 iframe을 첫 작업 탭으로 편입한다.
+  const initialPage=pageOf(activePageId) || PAGES[0];
+  const initial={id:'tab-1',pageId:initialPage?.id,title:initialPage?.title||'상담 화면',frame:primaryFrame,dirty:false};
+  primaryFrame.dataset.clgTabId=initial.id; primaryFrame.dataset.pageId=initial.pageId;
+  configureFrame(primaryFrame);
+  tabs.push(initial);
+  wireDirty(initial);
+  renderTabs(); updateHeader(initial);
+
+  // 이후 메뉴 선택은 기존 화면 교체가 아니라 탭 열기/전환으로 동작한다.
+  const tabLoadPage=function(pageId,options){ return createTab(pageId,options||{}); };
+  window.loadPage=tabLoadPage;
+  try{ loadPage=tabLoadPage; }catch(e){}
+
+  addBtn.addEventListener('click',()=>{
+    if(tabs.length>=MAX_TABS) return;
+    forceNextNew=true;
+    const menuBtn=document.getElementById('overlayMenuBtn');
+    if(menuBtn) menuBtn.click();
+    else{
+      forceNextNew=false;
+      document.getElementById('menuSearch')?.focus();
+    }
+  });
+
+  // 기존 새로고침 이벤트를 가로채 현재 탭만 새로고침한다.
+  document.getElementById('reloadPageBtn')?.addEventListener('click',e=>{
+    e.preventDefault(); e.stopImmediatePropagation(); reloadActive();
+  },true);
+
+  // Ctrl+Shift+T: 현재 화면을 별도 새 작업 탭으로 한 번 더 연다.
+  document.addEventListener('keydown',e=>{
+    if((e.ctrlKey||e.metaKey) && e.shiftKey && e.key.toLowerCase()==='t'){
+      e.preventDefault();
+      const tab=currentTab(); if(tab) createTab(tab.pageId,{newInstance:true});
+    }
+  });
+
+  // 일부 부모-브리지 기능이 현재 활성 iframe을 찾을 수 있도록 helper 제공.
+  window.clgGetActiveFrame=()=>currentTab()?.frame || document.getElementById('frame');
+  window.clgReloadActiveTab=reloadActive;
+  window.clgOpenNewWorkTab=(pageId)=>createTab(pageId,{newInstance:true});
+})();
+</script>
+
 </body>
 </html>
