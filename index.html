@@ -397,7 +397,26 @@ body.clg-fixed-scroll .viewer iframe{height:100%!important}
 .clgAlertConnect a{color:#2162ad;text-decoration:underline}
 @media(max-width:760px){.clgAlertFloat{left:10px;bottom:10px;padding:10px 12px}.clgAlertHead{padding:13px}.clgAlertBody{padding:10px}.clgAlertFoot{padding:9px}.clgAlertFoot button{flex:1;font-size:11px;padding:10px 6px}}
 </style>
-</head>
+<style id="clgCompactUi20261010">
+/* 즐겨찾기는 기존 제목 옆의 두 작은 컨트롤만 차지 */
+#clgCompactFav{display:inline-flex;align-items:center;gap:4px;flex:0 0 auto;position:relative;z-index:60}
+#clgFavCurrent{width:28px;height:28px;border:1px solid #d7e2ef;border-radius:8px;background:#fff;color:#9aa8bd;font-size:20px;line-height:1;cursor:pointer;display:grid;place-items:center;padding:0}
+#clgFavCurrent.active{color:#d69a16;background:#fff9e9;border-color:#ecdba9}
+#clgFavCurrent:hover{background:#fff8e9}
+#clgCompactFavMenu{position:relative}
+#clgCompactFavMenu>summary{display:inline-flex;align-items:center;gap:4px;height:28px;padding:0 8px;list-style:none;border:1px solid #d7e2ef;border-radius:8px;background:#fff;color:#546d8b;font:850 11px/1.2 system-ui,sans-serif;cursor:pointer;white-space:nowrap}
+#clgCompactFavMenu>summary::-webkit-details-marker{display:none}
+#clgCompactFavMenu[open]>summary,#clgCompactFavMenu>summary:hover{border-color:#a3c3ed;background:#f3f8ff;color:#1d5bab}
+#clgCompactFavMenu .clgFavDrop{position:absolute;right:0;top:calc(100% + 7px);width:282px;max-width:calc(100vw - 24px);max-height:380px;overflow-y:auto;padding:7px;background:#fff;border:1px solid #d8e3f0;border-radius:12px;box-shadow:0 12px 30px rgba(27,55,96,.2);z-index:70}
+.clgFavDropRow{display:flex;align-items:center;gap:3px;margin:2px 0}
+.clgFavDropRow .clgFavLink{min-width:0;flex:1;border:0;background:transparent;border-radius:7px;padding:9px 7px;cursor:pointer;text-align:left;color:#415774;font-size:12px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.clgFavDropRow .clgFavLink:hover{color:#205cae;background:#eff6ff}
+.clgFavDropRow .clgFavRemove{flex:0 0 28px;height:26px;border:0;border-radius:7px;background:#f5f6f9;color:#748197;cursor:pointer}
+.clgFavDropRow .clgFavRemove:hover{background:#fff0f2;color:#bd3145}
+.clgFavDropEmpty{color:#7b8aa1;font-size:11px;line-height:1.65;padding:9px}
+@media(max-width:1150px){#clgFavTxt{display:none}}
+@media(max-width:760px){#clgFavCurrent,#clgCompactFavMenu>summary{height:26px}#clgFavCurrent{width:26px}#clgCompactFavMenu>summary{padding:0 5px}}
+</style></head>
 <body>
 <div class="app" id="app">
   <aside class="sidebar" id="sidebar">
@@ -6143,6 +6162,90 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   setTimeout(scan,120);setTimeout(scan,500);
 })();
 
+</script>
+<script id="clgCompactUi20261010Script">
+(function(){
+ 'use strict';
+ function setupFavorites(){
+  const title=document.querySelector('.titleLine');
+  if(!title||document.getElementById('clgCompactFavMenu'))return;
+  const wrap=document.createElement('div');wrap.id='clgCompactFav';
+  const star=document.createElement('button');star.id='clgFavCurrent';star.type='button';star.textContent='☆';star.setAttribute('aria-label','현재 메뉴 즐겨찾기');
+  const dropdown=document.createElement('details');dropdown.id='clgCompactFavMenu';
+  const summary=document.createElement('summary');summary.innerHTML='★ <b id="clgFavCount">0</b> <span id="clgFavTxt">즐겨찾기</span>⌄';
+  const list=document.createElement('div');list.className='clgFavDrop';dropdown.append(summary,list);wrap.append(star,dropdown);
+  title.appendChild(wrap);
+  function refresh(){
+   if(typeof uiFavoriteIds!=='function')return;
+   const ids=uiFavoriteIds(),current=typeof activePageId==='string'?activePageId:null;
+   document.getElementById('clgFavCount').textContent=String(ids.length);
+   star.textContent=current&&ids.includes(current)?'★':'☆';
+   star.classList.toggle('active',!!current&&ids.includes(current));
+   star.disabled=!current;
+   star.title=current?(ids.includes(current)?'현재 메뉴 즐겨찾기 해제':'현재 메뉴 즐겨찾기 추가'):'메뉴를 선택하세요';
+   list.replaceChildren();
+   if(!ids.length){const e=document.createElement('div');e.className='clgFavDropEmpty';e.textContent='왼쪽 메뉴의 ☆를 눌러 즐겨찾기를 추가하세요.';list.appendChild(e);return}
+   ids.forEach(id=>{
+    const pg=PAGES.find(x=>x.id===id);if(!pg)return;
+    const row=document.createElement('div');row.className='clgFavDropRow';
+    const go=document.createElement('button');go.type='button';go.className='clgFavLink';go.textContent=pg.title;
+    go.onclick=()=>{dropdown.open=false;loadPage(id)};
+    const rm=document.createElement('button');rm.type='button';rm.className='clgFavRemove';rm.textContent='×';rm.title=pg.title+' 즐겨찾기 해제';
+    rm.onclick=()=>{uiToggleFavorite(id,false);refresh()};
+    row.append(go,rm);list.append(row);
+   });
+  }
+  star.onclick=()=>{if(activePageId){uiToggleFavorite(activePageId);refresh()}};
+  const existing=document.getElementById('favoriteMenu');
+  if(existing)new MutationObserver(()=>refresh()).observe(existing,{childList:true});
+  window.addEventListener('clg-page-change',refresh);
+  document.addEventListener('pointerdown',e=>{if(dropdown.open&&!dropdown.contains(e.target))dropdown.open=false});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')dropdown.open=false});
+  refresh();
+ }
+ function compactCheck(d){
+  if(!d||!d.body||d.body.querySelector('.clgCBar.clgCompactBar'))return;
+  const bar=d.body.querySelector('.clgCBar');if(!bar)return;
+  const sty=d.createElement('style');sty.textContent=[
+   '.clgCBar.clgCompactBar{position:fixed!important;top:auto!important;left:auto!important;right:13px!important;bottom:13px!important;display:block!important;flex-wrap:nowrap!important;width:auto!important;max-width:calc(100vw - 26px);border:0!important;border-radius:0!important;padding:0!important;background:none!important;box-shadow:none!important;z-index:9996!important}',
+   '.clgCompactBar .clgCompactToggle{display:inline-flex;align-items:center;justify-content:center;border:1px solid #9dbfe8!important;border-radius:999px!important;background:#eef6ff!important;color:#245c98!important;padding:8px 12px!important;font-size:12px;font-weight:850;cursor:pointer;box-shadow:0 5px 17px rgba(27,72,122,.16)}',
+   '.clgCompactBar .clgCompactPanel{display:none;position:absolute;right:0;bottom:calc(100% + 7px);width:min(330px,calc(100vw - 26px));max-height:min(360px,60vh);overflow:auto;background:white;border:1px solid #bed4f1;border-radius:13px;padding:13px;box-shadow:0 14px 35px rgba(17,47,91,.2);box-sizing:border-box}',
+   '.clgCompactBar.is-open .clgCompactPanel{display:grid;gap:9px}',
+   '.clgCompactBar .clgCompactPanel small{display:block!important;flex-basis:auto!important;line-height:1.5;font-size:11px}',
+   '.clgCompactBar .clgCompactPanel button{width:max-content;max-width:100%;padding:8px 12px!important}',
+   '.clgCompactBar .clgCompactPanel span{font-size:13px;font-weight:850}'
+  ].join('');d.head.append(sty);
+  const contents=Array.from(bar.childNodes);
+  const panel=d.createElement('div');panel.className='clgCompactPanel';contents.forEach(node=>panel.appendChild(node));
+  const toggle=d.createElement('button');toggle.type='button';toggle.className='clgCompactToggle';toggle.setAttribute('aria-expanded','false');toggle.title='기록 누락 항목 점검';
+  bar.classList.add('clgCompactBar');bar.append(toggle,panel);
+  const source=panel.querySelector('span');
+  function refresh(){
+   const text=source?.textContent||'';
+   const high=text.match(/우선 확인\s*(\d+)/),review=text.match(/작성 권장\s*(\d+)/);
+   toggle.textContent=high?'📝 점검 '+high[1]+' · 권장 '+(review?review[1]:'0'):'✓ 기록 점검';
+  }
+  function close(){bar.classList.remove('is-open');toggle.setAttribute('aria-expanded','false')}
+  toggle.addEventListener('click',()=>{const open=bar.classList.toggle('is-open');toggle.setAttribute('aria-expanded',String(open))});
+  d.addEventListener('pointerdown',e=>{if(!bar.contains(e.target))close()});
+  d.addEventListener('keydown',e=>{if(e.key==='Escape')close()});
+  new MutationObserver(refresh).observe(source||panel,{subtree:true,characterData:true,childList:true});
+  refresh();
+ }
+ function scan(){
+  document.querySelectorAll('iframe[srcdoc]').forEach(frame=>{
+   if(frame.dataset.external==='1')return;
+   try{compactCheck(frame.contentDocument)}catch(e){}
+  });
+ }
+ function init(){
+  setupFavorites();
+  setTimeout(scan,350);setTimeout(scan,850);
+  document.addEventListener('load',e=>{if(e.target&&e.target.tagName==='IFRAME')setTimeout(scan,200)},true);
+  ['clg-page-change','clg-tab-switch','clg-tab-frame-load'].forEach(evt=>window.addEventListener(evt,()=>setTimeout(scan,300)));
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+})();
 </script>
 </body>
 </html>
