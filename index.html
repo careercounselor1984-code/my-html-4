@@ -5692,5 +5692,156 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 })();
 </script>
 
-<script id="clg-topbar-compact-v1-js">(()=>{const menu=document.getElementById('clgTopMore');if(!menu)return;const close=()=>{menu.open=false};document.addEventListener('pointerdown',e=>{if(menu.open&&!menu.contains(e.target))close()});document.addEventListener('keydown',e=>{if(menu.open&&e.key==='Escape')close()});menu.addEventListener('click',e=>{if(e.target.closest('button,a'))close()})})();</script></body>
+<script id="clg-topbar-compact-v1-js">(()=>{const menu=document.getElementById('clgTopMore');if(!menu)return;const close=()=>{menu.open=false};document.addEventListener('pointerdown',e=>{if(menu.open&&!menu.contains(e.target))close()});document.addEventListener('keydown',e=>{if(menu.open&&e.key==='Escape')close()});menu.addEventListener('click',e=>{if(e.target.closest('button,a'))close()})})();</script>
+<script id="clg-completeness-check-v1">
+(function(){
+ 'use strict';
+ var SETS=[
+  {match:'mainDifficulty',entries:[
+   {id:'mainDifficulty',label:'주요 취업 애로사항',level:'important',help:'상담에서 확인한 경력공백·희망직무·근무시간 제약 등을 구체적으로 적으세요. 확인된 애로사항이 없다면 그 사실을 확인한 뒤 기록하세요.'},
+   {id:'counselorOpinion',label:'최종 상담사 의견',level:'important',help:'내담자 강점·보완점과 이후 지원계획을 적으세요. 예: 목표 직무는 명확하나 지원서 경험이 부족해 다음 상담에서 이력서를 점검하기로 함.'},
+   {id:'familyDetail',label:'가족·돌봄 제약',level:'review',help:'구직활동에 실제 영향을 주는 돌봄·부양·근무시간 제약만 적으세요. 영향이 없다고 확인했다면 “취업활동 관련 돌봄 제약 없음” 등으로 기록 가능.'},
+   {id:'healthCreditDetail',label:'건강·신용 세부내용',level:'important',condition:function(d){return ['healthPhysical','healthMental','creditIssue'].some(function(name){return d.querySelector('input[name="'+name+'"]:checked')?.value==='있음'})},help:'건강·신용 문제가 있다고 선택했다면 취업활동에 미치는 영향과 필요한 지원만 기록하세요. 예: 장시간 서서 하는 업무가 어려워 좌식 직무를 우선 탐색함.'},
+   {id:'motivationReason',label:'참여 계기',level:'review',help:'왜 취업지원이 필요한지 실제 내담자 진술을 기록하세요. 예: 이직 후 구직방향 설정의 어려움으로 상담 신청.'},
+   {id:'motivationEffort',label:'취업준비 노력',level:'review',help:'실제로 진행한 활동만 적으세요. 준비한 활동이 없다면 확인 후 “현재까지 구체적인 취업준비 활동을 진행하지 못함”.'},
+   {id:'clientStatus',label:'현재 구직준비 상태',level:'review',help:'현재 희망직무·지원준비 수준과 필요한 서비스를 적으세요. 예: 직무 탐색 단계로 채용정보와 훈련과정 비교 필요.'}
+  ]},
+  {match:'counselorOpinionDetail',entries:[
+   {id:'counselorOpinionDetail',label:'심리검사 상담사 종합 의견',level:'important',help:'실제 검사결과 특성 → 강점·보완점 → 희망직무 연계 → 다음 지원계획을 적으세요.'}
+  ]},
+  {match:'counselNote',entries:[
+   {id:'counselNote',label:'IAP 최종 상담사 의견',level:'important',help:'취업목표와 활동계획 설정 근거, 내담자와 협의한 내용, 향후 지원방향을 적으세요.'},
+   {id:'iapPlanExtendReason',label:'IAP 수립기간 연장 사유',level:'important',condition:function(d){return !!d.getElementById('iapPlanExtend')?.checked},help:'실제로 연장이 필요한 사유와 추가 협의 내용, 일정 등을 적으세요.'},
+   {id:'iapEditReason',label:'IAP 수정 사유',level:'important',condition:function(d){var x=d.getElementById('iapEditPanel');return !!x&&!x.hidden},help:'무엇이 왜 변경됐는지 적으세요. 예: 훈련참여가 확정돼 활동계획 일정을 조정함.'}
+  ]},
+  {match:'essentialReason',entries:[
+   {id:'counselorOpinion',label:'필수상담 종합 의견·향후 계획',level:'important',help:'구직활동 현황, 취업애로 확인, 실제 제공 서비스, 후속 조치를 구체적으로 적으세요.'},
+   {id:'q2_reason',label:'취업의지 저하 사유',level:'important',condition:function(d){return !!d.getElementById('q2_3')?.checked},help:'취업의지가 낮다고 응답한 이유와 지원이 필요한 사항을 적으세요.'},
+   {id:'q7_detail',label:'취업 장애요인',level:'important',condition:function(d){return !!d.getElementById('q7_1')?.checked||!!d.getElementById('q7_3')?.checked},help:'실제 장애요인, 취업에 미치는 영향, 검토한 해결 방법을 적으세요.'},
+   {id:'healthDetail',label:'건강 관련 제약',level:'important',condition:function(d){return !!d.getElementById('health2')?.checked||!!d.getElementById('health3')?.checked},help:'건강상태가 근무시간·직무선택 등에 미치는 영향만 확인한 범위에서 적으세요.'},
+   {id:'essentialReason',label:'필수서비스 미참여 사유',level:'important',condition:function(d){return !!d.getElementById('essential3')?.checked},help:'미참여 사유, 안내한 내용, 후속 참여·상담 계획을 확인한 범위에서 적으세요.'}
+  ]},
+  {match:'opinion',also:'generateBtn',entries:[
+   {id:'opinion',label:'컨설팅 상담사 의견',level:'important',help:'실제 진행한 컨설팅과 보완과제를 적으세요. 예: 지원동기와 직무경험 연결이 부족하여 관련 사례 1개 보강을 안내함.'}
+  ]}
+ ];
+ var ACTION_IDS=new Set(['copyRecordBtn','btnBuildTop','btnCopyTop','btnBuild','btnCopy','generateBtn','copyShortTopBtn','copyTopBtn','copyBtn','regenBtn']);
+ function isFinal(btn){
+  if(ACTION_IDS.has(btn.id))return true;
+  var label=String(btn.textContent||btn.value||'').replace(/\s+/g,' ').trim();
+  if(/추천|예시 복사|선택 문구|참여동기 복사|분류.*근거 복사|상담목표.*전략 복사|공통정보|설정 저장|일정/.test(label))return false;
+  return /심리검사 해석 기록지 내용 생성 및 복사|전체 기록 복사|기록 생성.*복사|상담일지 생성|전체 상담일지 복사|기록 출력 생성|기록 전체 복사|^내용 복사$/.test(label);
+ }
+ function useful(v){
+  v=String(v||'').replace(/[\u200b-\u200d\ufeff]/g,'').trim();
+  return !!v&&!/^(없음|해당\s*없음|미확인|미기재|-|\/|\.)$/i.test(v);
+ }
+ function install(doc,win){
+  if(!doc?.body||doc.__clgCompletenessInstalled)return;
+  var group=SETS.find(function(g){return !!doc.getElementById(g.match)&&(!g.also||!!doc.getElementById(g.also))});
+  if(!group)return;
+  doc.__clgCompletenessInstalled=true;
+  var css=doc.createElement('style');
+  css.textContent=[
+   '.clgCBar{position:sticky;top:0;z-index:9995;display:flex;flex-wrap:wrap;gap:7px;align-items:center;justify-content:space-between;padding:9px 12px;background:#edf5ff;border:1px solid #c5dcf5;border-radius:0 0 9px 9px;font:650 12px/1.45 system-ui,sans-serif;color:#295b88;box-sizing:border-box}',
+   '.clgCBar button{background:white;border:1px solid #94b9df;border-radius:8px;padding:7px 10px;color:#1f5f9a;font-weight:750;cursor:pointer}',
+   '.clgCBar small{flex-basis:100%;font-weight:450;color:#637c93;font-size:10px}',
+   '.clgCGuide{font:500 11px/1.55 system-ui,sans-serif;background:#f3f8fe;border-left:3px solid #9ec3ed;border-radius:4px;color:#526e88;padding:6px 9px;margin:4px 0 8px;white-space:normal}',
+   '.clgCGuide:before{content:"✎ 작성 예시 · ";font-weight:850;color:#2863a0}',
+   '.clgCGuide.alert{background:#fff5ed;border-left-color:#ec9e64;color:#945128}',
+   '.clgCBlank{border-color:#e77d67!important;box-shadow:0 0 0 2px rgba(236,127,97,.14)!important;background:#fffbf9!important}'
+  ].join('');
+  (doc.head||doc.documentElement).appendChild(css);
+  var bar=doc.createElement('div');bar.className='clgCBar';bar.setAttribute('role','region');bar.setAttribute('aria-label','상담일지 기록 누락 점검');
+  var msg=doc.createElement('span'),btn=doc.createElement('button'),note=doc.createElement('small');
+  btn.type='button';btn.textContent='공란 점검';
+  note.textContent='확인한 상담 사실만 기록하세요. 해당 사항이 실제로 없다면 확인 내용까지 적을 수 있고, 예시는 자동으로 채워지지 않습니다.';
+  bar.append(msg,btn,note);doc.body.insertBefore(bar,doc.body.firstChild);
+  var hints=new Map();
+  group.entries.forEach(function(rule){
+   var el=doc.getElementById(rule.id);if(!el)return;
+   var help=doc.createElement('div');help.className='clgCGuide';help.textContent=rule.help;
+   el.insertAdjacentElement('afterend',help);hints.set(rule.id,help);
+  });
+  function enabled(rule){
+   var el=doc.getElementById(rule.id);
+   if(!el||el.disabled||el.readOnly)return false;
+   if(rule.condition){try{if(!rule.condition(doc))return false}catch{return false}}
+   for(var node=el;node&&node!==doc.body;node=node.parentElement){
+    if(node.hidden)return false;
+   }
+   return true;
+  }
+  function missing(){
+   return group.entries.filter(function(rule){return enabled(rule)&&!useful(doc.getElementById(rule.id).value)});
+  }
+  var touched=false;
+  function draw(mark){
+   var absent=missing();
+   msg.textContent=absent.length?'📝 상담기록 공란 확인 '+absent.length+'곳':'✓ 주요 직접 작성란 점검 완료';
+   group.entries.forEach(function(r){
+    var el=doc.getElementById(r.id),hint=hints.get(r.id);
+    if(!el)return;
+    var invalid=!!mark&&absent.indexOf(r)>=0;
+    el.classList.toggle('clgCBlank',invalid);
+    if(hint)hint.classList.toggle('alert',invalid);
+   });
+   return absent;
+  }
+  function review(announceSuccess){
+   touched=true;
+   var absent=draw(true);
+   if(!absent.length){
+    if(announceSuccess)win.alert('주요 상담 기록란에 공란이 없습니다. 실제 상담 내용과 일치하는지는 최종 확인해 주세요.');
+    return false;
+   }
+   var text='상담일지 주요 기록을 확인해 주세요.\n\n'+absent.map(function(r,i){return (i+1)+'. '+r.label+'\n  작성 예시: '+r.help}).join('\n\n')+
+    '\n\n실제 상담·확인 내용만 적으세요. 단순히 “-”, “없음”만 적거나 예시를 사실 확인 없이 복사하지 마세요.';
+   try{win.alert(text)}catch{}
+   var first=doc.getElementById(absent[0].id);
+   if(first){
+    var panel=first.closest('details:not([open])');if(panel)panel.open=true;
+    try{first.scrollIntoView({behavior:'smooth',block:'center'});first.focus({preventScroll:true})}catch{}
+   }
+   return true;
+  }
+  btn.addEventListener('click',function(){review(true)});
+  var debounce=0;
+  function refresh(){win.clearTimeout(debounce);debounce=win.setTimeout(function(){draw(touched)},130)}
+  doc.addEventListener('input',refresh,true);
+  doc.addEventListener('change',refresh,true);
+  doc.addEventListener('focusout',function(e){
+   var el=e.target;
+   if(group.entries.some(function(rule){return rule.id===el?.id})&&!useful(el.value)){touched=true;draw(true)}
+  },true);
+  doc.addEventListener('click',function(e){
+   var b=e.target?.closest?.('button,input[type="button"],input[type="submit"]');
+   if(!b||!isFinal(b))return;
+   if(review(false)){e.preventDefault();e.stopPropagation();e.stopImmediatePropagation?.()}
+  },true);
+  doc.addEventListener('submit',function(e){
+   if(e.submitter&&!isFinal(e.submitter))return;
+   if(review(false)){e.preventDefault();e.stopImmediatePropagation?.()}
+  },true);
+  draw(false);
+ }
+ function scan(){
+  document.querySelectorAll('iframe[srcdoc]').forEach(function(frame){
+   if(frame.dataset.external==='1')return;
+   try{
+    var doc=frame.contentDocument,win=frame.contentWindow;
+    if(!doc||!win)return;
+    if(doc.readyState==='loading')doc.addEventListener('DOMContentLoaded',function(){install(doc,win)},{once:true});
+    else install(doc,win);
+   }catch{}
+  });
+ }
+ document.addEventListener('load',function(e){if(e.target?.tagName==='IFRAME')setTimeout(scan,80)},true);
+ window.addEventListener('clg-page-change',function(){setTimeout(scan,100)});
+ window.addEventListener('clg-tab-switch',function(){setTimeout(scan,100)});
+ setTimeout(scan,120);setTimeout(scan,550);
+})();
+</script>
+
+</body>
 </html>
