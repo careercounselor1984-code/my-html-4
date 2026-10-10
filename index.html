@@ -366,7 +366,38 @@ body.clg-fixed-scroll .viewer iframe{height:100%!important}
  body.clg-unified-scroll .frameToolbar{top:113px!important}
 }
 @media(max-width:360px){.topbar .topActions>.topBtn .label,.clgTopMoreTrigger .label{font-size:9px!important}}
-</style></head>
+</style>
+<style id="clg-work-alerts-v1">
+/* 업무 알림: 상단은 간결하게 유지하고, 새 알림만 화면 하단에 표시 */
+.clgAlertCount{display:inline-flex;align-items:center;justify-content:center;border-radius:50px;background:#e5484d;color:#fff;font-weight:900;font-size:10px;min-width:20px;padding:3px 5px}
+.clgAlertCount[hidden]{display:none!important}
+.clgAlertFloat{position:fixed;left:17px;bottom:18px;z-index:2100;border:1px solid #b7d3ef;border-radius:999px;background:#fff;padding:11px 14px;font-weight:900;font-size:12px;color:#245a93;box-shadow:0 7px 23px #0e345025;cursor:pointer}
+.clgAlertFloat[hidden]{display:none!important}
+.clgAlertFloat .clgAlertCount{margin-left:5px}
+.clgAlertDialog{width:min(620px,calc(100vw - 22px))!important;max-width:620px!important;max-height:85dvh!important;overflow:hidden!important;border:1px solid #dce7f2!important;border-radius:17px!important;padding:0!important}
+.clgAlertDialog::backdrop{background:#15335482;backdrop-filter:blur(2px)}
+.clgAlertShell{display:flex;flex-direction:column;max-height:85dvh;background:#fff}
+.clgAlertHead{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;border-bottom:1px solid #e2ebf5;padding:17px 19px}
+.clgAlertHead h3{font-size:18px;font-weight:900;color:#163957;margin:0}
+.clgAlertHead p{font-size:11px;color:#607891;margin:5px 0 0;line-height:1.55}
+.clgAlertHead button{flex:none;border:1px solid #d0dfec;border-radius:9px;background:#f7faff;padding:6px 11px;cursor:pointer;font-size:16px}
+.clgAlertBody{padding:13px 18px;overflow:auto;min-height:50px}
+.clgAlertItem{border:1px solid #dfebf6;border-radius:11px;padding:12px;margin-bottom:9px;background:#fafcfe}
+.clgAlertItem.important{border-left:4px solid #ee8b47;background:#fffaf5}
+.clgAlertItem strong{display:block;font-size:13px;line-height:1.5;color:#263f5c;overflow-wrap:anywhere}
+.clgAlertItem p{color:#6d839b;font-size:11px;margin:5px 0 9px}
+.clgAlertItemActions{display:flex;flex-wrap:wrap;gap:7px}
+.clgAlertItemActions button{border:1px solid #c7d9ed;border-radius:8px;background:#fff;color:#2863a2;padding:7px 10px;font-size:11px;font-weight:850;cursor:pointer}
+.clgAlertItemActions button.primary{background:#2468b5;color:#fff;border-color:#2468b5}
+.clgAlertFoot{border-top:1px solid #e5edf5;padding:11px 17px;display:flex;gap:8px;justify-content:flex-end;background:#f8fbff}
+.clgAlertFoot button{border-radius:9px;border:1px solid #ccdaea;background:#fff;color:#3b5b77;padding:9px 13px;font-size:12px;font-weight:800;cursor:pointer}
+.clgAlertFoot button.primary{background:#2366ae;color:#fff;border-color:#2366ae}
+.clgAlertEmpty{text-align:center;padding:25px 10px;font-size:12px;color:#7e93a7}
+.clgAlertConnect{font-size:11px;color:#72869b;padding:8px 1px 3px}
+.clgAlertConnect a{color:#2162ad;text-decoration:underline}
+@media(max-width:760px){.clgAlertFloat{left:10px;bottom:10px;padding:10px 12px}.clgAlertHead{padding:13px}.clgAlertBody{padding:10px}.clgAlertFoot{padding:9px}.clgAlertFoot button{flex:1;font-size:11px;padding:10px 6px}}
+</style>
+</head>
 <body>
 <div class="app" id="app">
   <aside class="sidebar" id="sidebar">
@@ -427,7 +458,7 @@ body.clg-fixed-scroll .viewer iframe{height:100%!important}
 <details class="clgTopMore" id="clgTopMore">
   <summary class="topBtn clgTopMoreTrigger" aria-label="추가 업무 및 설정 메뉴"><span class="clgMoreIcon" aria-hidden="true">⋯</span><span class="label">더보기</span></summary>
   <div class="clgTopMorePanel">
-    <section class="clgTopMoreGroup"><h3>업무 도구</h3><div class="clgTopMoreItems"><a class="topBtn clgGptTopBtn" href="https://chatgpt.com/g/g-6a55dedf9ba48191aa01e9eb86faac1e-joheuniljari-gugcwi-eobmu-siljeog-doumi" target="_blank" rel="noopener noreferrer" title="국취 매뉴얼·실적 도우미 열기">🤖 <span class="label">국취도우미</span></a>
+    <section class="clgTopMoreGroup"><h3>업무 도구</h3><div class="clgTopMoreItems"><button type="button" class="topBtn" id="clgWorkAlertMenuBtn">🔔 <span class="label">업무 알림</span><span id="clgWorkAlertMenuCount" class="clgAlertCount" hidden>0</span></button><a class="topBtn clgGptTopBtn" href="https://chatgpt.com/g/g-6a55dedf9ba48191aa01e9eb86faac1e-joheuniljari-gugcwi-eobmu-siljeog-doumi" target="_blank" rel="noopener noreferrer" title="국취 매뉴얼·실적 도우미 열기">🤖 <span class="label">국취도우미</span></a>
 <a class="topBtn clgGptTopBtn" href="https://chatgpt.com/g/g-6948c05fff9c8191acd52e93ad66b437-joheuniljari-gugcwi-jidojeomgeom-sajeongeomsu" target="_blank" rel="noopener noreferrer" title="좋은일자리 | 국취 지도점검 사전검수 열기">🛡 <span class="label">지도점검 사전검수</span></a>
 <button class="topBtn" id="lawCheckBtn" type="button" title="국가법령정보센터 API 최신성 확인 및 내일배움카드 지원 판정">⚖ <span class="label">규정·내배카</span></button></div></section>
     <section class="clgTopMoreGroup"><h3>설정 · 데이터 관리</h3><div class="clgTopMoreItems"><button class="topBtn" id="userSettingsBtn" type="button" title="개인 설정">⚙ <span class="label">설정</span></button>
@@ -458,6 +489,16 @@ body.clg-fixed-scroll .viewer iframe{height:100%!important}
 </div>
 
 
+
+<dialog id="clgWorkAlertDialog" class="clgAlertDialog" aria-labelledby="clgWorkAlertTitle">
+  <div class="clgAlertShell">
+    <div class="clgAlertHead"><div><h3 id="clgWorkAlertTitle">🔔 새 업무 알림</h3><p>중요 공지와 공유 일정의 새 소식을 모아서 보여줘요.</p></div><button id="clgWorkAlertClose" type="button" aria-label="알림 닫기">×</button></div>
+    <div class="clgAlertBody"><div id="clgWorkAlertItems"></div><div id="clgWorkAlertConnect" class="clgAlertConnect" hidden></div></div>
+    <div class="clgAlertFoot"><button id="clgWorkAlertLater" type="button">나중에 보기</button><button id="clgWorkAlertAllRead" type="button" class="primary">모두 읽음</button></div>
+  </div>
+</dialog>
+<button type="button" class="clgAlertFloat" id="clgWorkAlertFloat" hidden>🔔 새 업무 알림 <span id="clgWorkAlertFloatCount" class="clgAlertCount">0</span></button>
+<iframe title="공유 일정 알림 연결" id="clgWorkAlertBridge" src="https://careercounselor1984-code.github.io/my-html-9/?alertBridge=1" tabindex="-1" aria-hidden="true" style="position:fixed;width:1px;height:1px;left:-9999px;top:-9999px;border:0;visibility:hidden;pointer-events:none"></iframe>
 
 <dialog id="clgScheduleNextDialog" class="clgScheduleDialog">
 <div class="clgScheduleShell"><div class="clgScheduleHead"><div><h3>📅 다음 상담 예약 (선택)</h3><p>일지를 유지하면서 다음 상담을 일정표에 바로 등록합니다.</p></div><button type="button" id="clgScheduleClose" class="clgScheduleClose">×</button></div>
@@ -2333,6 +2374,7 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
       try{
         const data=await api('list');
         items=Array.isArray(data.items)?data.items:[];
+        try{window.dispatchEvent(new CustomEvent('clg-board-updated',{detail:{items:items.map(x=>({id:x.id,title:x.title,category:x.category,important:!!x.important,pinned:!!x.pinned,updatedAt:x.updatedAt,createdAt:x.createdAt})).slice(0,100)}}))}catch{}
         localSave();
         setStatus('online','공용 연동됨');
         if(!localStorage.getItem(LASTSEEN) && !initializedSeen){
@@ -5535,5 +5577,120 @@ window.addEventListener('message',e=>{
 })();
 
 </script>
+<script id="clg-work-alerts-v1-script">
+(()=>{
+'use strict';
+if(window.__CLG_WORK_ALERTS_V1__)return;
+window.__CLG_WORK_ALERTS_V1__=true;
+const $=id=>document.getElementById(id);
+const ORIGIN='https://careercounselor1984-code.github.io';
+const CALENDAR_URL=ORIGIN+'/my-html-9/';
+const STORAGE='clg_work_alert_seen_v1';
+const DAY=86400000;
+const bridge=$('clgWorkAlertBridge');
+const dlg=$('clgWorkAlertDialog');
+let boardItems=[],calendarItems=[],connected=false,lastShown='',snoozedUntil=0,initialized=false;
+const seen=new Set((()=>{try{return JSON.parse(localStorage.getItem(STORAGE)||'[]')}catch{return []}})());
+const esc=v=>String(v??'').replace(/[&<>"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]));
+function persistSeen(){try{localStorage.setItem(STORAGE,JSON.stringify([...seen].slice(-750)))}catch{}}
+function upcoming(){
+ const byKey=new Map();
+ for(const x of [...boardItems,...calendarItems]){
+  if(!x||!x.key||!x.title)continue;
+  if(!byKey.has(x.key)||x.source==='shared')byKey.set(x.key,x);
+ }
+ return [...byKey.values()].filter(x=>!x.seen&&!seen.has(x.key)).sort((a,b)=>(b.stamp||0)-(a.stamp||0)).slice(0,30);
+}
+function connectNotice(){
+ const el=$('clgWorkAlertConnect');
+ el.hidden=connected;
+ if(!connected)el.innerHTML=(location.protocol==='file:'?'다운로드한 HTML에서는 공유 일정 알림 연결이 제한됩니다. GitHub 통합본에 적용하면 사용할 수 있어요. ':'공유 일정 알림은 일정관리 로그인 후 연결돼요. ')+'<a href="'+CALENDAR_URL+'" target="_blank" rel="noopener noreferrer">일정관리 확인 ↗</a>';
+}
+function draw(auto=false){
+ const rows=upcoming();
+ $('clgWorkAlertMenuCount').hidden=!rows.length;
+ $('clgWorkAlertMenuCount').textContent=rows.length>99?'99+':rows.length;
+ $('clgWorkAlertFloat').hidden=!rows.length;
+ $('clgWorkAlertFloatCount').textContent=rows.length>99?'99+':rows.length;
+ $('clgWorkAlertAllRead').disabled=!rows.length;
+ $('clgWorkAlertItems').innerHTML=rows.length?rows.slice(0,15).map(x=>{
+  const name=x.source==='shared'?'팀 공유 일정':'공용 게시판';
+  return '<article class="clgAlertItem'+(x.important?' important':'')+'"><strong>'+esc(x.title)+'</strong><p>'+esc(name+' · '+(x.scope||'전체')+(x.date?' · '+x.date:''))+'</p><div class="clgAlertItemActions"><button type="button" class="primary" data-clg-alert-view="'+esc(x.key)+'">내용 확인 →</button><button type="button" data-clg-alert-read="'+esc(x.key)+'">읽음</button></div></article>';
+ }).join(''):'<div class="clgAlertEmpty">새로운 중요 알림이 없어요.</div>';
+ connectNotice();
+ if(!auto||!rows.length||dlg.open)return;
+ if(document.hidden||document.documentElement.classList.contains('cc-auth-pending')||Date.now()<snoozedUntil)return;
+ if(document.querySelector('dialog[open]'))return;
+ const signature=rows.slice(0,12).map(x=>x.key).join('|');
+ if(signature===lastShown)return;
+ lastShown=signature;
+ dlg.showModal();
+}
+function boardRefresh(raw){
+ const now=Date.now();
+ boardItems=(Array.isArray(raw)?raw:[]).map(x=>{
+  const stamp=new Date(x.updatedAt||x.createdAt||0).getTime();
+  const category=String(x.category||'');
+  const important=!!(x.important||x.pinned||category==='공지사항');
+  return {key:'board:'+String(x.id).slice(0,100)+':'+stamp,title:String(x.title||'').slice(0,110),source:'board',scope:'전체',date:String(x.updatedAt||x.createdAt||'').slice(0,10),important,stamp};
+ }).filter(x=>x.key&&x.title&&Number.isFinite(x.stamp)&&x.stamp>now-(x.important?7*DAY:2*DAY)&&x.stamp<now+DAY).slice(0,50);
+ draw(true);
+}
+function fromCalendar(raw){
+ calendarItems=(Array.isArray(raw)?raw:[]).map(x=>({
+  key:String(x.key||'').slice(0,180),title:String(x.title||'').slice(0,110),source:x.source==='shared'?'shared':'board',scope:String(x.scope||'전체').slice(0,30),date:String(x.date||'').slice(0,16),important:x.source==='shared',seen:!!x.seen,stamp:new Date(x.date||0).getTime()||Date.now()
+ })).filter(x=>x.key&&x.title).slice(0,80);
+ draw(true);
+}
+function ack(keys){
+ const sanitized=keys.filter(k=>typeof k==='string'&&k.length<=180).slice(0,40);
+ if(!sanitized.length)return;
+ sanitized.forEach(k=>seen.add(k));persistSeen();
+ try{bridge.contentWindow?.postMessage({type:'goodjob:alert-ack:v1',keys:sanitized},ORIGIN)}catch{}
+ draw(false);
+ if(!upcoming().length&&dlg.open)dlg.close();
+}
+function open(){draw(false);if(!dlg.open)dlg.showModal();}
+function later(){snoozedUntil=Date.now()+30*60*1000;if(dlg.open)dlg.close();}
+function receiveMessage(e){
+ if(e.source!==bridge.contentWindow||e.origin!==ORIGIN||!e.data)return;
+ if(e.data.type==='goodjob:alert-feed:v1'){connected=!!e.data.authenticated;fromCalendar(e.data.items);}
+}
+function init(){
+ if(initialized)return;initialized=true;
+ $('clgWorkAlertMenuBtn').onclick=open;
+ $('clgWorkAlertFloat').onclick=open;
+ $('clgWorkAlertClose').onclick=later;
+ $('clgWorkAlertLater').onclick=later;
+ $('clgWorkAlertAllRead').onclick=()=>ack(upcoming().map(x=>x.key));
+ $('clgWorkAlertItems').onclick=e=>{
+  const btn=e.target.closest('[data-clg-alert-view],[data-clg-alert-read]');if(!btn)return;
+  const key=btn.dataset.clgAlertView||btn.dataset.clgAlertRead;
+  const item=upcoming().find(x=>x.key===key);
+  if(!item)return;
+  ack([key]);
+  if(!btn.dataset.clgAlertView)return;
+  if(dlg.open)dlg.close();
+  if(item.source==='board')$('boardOpenBtn')?.click();
+  else window.open(CALENDAR_URL,'_blank','noopener,noreferrer');
+ };
+ dlg.addEventListener('cancel',e=>{e.preventDefault();later()});
+ window.addEventListener('message',receiveMessage);
+ window.addEventListener('clg-board-updated',e=>boardRefresh(e.detail?.items));
+ const subscribe=()=>{try{bridge.contentWindow?.postMessage({type:'goodjob:alert-subscribe:v1'},ORIGIN)}catch{}};
+ bridge.addEventListener('load',subscribe);subscribe();
+ window.addEventListener('focus',()=>{subscribe();draw(true)});
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden){subscribe();draw(true)}});
+ setInterval(()=>{if(!document.hidden){subscribe();draw(true)}},60000);
+ // The journal can be opened from local HTML, but only the hosted same-origin
+ // journal can receive the schedule's authenticated alert feed.
+ const authObserver=new MutationObserver(()=>{if(!document.documentElement.classList.contains('cc-auth-pending'))draw(true)});
+ authObserver.observe(document.documentElement,{attributes:true,attributeFilter:['class']});
+ connectNotice();
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+})();
+</script>
+
 <script id="clg-topbar-compact-v1-js">(()=>{const menu=document.getElementById('clgTopMore');if(!menu)return;const close=()=>{menu.open=false};document.addEventListener('pointerdown',e=>{if(menu.open&&!menu.contains(e.target))close()});document.addEventListener('keydown',e=>{if(menu.open&&e.key==='Escape')close()});menu.addEventListener('click',e=>{if(e.target.closest('button,a'))close()})})();</script></body>
 </html>
