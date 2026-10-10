@@ -416,6 +416,22 @@ body.clg-fixed-scroll .viewer iframe{height:100%!important}
 .clgFavDropEmpty{color:#7b8aa1;font-size:11px;line-height:1.65;padding:9px}
 @media(max-width:1150px){#clgFavTxt{display:none}}
 @media(max-width:760px){#clgFavCurrent,#clgCompactFavMenu>summary{height:26px}#clgFavCurrent{width:26px}#clgCompactFavMenu>summary{padding:0 5px}}
+</style><style id="clg-top-favorites-independent-v2">
+.clgHeaderFavorites{display:flex;align-items:center;gap:5px;flex:0 0 auto;position:relative;z-index:55}
+.clgHeaderFavStar{width:29px;height:29px;display:grid;place-items:center;border:1px solid #d7e1ee;background:white;border-radius:9px;color:#a1aaba;font-size:19px;cursor:pointer}
+.clgHeaderFavStar.is-favorite{color:#dba32b;background:#fff9e7;border-color:#ecd6a3}
+.clgHeaderFavDropdown{position:relative}
+.clgHeaderFavDropdown summary{height:29px;padding:0 7px;list-style:none;display:flex;align-items:center;gap:4px;cursor:pointer;border:1px solid #d7e1ee;border-radius:9px;background:#fff;color:#64718a;font-size:10px;font-weight:850;white-space:nowrap}
+.clgHeaderFavDropdown summary::-webkit-details-marker{display:none}
+.clgHeaderFavList{position:absolute;top:calc(100% + 8px);right:0;width:280px;max-width:calc(100vw - 24px);max-height:min(370px,65vh);overflow:auto;padding:7px;border:1px solid #d6e2f1;background:white;border-radius:12px;box-shadow:0 14px 35px #2036532e;z-index:2000}
+.clgHeaderFavItem{display:flex;gap:4px;margin:2px 0}.clgHeaderFavGo{flex:1;text-align:left;background:white;border:0;border-radius:7px;padding:9px 8px;color:#344860;font-size:12px;font-weight:750;cursor:pointer}.clgHeaderFavGo:hover{background:#eff5ff}.clgHeaderFavRemove{border:0;background:#f7f8fa;border-radius:7px;color:#8996a8;cursor:pointer}.clgHeaderFavEmpty{font-size:11px;padding:10px;color:#7e8ba2}
+.frameToolbar{gap:12px}
+.clgTopFavRail{display:flex;flex:1;min-width:0;justify-content:flex-end;gap:6px;align-items:center;overflow-x:auto;overflow-y:hidden;white-space:nowrap;scrollbar-width:thin;padding:1px 2px}
+.clgTopFavRailHint{font-size:10.5px;color:#a0acbe}
+.clgTopFavChip{display:inline-flex;align-items:center;max-width:175px;min-width:0;overflow:hidden;border:1px solid #ccdef4;border-radius:999px;background:#f3f8ff;flex:0 0 auto}
+.clgTopFavChipGo{display:inline-block;max-width:154px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border:0;background:transparent;color:#215a9d;padding:6px 3px 6px 9px;font-size:11.5px;font-weight:850;cursor:pointer}
+.clgTopFavChipRemove{border:0;background:transparent;color:#8799b0;padding:4px 6px;font-size:14px;cursor:pointer}.clgTopFavChipRemove:hover{color:#be3753;background:#ffebed}
+@media(max-width:800px){.clgTopFavRail{justify-content:flex-start}.clgTopFavChipGo{max-width:115px}}
 </style></head>
 <body>
 <div class="app" id="app">
@@ -466,7 +482,9 @@ body.clg-fixed-scroll .viewer iframe{height:100%!important}
       <button class="topBtn overlayMenuBtn" id="overlayMenuBtn" type="button" title="메뉴 열기">☰ <span class="label">메뉴</span></button>
       <div class="topTitle">
         <div class="breadcrumbs">홈 &nbsp;›&nbsp; 상담 도구 &nbsp;›&nbsp; <span id="breadcrumbTitle">선택하세요</span></div>
-        <div class="titleLine"><h1 id="currentTitle">선택하세요</h1><span class="pageBadge" id="pageBadge">메뉴</span></div>
+        <div class="titleLine"><h1 id="currentTitle">선택하세요</h1><span class="pageBadge" id="pageBadge">메뉴</span>
+<div class="clgHeaderFavorites"><button type="button" id="clgCurrentFavorite" class="clgHeaderFavStar" title="현재 메뉴를 상단 즐겨찾기에 추가" aria-label="현재 메뉴 상단 즐겨찾기">☆</button>
+<details id="clgTopFavoriteMenu" class="clgHeaderFavDropdown"><summary title="상단 즐겨찾기 열기">★ <span id="clgTopFavoriteCount">0</span> 즐겨찾기⌄</summary><div id="clgTopFavoriteList" class="clgHeaderFavList" role="group" aria-label="상단 즐겨찾기 목록"></div></details></div></div>
         <p class="pageSubtitle" id="pageSubtitle">좌측 메뉴를 선택하면 해당 상담 화면이 열립니다.</p>
       </div>
       <div class="topActions" aria-label="자주 사용하는 업무 기능">
@@ -495,7 +513,7 @@ body.clg-fixed-scroll .viewer iframe{height:100%!important}
       <div class="workspaceCard">
         <div class="frameToolbar">
           <div class="frameStatus"><span class="statusDot" id="statusDot"></span><span id="frameStatus">준비됨</span></div>
-          <div class="toolbarHint">현재 선택한 상담 화면을 표시합니다.</div>
+          <div class="clgTopFavRail" id="clgTopFavRail" aria-label="상단 즐겨찾기 바로가기"><span class="clgTopFavRailHint">☆ 상단 즐겨찾기에 추가하면 여기에 표시됩니다.</span></div>
         </div>
         <div class="viewer">
           <div class="loadingOverlay" id="loadingOverlay"><div class="loaderCard"><span class="spinner"></span><span>상담 화면을 불러오는 중입니다.</span></div></div>
@@ -1468,6 +1486,7 @@ function uiRenderFavorites(){
   const wrap = document.getElementById('favoriteMenu');
   if(!wrap) return;
   const ids = uiFavoriteIds();
+  uiRenderTopFavorites();
   wrap.innerHTML = '';
   if(!ids.length){
     wrap.innerHTML = '<span class="favoriteEmpty">전체 메뉴 오른쪽의 ☆를 눌러<br>자주 쓰는 메뉴를 추가하세요.</span>';
@@ -1497,6 +1516,21 @@ function uiRenderFavorites(){
     chip.appendChild(remove);
     wrap.appendChild(chip);
   });
+}
+
+const CLG_HEADER_FAVORITES_KEY='clg_top_favorite_pages_v1';
+function uiHeaderFavoriteIds(){try{const v=JSON.parse(localStorage.getItem(CLG_HEADER_FAVORITES_KEY)||'[]');return Array.isArray(v)?[...new Set(v.filter(id=>PAGES.some(p=>p.id===id)))]:[]}catch(e){return []}}
+function uiSaveHeaderFavorites(ids){const a=[...new Set((ids||[]).filter(id=>PAGES.some(p=>p.id===id)))];try{localStorage.setItem(CLG_HEADER_FAVORITES_KEY,JSON.stringify(a))}catch(e){}return a}
+function uiToggleTopFavorite(id,force){let ids=uiHeaderFavoriteIds();const has=ids.includes(id),next=typeof force==='boolean'?force:!has;if(next&&!has)ids.push(id);if(!next&&has)ids=ids.filter(x=>x!==id);uiSaveHeaderFavorites(ids);uiRenderTopFavorites()}
+function uiRenderTopFavorites(){
+ const ids=uiHeaderFavoriteIds(),list=document.getElementById('clgTopFavoriteList'),count=document.getElementById('clgTopFavoriteCount'),star=document.getElementById('clgCurrentFavorite'),rail=document.getElementById('clgTopFavRail');
+ if(count)count.textContent=String(ids.length);
+ if(star){const yes=ids.includes(activePageId);star.textContent=yes?'★':'☆';star.classList.toggle('is-favorite',yes);star.disabled=!activePageId;star.title=yes?'상단 즐겨찾기에서 해제':'현재 메뉴 상단 즐겨찾기에 추가';star.setAttribute('aria-label',star.title);star.setAttribute('aria-pressed',String(yes))}
+ if(rail){rail.replaceChildren();if(!ids.length){const hint=document.createElement('span');hint.className='clgTopFavRailHint';hint.textContent='☆ 즐겨찾기 추가 시 여기에 표시';rail.appendChild(hint)}
+  ids.forEach(id=>{const p=PAGES.find(x=>x.id===id);if(!p)return;const item=document.createElement('span');item.className='clgTopFavChip';const btn=document.createElement('button');btn.type='button';btn.className='clgTopFavChipGo';btn.title=p.title+' 바로가기';btn.textContent='★ '+p.title;btn.onclick=()=>loadPage(id);const rm=document.createElement('button');rm.type='button';rm.className='clgTopFavChipRemove';rm.textContent='×';rm.title=p.title+' 상단 즐겨찾기 제거';rm.setAttribute('aria-label',rm.title);rm.onclick=()=>uiToggleTopFavorite(id,false);item.append(btn,rm);rail.appendChild(item)})}
+ if(!list)return;list.replaceChildren();
+ if(!ids.length){const empty=document.createElement('div');empty.className='clgHeaderFavEmpty';empty.textContent='상단 즐겨찾기가 없습니다. 현재 메뉴 옆 ☆를 눌러 추가하세요.';list.appendChild(empty);return}
+ ids.forEach(id=>{const p=PAGES.find(x=>x.id===id);if(!p)return;const row=document.createElement('div');row.className='clgHeaderFavItem';const go=document.createElement('button');go.type='button';go.className='clgHeaderFavGo';go.textContent=uiIconFor(p.title)+' '+p.title;go.onclick=()=>{document.getElementById('clgTopFavoriteMenu').open=false;loadPage(id)};const del=document.createElement('button');del.type='button';del.className='clgHeaderFavRemove';del.textContent='×';del.title='상단 즐겨찾기에서 제거';del.onclick=()=>uiToggleTopFavorite(id,false);row.append(go,del);list.appendChild(row)})
 }
 
 function uiSetLoading(on){
@@ -1531,6 +1565,7 @@ function loadPage(pageId){
   }
   setActive(pageId);
   uiSyncFavoriteButtons();
+  uiRenderTopFavorites();
 }
 
 function renderMenu(){
@@ -1613,6 +1648,10 @@ function renderMenu(){
 
 (function initRedesignUI(){
   const app=document.getElementById('app');
+  document.getElementById('clgCurrentFavorite')?.addEventListener('click',()=>{if(activePageId)uiToggleTopFavorite(activePageId)});
+  const topMenu=document.getElementById('clgTopFavoriteMenu');
+  document.addEventListener('pointerdown',e=>{if(topMenu?.open&&!topMenu.contains(e.target))topMenu.open=false});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&topMenu?.open)topMenu.open=false});
   try{ if(localStorage.getItem(CLG_SIDEBAR_KEY)==='1') app?.classList.add('sidebar-collapsed'); }catch(e){}
   document.getElementById('sidebarCollapseBtn')?.addEventListener('click',()=>{
     app?.classList.toggle('sidebar-collapsed');
@@ -1625,7 +1664,7 @@ function renderMenu(){
   const CLG_FULL_BACKUP_VERSION = 2;
   const CLG_BACKUP_KEYS = new Set([
     'candidateProfiles','career_consult_log_draft_v7','career_consult_log_saved_v2','career_consult_log_settings_v7',
-    'clg_favorite_pages_v8','clg_job_classification_helper_v1','clg_scroll_mode_v3','clg_sidebar_collapsed_v2','counsel_log_menu_v4',
+    'clg_favorite_pages_v8','clg_top_favorite_pages_v1','clg_job_classification_helper_v1','clg_scroll_mode_v3','clg_sidebar_collapsed_v2','counsel_log_menu_v4',
     'counsel_note_favorites_v1','counsel_note_pad_v1','counsel_prompt_client_profiles_v2','counselorPhonebook_v1','goodjob_custom_gpt_urls_v1',
     'iap_act_custom_details_v1','iap_form_state_profiles_v2','iap_form_state_v1','jobSearchMethodSimpleV2','kakao_memo_inputs_v5','kakao_memo_last_v5',
     'kakao_memo_templates_v5','kakao_settings_panel_v5','kakao_simple_settings_v2','memo_backup_file_handle','myJobHistory_v6','myOrg','myStaff','myStaffCustom'
@@ -5768,9 +5807,13 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   doc.__clgCompletenessInstalled=true;
   var css=doc.createElement('style');
   css.textContent=[
-   '.clgCBar{position:sticky;top:0;z-index:9995;display:flex;flex-wrap:wrap;gap:7px;align-items:center;justify-content:space-between;padding:9px 12px;background:#edf5ff;border:1px solid #c5dcf5;border-radius:0 0 9px 9px;font:650 12px/1.45 system-ui,sans-serif;color:#295b88;box-sizing:border-box}',
-   '.clgCBar button{background:white;border:1px solid #94b9df;border-radius:8px;padding:7px 10px;color:#1f5f9a;font-weight:750;cursor:pointer}',
-   '.clgCBar small{flex-basis:100%;font-weight:450;color:#637c93;font-size:10px}',
+   '.clgCBar{position:fixed;right:14px;bottom:14px;z-index:9995;font:650 12px/1.45 system-ui,sans-serif;color:#295b88;box-sizing:border-box}',
+   '.clgCBarToggle{border:1px solid #9bbce2!important;border-radius:999px!important;background:#eff6ff!important;padding:8px 13px!important;color:#22578c!important;box-shadow:0 7px 22px rgba(20,68,115,.15);font:750 12px/1.4 system-ui,sans-serif;cursor:pointer}',
+   '.clgCBarPanel{display:none;position:absolute;right:0;bottom:calc(100% + 8px);width:min(330px,calc(100vw - 28px));max-height:min(320px,55vh);overflow:auto;padding:13px;background:white;border:1px solid #bdd2ed;border-radius:13px;box-shadow:0 14px 35px rgba(29,62,105,.22)}',
+   '.clgCBar.expanded .clgCBarPanel{display:grid;gap:10px}',
+   '.clgCBarPanel > span{font-size:13px;font-weight:850}',
+   '.clgCBarPanel button{background:#edf5ff;border:1px solid #94b9df;border-radius:8px;padding:8px 10px;color:#1f5f9a;font-weight:800;cursor:pointer}',
+   '.clgCBarPanel small{font-weight:450;color:#637c93;font-size:11px;line-height:1.6}',
    '.clgCGuide{font:500 11px/1.55 system-ui,sans-serif;background:#f3f8fe;border-left:3px solid #9ec3ed;border-radius:4px;color:#526e88;padding:6px 9px;margin:4px 0 8px;white-space:normal}',
    '.clgCGuide:before{content:"✎ 작성 예시 · ";font-weight:850;color:#2863a0}',
    '.clgCGuide.alert{background:#fff5ed;border-left-color:#ec9e64;color:#945128}',
@@ -5778,10 +5821,15 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   ].join('');
   (doc.head||doc.documentElement).appendChild(css);
   var bar=doc.createElement('div');bar.className='clgCBar';bar.setAttribute('role','region');bar.setAttribute('aria-label','상담일지 기록 누락 점검');
-  var msg=doc.createElement('span'),btn=doc.createElement('button'),note=doc.createElement('small');
-  btn.type='button';btn.textContent='공란 점검';
-  note.textContent='확인한 상담 사실만 기록하세요. 해당 사항이 실제로 없다면 확인 내용까지 적을 수 있고, 예시는 자동으로 채워지지 않습니다.';
-  bar.append(msg,btn,note);doc.body.insertBefore(bar,doc.body.firstChild);
+  var msg=doc.createElement('span'),btn=doc.createElement('button'),note=doc.createElement('small'),toggle=doc.createElement('button'),panel=doc.createElement('div');
+  toggle.type='button';toggle.className='clgCBarToggle';toggle.textContent='📝 기록 점검';toggle.setAttribute('aria-label','상담일지 누락 항목 확인');toggle.setAttribute('aria-expanded','false');
+  btn.type='button';btn.textContent='공란 점검 실행';
+  note.textContent='실제로 확인한 상담 내용만 기록하세요. 내용이 없는 항목은 점검 후 판단해 주세요.';
+  panel.className='clgCBarPanel';panel.append(msg,btn,note);bar.append(toggle,panel);doc.body.appendChild(bar);
+  function collapseCheck(){bar.classList.remove('expanded');toggle.setAttribute('aria-expanded','false')}
+  toggle.addEventListener('click',function(){var show=bar.classList.toggle('expanded');toggle.setAttribute('aria-expanded',String(show))});
+  doc.addEventListener('pointerdown',function(e){if(!bar.contains(e.target))collapseCheck()});
+  doc.addEventListener('keydown',function(e){if(e.key==='Escape')collapseCheck()});
   var hints=new Map();
   group.entries.forEach(function(rule){
    var el=doc.getElementById(rule.id);if(!el)return;
@@ -5804,7 +5852,8 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   function draw(mark){
    var absent=missing();
    var high=absent.filter(function(x){return x.level==='important'}).length;
-   msg.textContent=absent.length?'📝 우선 확인 '+high+'곳 · 작성 권장 '+(absent.length-high)+'곳':'✓ 주요 직접 작성란 점검 완료';
+   msg.textContent=absent.length?'우선 확인 '+high+'곳 · 작성 권장 '+(absent.length-high)+'곳':'주요 직접 작성란 점검 완료';
+   toggle.textContent=absent.length?'📝 점검 '+high+' · 권장 '+(absent.length-high):'✓ 기록 점검 완료';
    group.entries.forEach(function(r){
     var el=doc.getElementById(r.id),hint=hints.get(r.id);
     if(!el)return;
@@ -5835,7 +5884,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
    }
    return true;
   }
-  btn.addEventListener('click',function(){review(true)});
+  btn.addEventListener('click',function(){collapseCheck();review(true)});
   var debounce=0;
   function refresh(){win.clearTimeout(debounce);debounce=win.setTimeout(function(){draw(touched)},130)}
   doc.addEventListener('input',refresh,true);
