@@ -302,6 +302,19 @@ body.clg-fixed-scroll .viewer iframe{height:100%!important}
 @media(max-width:620px){#clgBridgePanel{right:8px;bottom:66px;width:min(320px,calc(100vw - 16px))}#clgBridgePanel.is-expanded{width:min(390px,calc(100vw - 16px))}#clgBridgeLauncher{right:8px;bottom:66px}.clgBridgeQuick{max-width:104px;padding:0 7px}}
 </style>
 
+<style id="clg-schedule-v3-css">
+.clgScheduleDialog{width:min(860px,calc(100vw - 20px))!important;max-width:860px!important;max-height:93dvh!important;border:0!important;padding:0!important;border-radius:16px!important;overflow:hidden!important}
+.clgScheduleDialog::backdrop{background:#162a4980}.clgScheduleShell{display:flex;flex-direction:column;max-height:93dvh;background:#fff}
+.clgScheduleHead{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid #dce6ef}.clgScheduleHead h3{margin:0;font-size:18px;color:#1d4975}.clgScheduleHead p{margin:5px 0;font-size:11px;color:#64788f}
+.clgScheduleClose{width:35px;height:35px;border-radius:9px;border:1px solid #cbd8e9;cursor:pointer;background:#f6f9fc;font-size:19px}
+.clgScheduleBody{padding:15px;min-height:0;overflow-y:auto}.clgScheduleForm{display:grid;grid-template-columns:minmax(0,1.5fr) repeat(3,minmax(0,1fr)) auto;gap:9px;align-items:end}
+.clgScheduleForm label{display:grid;gap:5px;min-width:0;font-size:11px;font-weight:700;color:#435b76}.clgScheduleForm input,.clgScheduleForm select{width:100%;min-width:0;box-sizing:border-box;height:43px;border:1px solid #cbdbea;border-radius:9px;padding:8px;font-size:13px}
+.clgScheduleForm button,.clgScheduleFooter button{min-height:43px;border:0;border-radius:9px;padding:10px 12px;font-size:12px;font-weight:750;background:#2563eb;color:#fff;cursor:pointer}
+.clgScheduleStatus{font-size:12px;line-height:1.6;color:#496982;margin:11px 0}.clgScheduleStatus[data-state=error]{color:#b42318}.clgScheduleStatus[data-state=saved]{color:#08704d}
+.clgScheduleViewer{display:none;border-top:1px solid #dfe7f1;padding-top:10px}.clgScheduleViewer.is-open{display:block}.clgScheduleViewer iframe{display:block;width:100%;height:45dvh;min-height:300px;border:1px solid #d5e2f0;border-radius:10px;background:#fff}.clgScheduleViewer p{font-size:12px;color:#617791}
+.clgScheduleFooter{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:11px 15px;border-top:1px solid #e3eaf2}.clgScheduleFooter a{font-size:12px;color:#2563eb;text-decoration:none}
+@media(max-width:760px){.clgScheduleForm{grid-template-columns:repeat(2,minmax(0,1fr))}.clgScheduleForm label:first-child,.clgScheduleForm button{grid-column:1/-1}.clgScheduleHead,.clgScheduleBody,.clgScheduleFooter{padding:11px}.clgScheduleViewer iframe{height:50dvh}}
+</style>
 </head>
 <body>
 <div class="app" id="app">
@@ -360,6 +373,7 @@ body.clg-fixed-scroll .viewer iframe{height:100%!important}
         <a class="topBtn clgGptTopBtn" href="https://chatgpt.com/g/g-6948c05fff9c8191acd52e93ad66b437-joheuniljari-gugcwi-jidojeomgeom-sajeongeomsu" target="_blank" rel="noopener noreferrer" title="좋은일자리 | 국취 지도점검 사전검수 열기">🛡 <span class="label">지도점검 사전검수</span></a>
         <button class="topBtn boardTopBtn" id="boardOpenBtn" type="button" title="공용 게시판 열기">📋 <span class="label">게시판</span><span class="boardUnread" id="boardUnread">0</span></button>
         <button class="topBtn captureTopBtn" id="captureOpenBtn" type="button" title="화면·창을 선택해 캡처하고 출력하거나 저장">📸 <span class="label">캡처·출력</span></button>
+        <button class="topBtn" id="clgOpenNextApptBtn" type="button">📅 <span class="label">다음 상담 예약</span></button><a class="topBtn" href="https://careercounselor1984-code.github.io/my-html-9/" target="_blank" rel="noopener noreferrer">🗓 <span class="label">일정표</span></a>
         <button class="topBtn" id="userSettingsBtn" type="button" title="개인 설정">⚙ <span class="label">설정</span></button>
         <button class="topBtn" id="lawCheckBtn" type="button" title="국가법령정보센터 API 최신성 확인 및 내일배움카드 지원 판정">⚖ <span class="label">규정·내배카</span></button>
         <button class="topBtn primary" id="globalBackupBtn" type="button" title="전화번호부·메모·카톡 문구·상담일지·메뉴 설정을 하나의 파일로 저장">⇩ <span class="label">전체 백업</span></button>
@@ -388,6 +402,14 @@ body.clg-fixed-scroll .viewer iframe{height:100%!important}
 
 
 
+<dialog id="clgScheduleNextDialog" class="clgScheduleDialog">
+<div class="clgScheduleShell"><div class="clgScheduleHead"><div><h3>📅 다음 상담 예약 (선택)</h3><p>일지를 유지하면서 다음 상담을 일정표에 바로 등록합니다.</p></div><button type="button" id="clgScheduleClose" class="clgScheduleClose">×</button></div>
+<div class="clgScheduleBody"><form id="clgScheduleNextForm" class="clgScheduleForm">
+<label>내담자 이름<input id="clgScheduleNextName" required maxlength="70" placeholder="홍길동 또는 홍길동 초기" autocomplete="off"></label><label>다음 상담일<input type="date" required id="clgScheduleNextDate"></label><label>상담 시간<select required id="clgScheduleNextTime"></select></label><label>상담 구분<select id="clgScheduleNextType"><option>초기</option><option>해석</option><option>IAP</option><option>컨설팅</option><option>재진단</option><option>훈련등록</option><option>카드발급</option><option>신청</option><option>일경험</option><option>연계</option></select></label><button type="submit">자동 예약</button></form>
+<p class="clgScheduleStatus" id="clgScheduleStatus" role="status">예약은 선택사항이며 상담일지 내용에는 영향이 없습니다.</p>
+<div id="clgScheduleViewer" class="clgScheduleViewer"><p>일정관리 로그인이 필요합니다. 로그인 후 자동 저장됩니다.</p><iframe id="clgScheduleReserveFrame" title="상담 일정관리 로그인" allow="clipboard-read; clipboard-write"></iframe></div></div>
+<div class="clgScheduleFooter"><button type="button" id="clgScheduleCopy">예약정보 복사</button><a href="https://careercounselor1984-code.github.io/my-html-9/" target="_blank" rel="noopener noreferrer">일정표 별도 창 열기 ↗</a></div></div>
+</dialog>
 <dialog id="captureDialog" class="captureDialog">
   <div class="captureShell">
     <div class="captureHead">
