@@ -5778,7 +5778,8 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   var touched=false;
   function draw(mark){
    var absent=missing();
-   msg.textContent=absent.length?'📝 상담기록 공란 확인 '+absent.length+'곳':'✓ 주요 직접 작성란 점검 완료';
+   var high=absent.filter(function(x){return x.level==='important'}).length;
+   msg.textContent=absent.length?'📝 우선 확인 '+high+'곳 · 작성 권장 '+(absent.length-high)+'곳':'✓ 주요 직접 작성란 점검 완료';
    group.entries.forEach(function(r){
     var el=doc.getElementById(r.id),hint=hints.get(r.id);
     if(!el)return;
@@ -5788,12 +5789,16 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
    });
    return absent;
   }
-  function review(announceSuccess){
+  function review(announceSuccess,forCommit){
    touched=true;
    var absent=draw(true);
    if(!absent.length){
     if(announceSuccess)win.alert('주요 상담 기록란에 공란이 없습니다. 실제 상담 내용과 일치하는지는 최종 확인해 주세요.');
     return false;
+   }
+   if(forCommit && absent.every(function(r){return r.level==='review'})){
+    var prompt='권장 기록 '+absent.length+'곳이 비어 있습니다.\n'+absent.map(function(r){return '· '+r.label}).join('\n')+'\n\n실제 상담에서 해당 사항을 확인했다면 작성해 주세요. 의도적으로 비워두고 계속 진행하려면 [확인]을 누르세요.';
+    try{if(win.confirm(prompt))return false}catch(e){}
    }
    var text='상담일지 주요 기록을 확인해 주세요.\n\n'+absent.map(function(r,i){return (i+1)+'. '+r.label+'\n  작성 예시: '+r.help}).join('\n\n')+
     '\n\n실제 상담·확인 내용만 적으세요. 단순히 “-”, “없음”만 적거나 예시를 사실 확인 없이 복사하지 마세요.';
@@ -5817,11 +5822,11 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   doc.addEventListener('click',function(e){
    var b=e.target?.closest?.('button,input[type="button"],input[type="submit"]');
    if(!b||!isFinal(b))return;
-   if(review(false)){e.preventDefault();e.stopPropagation();e.stopImmediatePropagation?.()}
+   if(review(false,true)){e.preventDefault();e.stopPropagation();e.stopImmediatePropagation?.()}
   },true);
   doc.addEventListener('submit',function(e){
    if(e.submitter&&!isFinal(e.submitter))return;
-   if(review(false)){e.preventDefault();e.stopImmediatePropagation?.()}
+   if(review(false,true)){e.preventDefault();e.stopImmediatePropagation?.()}
   },true);
   draw(false);
  }
