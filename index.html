@@ -5306,5 +5306,177 @@ body.clg-tabs-enabled .appFooter{display:none!important}
 })();
 </script>
 
+<script id="clg-schedule-integrated-script-v3">
+
+(()=>{
+'use strict';
+if(window.__CLG_SCHEDULE_BRIDGE_V3__)return;
+window.__CLG_SCHEDULE_BRIDGE_V3__=true;
+const URL='https://careercounselor1984-code.github.io/my-html-9/';
+const ORIGIN=new URL(URL).origin;
+const $=id=>document.getElementById(id);
+const dlg=$('clgScheduleNextDialog'),form=$('clgScheduleNextForm'),frame=$('clgScheduleReserveFrame'),viewer=$('clgScheduleViewer'),status=$('clgScheduleStatus');
+const types=['초기','해석','IAP','컨설팅','재진단','훈련등록','카드발급','신청','일경험','연계'];
+const defaults={p01:'해석',p02:'해석',p03:'IAP',p04:'IAP',p05:'컨설팅',p07:'컨설팅',p10:'컨설팅',p17:'IAP',p21:'해석',p23:'컨설팅',p30:'컨설팅'};
+let pending=null;
+function id(){
+ if(crypto.randomUUID)return crypto.randomUUID();
+ const a=crypto.getRandomValues(new Uint8Array(16));a[6]=(a[6]&15)|64;a[8]=(a[8]&63)|128;
+ const h=Array.from(a,x=>x.toString(16).padStart(2,'0')).join('');
+ return h.slice(0,8)+'-'+h.slice(8,12)+'-'+h.slice(12,16)+'-'+h.slice(16,20)+'-'+h.slice(20);
+}
+function nextDay(){
+ const d=new Date();d.setDate(d.getDate()+1);
+ while(d.getDay()===0||d.getDay()===6)d.setDate(d.getDate()+1);
+ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function times(sel){
+ if(sel.options.length)return;
+ for(let n=540;n<=1050;n+=30){
+  if(n>=720&&n<780)continue;
+  const value=String(Math.floor(n/60)).padStart(2,'0')+':'+String(n%60).padStart(2,'0');
+  sel.add(new Option(value,value));
+ }
+}
+function normalize(raw){
+ const value=String(raw||'').trim().replace(/\s+/g,' ');
+ const found=value.match(/^(.+?)\s+(초기|초기상담|해석|IAP|iap|컨설팅|재진단|훈련등록|카드발급|신청|일경험|연계)$/);
+ return found?{name:found[1],type:found[2].toLowerCase()==='iap'?'IAP':found[2]==='초기상담'?'초기':found[2]}:{name:value,type:''};
+}
+function guessName(doc){
+ if(!doc)return '';
+ for(const sel of ['#clientName','#participantName','#participant_name','#counseleeName','#client_name','#personName','#name','input[name="clientName"]','input[name="participantName"]']){
+  try{const v=String(doc.querySelector(sel)?.value||'').trim();if(v.length>1&&v.length<=70)return v}catch{}
+ }
+ return '';
+}
+function selectedFrame(){
+ try{return window.clgGetActiveFrame?.()||$('frame')}catch{return $('frame')}
+}
+function setStatus(message,state='working'){
+ status.textContent=message;status.dataset.state=state;
+}
+function report(task,message,state='working'){
+ setStatus(message,state);
+ const source=task?.source;if(!source)return;
+ try{
+  const d=source.contentDocument;
+  const out=d?.getElementById('clgNextApptStatus'),button=d?.getElementById('clgNextApptSubmit');
+  if(out){out.textContent=message;out.dataset.state=state}
+  if(button&&state!=='working')button.disabled=false;
+ }catch{}
+}
+function show(p={}){
+ times($('clgScheduleNextTime'));
+ const source=selectedFrame();
+ $('clgScheduleNextName').value=p.name||guessName(source?.contentDocument)||'';
+ $('clgScheduleNextDate').value=p.date||nextDay();
+ $('clgScheduleNextTime').value=p.time||'09:00';
+ $('clgScheduleNextType').value=types.includes(p.consultType)?p.consultType:(defaults[source?.dataset.pageId]||'초기');
+ viewer.classList.remove('is-open');
+ setStatus('이름·날짜·시간을 확인하고 자동 예약을 누르면 일정표에 저장됩니다.');
+ if(!dlg.open)dlg.showModal();
+}
+function read(){
+ const n=normalize($('clgScheduleNextName').value);
+ return {name:n.name,date:$('clgScheduleNextDate').value,time:$('clgScheduleNextTime').value,consultType:n.type||$('clgScheduleNextType').value};
+}
+function valid(d){
+ return d&&d.name.length>=2&&d.name.length<=70&&/^\d{4}-\d{2}-\d{2}$/.test(d.date)&&/^([01]\d|2[0-3]):(00|30)$/.test(d.time)&&types.includes(d.consultType);
+}
+function send(){
+ if(pending&&frame.contentWindow){
+  frame.contentWindow.postMessage({type:'goodjob:schedule-create:v2',payload:pending.payload},ORIGIN);
+ }
+}
+function booking(raw,source){
+ if(pending){report({source},'다른 예약을 처리 중입니다. 잠시 후 다시 시도해 주세요.','error');return}
+ const n=normalize(raw.name);
+ const data={name:n.name,date:raw.date,time:raw.time,consultType:n.type||raw.consultType};
+ if(!valid(data)){report({source},'내담자 이름·날짜·시간·상담구분을 확인해 주세요.','error');return}
+ pending={payload:{...data,requestId:id()},source};
+ report(pending,'일정표에 자동 등록하고 있어요…','working');
+ viewer.classList.remove('is-open');
+ if(!frame.getAttribute('src'))frame.src=URL;else send();
+}
+const injectCSS=[
+ '#clgNextApptCard{max-width:1040px;margin:24px auto 30px;padding:0 12px;box-sizing:border-box;color:#243f5b;font-family:inherit}',
+ '#clgNextApptCard details{border:1px solid #bfd3eb;border-radius:14px;overflow:hidden;background:#f5faff}',
+ '#clgNextApptCard summary{cursor:pointer;padding:16px;font-size:15px;font-weight:800;color:#235e95}',
+ '#clgNextApptCard .clgNextInner{border-top:1px solid #dce6f1;padding:10px 15px 17px;background:#fff}',
+ '#clgNextApptCard p{color:#627b95;font-size:12px;line-height:1.55;margin:5px 0 13px}',
+ '#clgNextApptCard form{display:grid;grid-template-columns:minmax(130px,1.5fr) repeat(3,minmax(95px,1fr));gap:9px;align-items:end}',
+ '#clgNextApptCard label{min-width:0;display:grid;gap:5px;font-size:11px;font-weight:750;color:#4b6681}',
+ '#clgNextApptCard input,#clgNextApptCard select{box-sizing:border-box;min-width:0;width:100%;height:43px;padding:8px;border-radius:9px;border:1px solid #cbd8e6;color:#24415c;background:#fff;font-size:13px}',
+ '#clgNextApptCard button{grid-column:1/-1;justify-self:start;border:0;border-radius:9px;padding:11px 15px;background:#2468b4;color:#fff;font-size:12px;font-weight:800;cursor:pointer}',
+ '#clgNextApptStatus{grid-column:1/-1;line-height:1.5;color:#526e8a;font-size:12px}',
+ '#clgNextApptStatus[data-state=error]{color:#b42318}#clgNextApptStatus[data-state=saved]{color:#08714e}',
+ '@media(max-width:740px){#clgNextApptCard{padding:0 8px}#clgNextApptCard form{grid-template-columns:repeat(2,minmax(0,1fr))}#clgNextApptCard label:first-child{grid-column:1/-1}}'
+].join('\n');
+function inject(iframe){
+ if(!iframe||iframe.dataset.external==='1'||!defaults[iframe.dataset.pageId])return;
+ let doc;try{doc=iframe.contentDocument}catch{return}
+ if(!doc?.body||doc.getElementById('clgNextApptCard'))return;
+ const style=doc.createElement('style');style.id='clgNextApptStyle';style.textContent=injectCSS;doc.head?.appendChild(style);
+ const section=doc.createElement('section');section.id='clgNextApptCard';
+ section.setAttribute('aria-label','다음 상담 예약 선택');
+ section.innerHTML='<details><summary>📅 다음 상담 예약 (선택)</summary><div class="clgNextInner"><p>다음 상담을 예약할 때만 입력하세요. 상담일지 내용은 그대로 유지되고 일정표에 자동 저장됩니다.</p>'+
+ '<form id="clgNextApptForm"><label>내담자 이름<input id="clgNextApptName" required maxlength="70" placeholder="홍길동 또는 홍길동 초기" autocomplete="off"></label>'+
+ '<label>다음 상담일<input id="clgNextApptDate" type="date" required></label>'+
+ '<label>상담 시간<select id="clgNextApptTime" required></select></label>'+
+ '<label>상담 구분<select id="clgNextApptType">'+types.map(t=>'<option value="'+t+'">'+t+'</option>').join('')+'</select></label>'+
+ '<button id="clgNextApptSubmit" type="submit">다음 상담 자동 예약 →</button><output id="clgNextApptStatus" aria-live="polite"></output></form></div></details>';
+ doc.body.appendChild(section);
+ const pick=id=>doc.getElementById(id);
+ times(pick('clgNextApptTime'));
+ pick('clgNextApptDate').value=nextDay();
+ pick('clgNextApptType').value=defaults[iframe.dataset.pageId]||'초기';
+ const fillName=()=>{if(!pick('clgNextApptName').value.trim())pick('clgNextApptName').value=guessName(doc)};
+ section.querySelector('details').addEventListener('toggle',e=>{if(e.target.open)fillName()});
+ pick('clgNextApptForm').addEventListener('submit',e=>{
+  e.preventDefault();fillName();
+  pick('clgNextApptSubmit').disabled=true;
+  booking({name:pick('clgNextApptName').value,date:pick('clgNextApptDate').value,time:pick('clgNextApptTime').value,consultType:pick('clgNextApptType').value},iframe);
+  if(!pending||pending.source!==iframe)pick('clgNextApptSubmit').disabled=false;
+ });
+}
+document.addEventListener('load',e=>{if(e.target?.tagName==='IFRAME'&&e.target.classList.contains('clgWorkFrame'))setTimeout(()=>inject(e.target),20)},true);
+window.addEventListener('clg-tab-frame-load',e=>setTimeout(()=>inject(e.detail?.frame),20));
+window.addEventListener('clg-tab-switch',e=>setTimeout(()=>inject(e.detail?.frame),20));
+setTimeout(()=>document.querySelectorAll('iframe.clgWorkFrame,iframe#frame').forEach(inject),450);
+form.addEventListener('submit',e=>{e.preventDefault();booking(read(),null)});
+$('clgOpenNextApptBtn').addEventListener('click',()=>show());
+$('clgScheduleClose').addEventListener('click',()=>dlg.close());
+$('clgScheduleCopy').addEventListener('click',async()=>{
+ const data=read();if(!valid(data)){setStatus('복사할 예약정보를 입력해 주세요.','error');return}
+ try{await navigator.clipboard.writeText(data.name+' '+data.consultType+' / '+data.date+' '+data.time);setStatus('예약정보를 복사했어요.','saved')}
+ catch{setStatus('복사할 수 없습니다.','error')}
+});
+frame.addEventListener('load',()=>{if(pending)send()});
+window.addEventListener('message',e=>{
+ if(e.source!==frame.contentWindow||e.origin!==ORIGIN)return;
+ const msg=e.data;
+ if(msg?.type==='goodjob:schedule-ready:v1'&&pending){send();return}
+ if(msg?.type!=='goodjob:schedule-create-result:v2'||!pending||msg.requestId!==pending.payload.requestId)return;
+ if(msg.status==='login_required'){
+  report(pending,'일정관리 로그인이 필요해요. 아래에서 로그인하면 예약을 자동 저장합니다.','working');
+  viewer.classList.add('is-open');
+  if(!dlg.open)dlg.showModal();
+  return;
+ }
+ const task=pending;pending=null;
+ if(msg.status==='saved'){
+  const d=msg.booking||task.payload;
+  report(task,'✓ 자동 예약 완료 · '+d.name+' · '+d.consultType+' · '+d.date+' '+d.time,'saved');
+  viewer.classList.remove('is-open');
+  if(!task.source&&dlg.open)setTimeout(()=>{if(dlg.open&&!pending)dlg.close()},1400);
+ }else{
+  report(task,'예약 실패: '+String(msg.message||'날짜 또는 시간을 확인해 주세요.'),'error');
+  viewer.classList.remove('is-open');
+ }
+});
+})();
+
+</script>
 </body>
 </html>
