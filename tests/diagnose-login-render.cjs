@@ -29,7 +29,7 @@ console.log('HTML_TAIL',JSON.stringify(html.slice(-700).replace(/https?:\/\/[^"'
 
 
 for(const [left,right] of [[3559700,3561500],[3565100,3566500],[3565650,3566100],[3566000,3568050],[3579300,3583300],[3583100,3583450],[3669950,3670950]]){
- console.log('WINDOW',left,right,JSON.stringify(html.slice(left,right).replace(/https?:\\/\\/[^"'\\s<>]+/g,'[URL]').replace(/[a-zA-Z0-9_\\-.]+@[a-zA-Z0-9_.-]+/g,'[EMAIL]')));
+ console.log('WINDOW',left,right,JSON.stringify(html.slice(left,right)));
 }
 const starts=[...html.matchAll(/<(!doctype\s+html|html|head|body)\b/gi)].map(m=>({type:m[1].slice(0,20),at:m.index}));
 console.log('DOC_STARTS',JSON.stringify(starts));
