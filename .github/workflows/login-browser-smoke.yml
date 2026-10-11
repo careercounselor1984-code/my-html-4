@@ -1,0 +1,17 @@
+name: Journal login browser smoke
+on:
+  push:
+    branches: ["fix/login-render-20261011"]
+  pull_request:
+    branches: [main]
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Existing journal syntax and IAP checks
+        run: node tests/journal-safety.test.cjs
+      - name: Real Chrome headless login styles and SDK
+        run: node tests/login-browser-smoke.cjs
