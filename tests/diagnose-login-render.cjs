@@ -47,3 +47,12 @@ for(const v of ['cc-auth-gate','cc-hidden']) {
  let count=(html.match(new RegExp(v,'g'))||[]).length;
  console.log('STYLE_COUNT',v,count);
 }
+
+
+const section=html.slice(html.indexOf('<div id="ccAuthGate"'),html.indexOf('<script>',html.indexOf('<div id="ccAuthGate"')));
+const cls=new Set([...section.matchAll(/class=["']([^"']+)["']/g)].flatMap(m=>m[1].split(/\s+/)).filter(Boolean));
+console.log('AUTH_CLASSES',JSON.stringify([...cls].sort()));
+for(const n of ['cc-auth-gate','cc-auth-card','cc-auth-btn','cc-auth-title','cc-hidden','cc-lock-overlay','cc-user-dock','cc-admin-overlay','cc-admin-panel']){
+ const hits=[...html.matchAll(new RegExp('\\.'+n+'\\s*\\{','g'))].map(x=>x.index);
+ console.log('CSS_RULE',n,JSON.stringify(hits));
+}
