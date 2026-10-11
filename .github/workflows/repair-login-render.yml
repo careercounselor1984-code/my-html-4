@@ -1,0 +1,42 @@
+name: Repair journal login rendering
+on:
+  push:
+    branches: ["fix/login-render-20261011"]
+    paths:
+      - "tests/repair-login-render.cjs"
+      - ".github/workflows/repair-login-render.yml"
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download pinned Supabase browser bundle from npm
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p vendor
+          pkg=$(npm pack '@supabase/supabase-js@2.74.0' --pack-destination /tmp --silent | tail -1)
+          echo "npm archive: $pkg"
+          bundle=$(tar -tzf "/tmp/$pkg" | grep -E '^package/dist/umd/supabase(\.min)?\.js$' | grep 'supabase.min.js' | head -1 || true)
+          if [ -z "$bundle" ]; then
+            bundle=$(tar -tzf "/tmp/$pkg" | grep -E '^package/dist/umd/supabase\.js$' | head -1)
+          fi
+          test -n "$bundle"
+          tar -xOzf "/tmp/$pkg" "$bundle" > vendor/supabase.min.js
+          test "$(wc -c < vendor/supabase.min.js)" -gt 10000
+          node --check vendor/supabase.min.js
+      - name: Apply minimally scoped HTML fix
+        run: node tests/repair-login-render.cjs
+      - name: Existing embedded-page and date regression checks
+        run: node tests/journal-safety.test.cjs
+      - name: Commit verified fix only to review branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html vendor/supabase.min.js
+          git diff --cached --quiet || git commit -m "fix(auth): restore styled login and bundled Supabase runtime"
+          git push origin HEAD:fix/login-render-20261011
