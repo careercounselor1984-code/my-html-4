@@ -1,0 +1,14 @@
+name: Audit PIN lock behavior
+on:
+  push:
+    branches:
+      - "audit/journal-pin-lock-20261011"
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Inspect PIN logic
+        run: node tests/audit-pin-lock.cjs
