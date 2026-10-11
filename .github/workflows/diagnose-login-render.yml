@@ -1,0 +1,14 @@
+name: Diagnose journal login rendering
+on:
+  push:
+    branches: ["fix/login-render-20261011"]
+  workflow_dispatch:
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Diagnose HTML
+        run: node tests/diagnose-login-render.cjs
