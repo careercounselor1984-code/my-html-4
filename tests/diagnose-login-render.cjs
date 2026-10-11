@@ -39,7 +39,7 @@ for(const term of ['.cc-auth-gate','.cc-hidden','cc-auth-gate','ccAuthGate','SUP
  const matches=[];let pos=0;
  while((pos=html.indexOf(term,pos))>=0 && matches.length<25){matches.push(pos);pos+=term.length;}
  console.log('SELECTOR',term,JSON.stringify(matches));
- if(matches.length)console.log('SELECTOR_CONTEXT',term,JSON.stringify(html.slice(Math.max(0,matches[0]-220),matches[0]+850).replace(/[a-zA-Z0-9_\\-.]+@[a-zA-Z0-9_.-]+/g,'[EMAIL]')));
+ if(matches.length)console.log('SELECTOR_CONTEXT',term,JSON.stringify(html.slice(Math.max(0,matches[0]-220),matches[0]+850)));
 }
 const srcs=[...html.matchAll(/<script\s+[^>]*src=["']([^"']+)/gi)].map(v=>v[1].split('?')[0].slice(0,300));
 console.log('SCRIPT_SRCS',JSON.stringify(srcs));
