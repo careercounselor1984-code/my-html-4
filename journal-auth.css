@@ -1,4 +1,4 @@
-/* 상담일지 통합본 로그인·잠금 화면 공통 스타일 (2026-10-11)
+/* 상담일지 통합본 로그인·잠금 화면 공통 스타일 (2026-10-11, hide-by-default fix)
    Scope: top-level app only. Does not modify the embedded counseling iframes. */
 .cc-hidden{display:none!important}
 .cc-auth-gate,.cc-lock-overlay{
@@ -100,3 +100,7 @@
   .cc-auth-title,.cc-lock-title{font-size:21px}
   .cc-user-dock{right:8px;left:8px;bottom:8px;justify-content:center}
 }
+
+/* All PIN/password/recovery overlays are hidden until their .show state is explicitly set. */
+.cc-lock-overlay{display:none!important}
+.cc-lock-overlay.show{display:flex!important}
