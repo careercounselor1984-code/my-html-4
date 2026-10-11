@@ -16,6 +16,6 @@ try {
  const result=cp.spawnSync(chrome,['--headless=new','--no-sandbox','--disable-dev-shm-usage','--disable-gpu','--disable-extensions','--allow-file-access-from-files','--virtual-time-budget=4500','--dump-dom','file://'+file],{encoding:'utf8',timeout:45000,maxBuffer:24*1024*1024});
  const match=(result.stdout||'').match(new RegExp(sentinel+'="([^"]+)"'));
  console.log('CHROME',chrome,'EXIT',result.status,'OUTLEN',String(result.stdout||'').length,'PROBE',match?.[1]||'missing');
- if(!match||!['css:true','sdk:true','link:true','gate:true'].every(v=>match[1].includes(v))){ console.log('CHROME_ERROR',String(result.stderr||'').slice(-1200));process.exitCode=1; }
+ if(!match||!['css:true','sdk:true','link:true','gate:true'].every(v=>match[1].includes(v))){ console.log('DUMP_TAIL',String(result.stdout||'').slice(-1700));console.log('CHROME_ERROR',String(result.stderr||'').slice(-1200));process.exitCode=1; }
  else console.log('PASS: actual Chrome auth CSS and local Supabase SDK');
 }finally{fs.unlinkSync(file)}
