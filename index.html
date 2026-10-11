@@ -512,7 +512,8 @@ body.clg-fixed-scroll .viewer iframe{height:100%!important}
   <div class="clgAlertShell">
     <div class="clgAlertHead"><div><h3 id="clgWorkAlertTitle">🔔 새 업무 알림</h3><p>중요 공지와 공유 일정의 새 소식을 모아서 보여줘요.</p></div><button id="clgWorkAlertClose" type="button" aria-label="알림 닫기">×</button></div>
     <div class="clgAlertBody"><div id="clgWorkAlertItems"></div><div id="clgWorkAlertConnect" class="clgAlertConnect" hidden></div></div>
-    <div class="clgAlertFoot"><button id="clgWorkAlertLater" type="button">나중에 보기</button><button id="clgWorkAlertAllRead" type="button" class="primary">모두 읽음</button></div>
+    <div class="clgAlertFoot"><button id="clgWorkAlertLater" type="button">나중에 보기</button><button id="clgWorkAlertAllRead" type="button" class="primary">모두 읽음</button><button id="clgJournalPushToggle" type="button" disabled>🔔 이 PC 알림 켜기</button></div>
+    <p id="clgJournalPushStatus" role="status" style="padding:3px 16px 13px;margin:0;font-size:12px;line-height:1.5;color:#51677d">직원 로그인 후 PC 알림을 설정하세요.</p>
   </div>
 </dialog>
 <button type="button" class="clgAlertFloat" id="clgWorkAlertFloat" hidden>🔔 새 업무 알림 <span id="clgWorkAlertFloatCount" class="clgAlertCount">0</span></button>
@@ -3669,6 +3670,8 @@ html.cc-auth-checking .cc-auth-gate{display:none!important}
   }
 
   function showLogin(text){
+    window.__CLG_JOURNAL_EMPLOYEE=null;
+    try{window.dispatchEvent(new CustomEvent('clg-auth-logout'))}catch(e){}
     currentUser=null;
     currentEmployee=null;
     pendingTakeover=null;
@@ -3934,6 +3937,8 @@ html.cc-auth-checking .cc-auth-gate{display:none!important}
     adminBtn.style.display=employee && employee.system_role==='admin' ? '' : 'none';
     startHeartbeat();
     resetIdle();
+    window.__CLG_JOURNAL_EMPLOYEE={name:employee&&employee.name||'',email:user&&user.email||''};
+    try{window.dispatchEvent(new CustomEvent('clg-auth-ready',{detail:window.__CLG_JOURNAL_EMPLOYEE}))}catch(e){}
   }
 
   async function getBinding(userId){
@@ -5676,7 +5681,7 @@ function draw(auto=false){
  $('clgWorkAlertFloatCount').textContent=rows.length>99?'99+':rows.length;
  $('clgWorkAlertAllRead').disabled=!rows.length;
  $('clgWorkAlertItems').innerHTML=rows.length?rows.slice(0,15).map(x=>{
-  const name=x.source==='shared'?'팀 공유 일정':'공용 게시판';
+  const name=x.source==='shared'?'팀 공유 일정':x.source==='work'?'직원 연차·외부일정':x.source==='report'?'부장 종합보고':x.source==='notice'?'공통 공지':'공용 게시판';
   return '<article class="clgAlertItem'+(x.important?' important':'')+'"><strong>'+esc(x.title)+'</strong><p>'+esc(name+' · '+(x.scope||'전체')+(x.date?' · '+x.date:''))+'</p><div class="clgAlertItemActions"><button type="button" class="primary" data-clg-alert-view="'+esc(x.key)+'">내용 확인 →</button><button type="button" data-clg-alert-read="'+esc(x.key)+'">읽음</button></div></article>';
  }).join(''):'<div class="clgAlertEmpty">새로운 중요 알림이 없어요.</div>';
  connectNotice();
@@ -5700,7 +5705,7 @@ function boardRefresh(raw){
 }
 function fromCalendar(raw){
  calendarItems=(Array.isArray(raw)?raw:[]).map(x=>({
-  key:String(x.key||'').slice(0,180),title:String(x.title||'').slice(0,110),source:x.source==='shared'?'shared':'board',scope:String(x.scope||'전체').slice(0,30),date:String(x.date||'').slice(0,16),important:x.source==='shared',seen:!!x.seen,stamp:new Date(x.date||0).getTime()||Date.now()
+  key:String(x.key||'').slice(0,180),title:String(x.title||'').slice(0,110),source:['shared','board','work','report','notice'].includes(x.source)?x.source:'notice',scope:String(x.scope||'전체').slice(0,30),date:String(x.date||'').slice(0,16),important:x.source==='shared'||x.source==='work'||x.source==='report',seen:!!x.seen,stamp:new Date(x.date||0).getTime()||Date.now()
  })).filter(x=>x.key&&x.title).slice(0,80);
  draw(true);
 }
@@ -5734,7 +5739,7 @@ function init(){
   if(!btn.dataset.clgAlertView)return;
   if(dlg.open)dlg.close();
   if(item.source==='board')$('boardOpenBtn')?.click();
-  else window.open(CALENDAR_URL,'_blank','noopener,noreferrer');
+  else window.open(CALENDAR_URL+(item.source==='report'?'?directorReport=1':''),'_blank','noopener,noreferrer');
  };
  dlg.addEventListener('cancel',e=>{e.preventDefault();later()});
  window.addEventListener('message',receiveMessage);
@@ -6256,5 +6261,6 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
 </script>
+<script src="./journal-push.js"></script>
 </body>
 </html>
