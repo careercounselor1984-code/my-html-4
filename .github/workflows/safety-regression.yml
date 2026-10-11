@@ -1,0 +1,18 @@
+name: Journal safety regression
+on:
+  push:
+    branches:
+      - "fix/journal-calc-audit-20261011"
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check safety regression
+        run: node tests/journal-safety.test.cjs
