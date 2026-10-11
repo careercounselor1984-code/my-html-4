@@ -95,7 +95,7 @@
        catch(error){await sub.unsubscribe().catch(()=>{});throw error}
        localStorage.setItem(OWNER_KEY,norm(employeeName));enabled=true;
        try{
-         const t=await request('test');
+         const t=await request('test',{endpoint:sub.endpoint});
          setNote(t.sent?'PC 알림을 켰습니다. 연결 확인 알림을 발송했습니다.':'PC 알림은 등록됐지만 테스트 수신은 확인되지 않았습니다. Windows 알림 설정을 확인하세요.');
        }catch(e){setNote('PC 알림 등록 완료. 테스트 알림 확인은 잠시 후 다시 시도해 주세요.')}
      }
