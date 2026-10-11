@@ -1,0 +1,102 @@
+/* 상담일지 통합본 로그인·잠금 화면 공통 스타일 (2026-10-11)
+   Scope: top-level app only. Does not modify the embedded counseling iframes. */
+.cc-hidden{display:none!important}
+.cc-auth-gate,.cc-lock-overlay{
+  position:fixed!important;inset:0!important;
+  z-index:2147483000!important;box-sizing:border-box;
+  display:flex;align-items:center;justify-content:center;
+  overflow:auto;padding:20px;background:rgba(12,28,54,.66);
+  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+}
+.cc-auth-gate *,.cc-lock-overlay *,.cc-user-dock *{box-sizing:border-box}
+.cc-auth-card,.cc-lock-card{
+  width:min(100%,460px);max-height:calc(100dvh - 36px);overflow:auto;
+  border:1px solid #dfebf9;border-radius:22px;
+  background:#fff;color:#1b2b44;
+  padding:28px 30px;box-shadow:0 28px 85px rgba(8,24,52,.27);
+  font-family:"Pretendard","Noto Sans KR",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  line-height:1.5;
+}
+.cc-auth-logo{
+  display:grid;place-items:center;
+  width:46px;height:46px;margin:0 auto 13px;
+  border-radius:14px;color:#fff;background:#2563eb;font-weight:900;font-size:22px;
+}
+.cc-auth-title,.cc-lock-title{
+  font-size:24px;font-weight:850;color:#142743;
+  margin:0 0 8px;text-align:center;line-height:1.3
+}
+.cc-auth-sub,.cc-lock-sub{
+  font-size:13px;line-height:1.6;color:#66788e;margin:0 0 20px;text-align:center;
+}
+.cc-auth-label{display:block;margin:13px 0 5px;font-size:12px;font-weight:750;color:#42546e}
+.cc-auth-input,.cc-pin-input{
+  display:block;width:100%;height:43px;padding:9px 12px;
+  border:1px solid #d3e0ef;border-radius:10px;
+  background:#fff;color:#182d49;font-family:inherit;font-size:14px;outline:0;
+}
+.cc-auth-input:focus,.cc-pin-input:focus{
+  border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,.13)
+}
+.cc-auth-input::placeholder,.cc-pin-input::placeholder{color:#9aa8b9}
+.cc-auth-btn{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:100%;min-height:43px;margin:13px 0 0;padding:9px 13px;
+  border:1px solid #2563eb;border-radius:10px;
+  color:#fff;background:#2563eb;font-family:inherit;
+  font-size:13px;font-weight:760;cursor:pointer;text-decoration:none;
+}
+.cc-auth-btn:hover{background:#1955c7}
+.cc-auth-btn:disabled{cursor:wait;opacity:.6}
+.cc-auth-btn.secondary{
+  color:#315784;background:#fff;border:1px solid #cbdbee
+}
+.cc-auth-btn.secondary:hover{background:#f5f9ff}
+.cc-auth-linkbtn{
+  display:inline-flex;align-items:center;justify-content:center;
+  border:0;border-radius:8px;padding:5px 9px;color:#2563eb;background:transparent;
+  font-family:inherit;font-size:12px;font-weight:750;cursor:pointer;
+}
+.cc-auth-linkbtn:hover{background:#eaf3ff}
+.cc-auth-row{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-top:10px}
+.cc-auth-help{display:flex;align-items:center;flex-wrap:wrap;gap:4px;margin-top:12px}
+.cc-auth-note{
+  font-size:11px;line-height:1.7;color:#8391a6;
+  margin:12px 0 0;overflow-wrap:anywhere;
+}
+.cc-auth-msg,.cc-recovery-result,.cc-takeover-info{
+  font-size:12px;line-height:1.6;white-space:pre-wrap;overflow-wrap:anywhere;
+  color:#9a4219;margin-top:10px;
+}
+.cc-auth-msg:empty,.cc-recovery-result:empty{display:none}
+.cc-auth-good{color:#047857}
+.cc-auth-dot{width:8px;height:8px;border-radius:50%;display:inline-block;background:#16a34a;flex-shrink:0}
+.cc-recovery-tabs{display:flex;gap:6px;padding:4px;margin:10px 0;background:#f1f5fa;border-radius:11px}
+.cc-recovery-tab{
+  flex:1;border:0;border-radius:8px;padding:8px 5px;color:#64748b;background:transparent;
+  font-size:12px;font-weight:750;cursor:pointer
+}
+.cc-recovery-tab.active{color:#185ec9;background:#fff;box-shadow:0 1px 5px rgba(20,43,73,.10)}
+.cc-lock-card{max-width:450px}
+.cc-user-dock{
+  display:none;position:fixed;z-index:2147482000;
+  right:15px;bottom:15px;align-items:center;flex-wrap:wrap;
+  gap:6px;padding:7px 9px;max-width:calc(100vw - 30px);
+  border:1px solid #dbe5f2;border-radius:13px;
+  background:rgba(255,255,255,.97);
+  box-shadow:0 10px 24px rgba(31,50,79,.13);font-family:inherit
+}
+.cc-user-dock.show{display:flex}
+.cc-user-name{font-size:11px;font-weight:760;color:#35516d;padding:0 6px;overflow-wrap:anywhere}
+.cc-mini-btn{
+  border:1px solid #d5e1f0;border-radius:8px;padding:5px 8px;
+  background:#f7faff;color:#405978;font-size:11px;font-weight:700;
+  font-family:inherit;cursor:pointer
+}
+.cc-mini-btn:hover{background:#e9f3ff}
+@media(max-width:520px){
+  .cc-auth-gate,.cc-lock-overlay{padding:12px;align-items:center}
+  .cc-auth-card,.cc-lock-card{padding:22px 19px;border-radius:17px}
+  .cc-auth-title,.cc-lock-title{font-size:21px}
+  .cc-user-dock{right:8px;left:8px;bottom:8px;justify-content:center}
+}
