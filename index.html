@@ -5652,14 +5652,23 @@ window.__CLG_WORK_ALERTS_V1__=true;
 const $=id=>document.getElementById(id);
 const ORIGIN='https://careercounselor1984-code.github.io';
 const CALENDAR_URL=ORIGIN+'/my-html-9/';
-const STORAGE='clg_work_alert_seen_v1';
+const STORAGE='clg_work_alert_seen_v2_';
 const DAY=86400000;
 const bridge=$('clgWorkAlertBridge');
 const dlg=$('clgWorkAlertDialog');
 let boardItems=[],calendarItems=[],connected=false,lastShown='',snoozedUntil=0,initialized=false;
-const seen=new Set((()=>{try{return JSON.parse(localStorage.getItem(STORAGE)||'[]')}catch{return []}})());
+const seen=new Set();
+function userSeenKey(){
+ const name=String(window.__CLG_JOURNAL_EMPLOYEE?.name||'').replace(/\s/g,'').trim();
+ return name?STORAGE+name:null;
+}
+function reloadSeen(){
+ seen.clear();
+ const key=userSeenKey();if(!key)return;
+ try{const stored=JSON.parse(localStorage.getItem(key)||'[]');if(Array.isArray(stored))stored.slice(-750).forEach(x=>{if(typeof x==='string')seen.add(x)})}catch(e){}
+}
 const esc=v=>String(v??'').replace(/[&<>"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]));
-function persistSeen(){try{localStorage.setItem(STORAGE,JSON.stringify([...seen].slice(-750)))}catch{}}
+function persistSeen(){try{const key=userSeenKey();if(key)localStorage.setItem(key,JSON.stringify([...seen].slice(-750)))}catch{}}
 function upcoming(){
  const byKey=new Map();
  for(const x of [...boardItems,...calendarItems]){
@@ -5743,6 +5752,9 @@ function init(){
  };
  dlg.addEventListener('cancel',e=>{e.preventDefault();later()});
  window.addEventListener('message',receiveMessage);
+ window.addEventListener('clg-auth-ready',()=>{reloadSeen();draw(false)});
+ window.addEventListener('clg-auth-logout',()=>{seen.clear();boardItems=[];calendarItems=[];connected=false;draw(false)});
+ reloadSeen();
  window.addEventListener('clg-board-updated',e=>boardRefresh(e.detail?.items));
  const subscribe=()=>{try{bridge.contentWindow?.postMessage({type:'goodjob:alert-subscribe:v1'},ORIGIN)}catch{}};
  bridge.addEventListener('load',subscribe);subscribe();
