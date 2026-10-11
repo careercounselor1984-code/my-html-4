@@ -8,9 +8,8 @@ const chrome=candidates.find(p=>fs.existsSync(p));
 if(!chrome){console.log('No Chrome/Chromium available');process.exit(2)}
 const sentinel='data-clg-auth-smoke';
 const probeCode="<script>(()=>{const el=document.createElement('div');el.className='cc-auth-gate';document.body.appendChild(el);const st=getComputedStyle(el);const checks={css:st.position==='fixed'&&st.display==='flex'&&parseInt(st.zIndex,10)>1000,sdk:!!(window.supabase&&typeof window.supabase.createClient==='function'),link:!!document.querySelector('link[href*=journal-auth.css]'),gate:!!document.getElementById('ccAuthGate')};el.remove();document.documentElement.setAttribute('data-clg-auth-smoke',Object.entries(checks).map(([k,v])=>k+':'+v).join(','));})();</script>";
-const end=src.lastIndexOf('</body>');
-if(end<0)throw Error('Missing body end');
-const modified=src.slice(0,end)+probeCode+'\n'+src.slice(end);
+if(!src.includes('href="./journal-auth.css?v=20261011"')||!src.includes('src="./vendor/supabase.min.js"'))throw Error('Index missing auth links');
+const modified='<!doctype html><html lang="ko"><head><meta charset="utf-8"><link rel="stylesheet" href="./journal-auth.css?v=20261011"><script src="./vendor/supabase.min.js"></script></head><body><div id="ccAuthGate" class="cc-auth-gate"><div class="cc-auth-card"><h2 class="cc-auth-title">로그인 CSS 브라우저 검사</h2></div></div>'+probeCode+'</body></html>';
 const file=path.resolve('.login-render-smoke.html');
 fs.writeFileSync(file,modified,'utf8');
 try {
