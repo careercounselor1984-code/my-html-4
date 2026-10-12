@@ -484,7 +484,7 @@ body.clg-fixed-scroll .viewer iframe{height:100%!important}
 <button class="topBtn primary" id="globalBackupBtn" type="button" title="전화번호부·메모·카톡 문구·상담일지·메뉴 설정을 하나의 파일로 저장">⇩ <span class="label">전체 백업</span></button>
 <button class="topBtn" id="globalRestoreBtn" type="button" title="통합본 전체 백업 파일을 불러와 모든 저장내용 복원">⇧ <span class="label">전체 복원</span></button>
 <input id="globalRestoreFile" type="file" accept="application/json,.json" hidden /></div></section>
-    <section class="clgTopMoreGroup"><h3>화면 · 도움말</h3><div class="clgTopMoreItems"><button class="topBtn" id="reloadPageBtn" type="button" title="현재 화면 다시 열기">↻ <span class="label">새로고침</span></button>
+    <section class="clgTopMoreGroup"><h3>화면 · 도움말</h3><div class="clgTopMoreItems"><button class="topBtn" id="reloadPageBtn" type="button" title="현재 탭만 새로고침 (F5 / Ctrl+R)">↻ <span class="label">새로고침</span></button>
 <button class="topBtn" id="helpBtn" type="button" title="빠른 사용 안내">? <span class="label">사용 안내</span></button>
 <button class="topBtn" id="fullscreenBtn" type="button" title="전체화면">⛶ <span class="label">전체화면</span></button></div></section>
   </div>
@@ -5274,17 +5274,41 @@ body.clg-tabs-enabled .appFooter{display:none!important}
     tab.dirty=true; renderTabs();
   }
 
+  // F5 and Ctrl+R refresh only the selected iframe instead of losing the whole workspace.
+  // Keydown from iframe documents does not bubble to the parent document, so register
+  // the same shortcut in each readable child document. Browser hard-refresh remains normal.
+  function isTabReloadShortcut(e){
+    const key=String(e?.key||'').toLowerCase();
+    return !e?.altKey&&!e?.shiftKey&&(key==='f5'||((e?.ctrlKey||e?.metaKey)&&key==='r'));
+  }
+  function onTabReloadShortcut(e,sourceTabId){
+    if(!isTabReloadShortcut(e) || e.defaultPrevented) return;
+    if(sourceTabId && sourceTabId!==activeTabId) return;
+    e.preventDefault();
+    e.stopPropagation();
+    reloadActive();
+  }
+
   function wireDirty(tab){
     const fr=tab.frame;
-    setTimeout(()=>{
+    const bind=()=>{
       try{
-        const doc=fr.contentDocument; if(!doc || doc.documentElement?.dataset.clgTabDirtyWired==='1') return;
+        const doc=fr.contentDocument;
+        if(!doc||!doc.documentElement)return;
+        if(doc.documentElement.dataset.clgTabRefreshWired!=='1'){
+          doc.documentElement.dataset.clgTabRefreshWired='1';
+          doc.addEventListener('keydown',e=>onTabReloadShortcut(e,tab.id),true);
+        }
+        if(doc.documentElement.dataset.clgTabDirtyWired==='1')return;
         doc.documentElement.dataset.clgTabDirtyWired='1';
         const onEdit=e=>{ if(e.isTrusted) markDirty(tab); };
         doc.addEventListener('input',onEdit,true);
         doc.addEventListener('change',onEdit,true);
-      }catch(e){}
-    },900);
+      }catch(e){ /* Cross-origin external pages retain their own browser shortcuts. */ }
+    };
+    bind();
+    setTimeout(bind,200);
+    setTimeout(bind,900);
   }
 
   function loadFrame(tab){
@@ -5421,6 +5445,9 @@ body.clg-tabs-enabled .appFooter{display:none!important}
   document.getElementById('reloadPageBtn')?.addEventListener('click',e=>{
     e.preventDefault(); e.stopImmediatePropagation(); reloadActive();
   },true);
+
+  // Topbar, sidebar and other parent-document focus: refresh just the selected work tab.
+  document.addEventListener('keydown',e=>onTabReloadShortcut(e,null),true);
 
   // Ctrl+Shift+T: 현재 화면을 별도 새 작업 탭으로 한 번 더 연다.
   document.addEventListener('keydown',e=>{

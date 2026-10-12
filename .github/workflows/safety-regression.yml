@@ -18,6 +18,7 @@ jobs:
         run: |
           node tests/journal-safety.test.cjs
           node tests/schedule-tab.test.cjs
+          node tests/tab-f5-shortcut.test.cjs
 
       - name: Headless Chrome initial-screen smoke (unauthenticated)
         shell: bash
