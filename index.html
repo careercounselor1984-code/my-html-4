@@ -473,7 +473,7 @@ body.clg-fixed-scroll .viewer iframe{height:100%!important}
 <button class="topBtn boardTopBtn" id="boardOpenBtn" type="button" title="공용 게시판 열기">📋 <span class="label">게시판</span><span class="boardUnread" id="boardUnread">0</span></button>
 <button class="topBtn captureTopBtn" id="captureOpenBtn" type="button" title="화면·창을 선택해 캡처하고 출력하거나 저장">📸 <span class="label">캡처·출력</span></button>
 <button class="topBtn" id="clgOpenNextApptBtn" type="button">📅 <span class="label">다음 상담 예약</span></button>
-<a class="topBtn" href="https://careercounselor1984-code.github.io/my-html-9/" target="_blank" rel="noopener noreferrer">🗓 <span class="label">일정표</span></a>
+<button class="topBtn" id="clgScheduleTabBtn" type="button" title="상담 일정표를 통합본 작업 탭 안에서 열기">🗓 <span class="label">일정표</span></button>
 <details class="clgTopMore" id="clgTopMore">
   <summary class="topBtn clgTopMoreTrigger" aria-label="추가 업무 및 설정 메뉴"><span class="clgMoreIcon" aria-hidden="true">⋯</span><span class="label">더보기</span></summary>
   <div class="clgTopMorePanel">
@@ -5146,6 +5146,8 @@ body.clg-tabs-enabled .appFooter{display:none!important}
   window.__CLG_MULTI_WORK_TABS_V1__=true;
 
   const MAX_TABS=6;
+  // Existing workspace tabs support external authenticated pages; keep their iframe alive when switching.
+  if(!PAGES.some(p=>p.id==='p_calendar'))PAGES.push({id:'p_calendar',title:'상담 일정표',url:'https://careercounselor1984-code.github.io/my-html-9/'});
   const viewer=document.querySelector('.viewer');
   const card=document.querySelector('.workspaceCard');
   const primaryFrame=document.getElementById('frame');
@@ -5376,6 +5378,7 @@ body.clg-tabs-enabled .appFooter{display:none!important}
   window.clgGetActiveFrame=()=>currentTab()?.frame || document.getElementById('frame');
   window.clgReloadActiveTab=reloadActive;
   window.clgOpenNewWorkTab=(pageId)=>createTab(pageId,{newInstance:true});
+  document.getElementById('clgScheduleTabBtn')?.addEventListener('click',()=>createTab('p_calendar'));
 })();
 </script>
 
