@@ -15,7 +15,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Check safety regression
-        run: node tests/journal-safety.test.cjs
+        run: |
+          node tests/journal-safety.test.cjs
+          node tests/schedule-tab.test.cjs
 
       - name: Headless Chrome initial-screen smoke (unauthenticated)
         shell: bash
