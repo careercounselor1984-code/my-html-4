@@ -1,0 +1,16 @@
+'use strict';
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const vm=require('node:vm');
+const html=fs.readFileSync('index.html','utf8');
+const script=html.match(/<script id="clg-multi-work-tabs-v1-script">([\s\S]*?)<\/script>/);
+assert(script,'multi workspace tab engine exists');
+new vm.Script(script[1],{filename:'workspace-tabs.js'});
+assert(/id="clgScheduleTabBtn"[^>]*type="button"/.test(html),'top schedule button is a button, not new-window anchor');
+assert(!/<a class="topBtn" href="https:\/\/careercounselor1984-code\.github\.io\/my-html-9\/" target="_blank"[^>]*>🗓/.test(html),'old new-window schedule button removed');
+assert(script[1].includes("PAGES.push({id:'p_calendar',title:'상담 일정표',url:'https://careercounselor1984-code.github.io/my-html-9/'})"),'schedule page registered with existing tab engine');
+assert(script[1].includes("document.getElementById('clgScheduleTabBtn')?.addEventListener('click',()=>createTab('p_calendar'))"),'button opens a tab');
+assert(script[1].includes('const existing=tabs.find(t=>t.pageId===pageId)'), 'reopening reuses schedule tab');
+assert(script[1].includes('if(p.url){')&&script[1].includes('fr.src=p.url'), 'external URL displayed inside tab iframe');
+assert(script[1].includes("fr.setAttribute('sandbox','allow-scripts allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-downloads allow-same-origin')"),'sandboxed calendar frame preserves existing security controls');
+console.log('OK: schedule toolbar uses existing work tab, same-origin iframe, no forced new window.');
