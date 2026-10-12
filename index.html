@@ -5132,6 +5132,7 @@ body.clg-tabs-enabled .appFooter{display:none!important}
 .clgWorkTabsAdd{height:31px;flex:0 0 auto;border:1px solid #c8d7eb;border-radius:9px;background:#fff;color:#2563eb;padding:0 10px;font-size:11px;font-weight:950;cursor:pointer;white-space:nowrap}
 .clgWorkTabsAdd:hover{background:#edf5ff;border-color:#8fb0df}.clgWorkTabsAdd:disabled{opacity:.45;cursor:not-allowed;background:#f4f6f8;color:#8a97aa}
 .clgWorkTabsCount{font-size:9.5px;font-weight:850;color:#8391a4;white-space:nowrap;padding:0 2px}
+.clgWorkTabRestoreNotice{position:fixed;bottom:66px;left:50%;transform:translateX(-50%);z-index:220;max-width:min(680px,calc(100vw - 28px));padding:11px 17px;background:#183b60;color:#fff;border-radius:11px;box-shadow:0 8px 24px #16365444;font-size:12px;text-align:center;line-height:1.5;pointer-events:none}
 @media(max-width:760px){
   body.clg-tabs-enabled .main{height:100vh!important;min-height:0!important}
   body.clg-tabs-enabled .workspace{padding:6px!important}
@@ -5171,6 +5172,33 @@ body.clg-tabs-enabled .appFooter{display:none!important}
   let forceNextNew=false;
   let activeTabId='tab-1';
   const tabs=[];
+  // Session-only layout: page IDs and selected tab, NEVER 상담 입력값 or authentication.
+  const TAB_LAYOUT_KEY='clg_work_tabs_layout_v2';
+  let restoringLayout=true;
+  function parseSavedTabState(raw, allowed, maxTabs, nowMs){
+    try{
+      const saved=JSON.parse(raw||'null');
+      if(!saved||saved.version!==2||!Array.isArray(saved.pages)||!Number.isFinite(saved.savedAt)) return null;
+      if(nowMs-saved.savedAt>24*60*60*1000||nowMs<saved.savedAt-60*1000) return null;
+      const pages=saved.pages.slice(0,maxTabs).filter(id=>typeof id==='string'&&allowed.includes(id));
+      if(!pages.length) return null;
+      const n=Number.isInteger(saved.activeIndex)?saved.activeIndex:0;
+      return {pages,activeIndex:Math.max(0,Math.min(n,pages.length-1)),hadUnsaved:saved.hadUnsaved===true};
+    }catch{return null}
+  }
+  function readTabLayout(){
+    try{return parseSavedTabState(sessionStorage.getItem(TAB_LAYOUT_KEY),PAGES.map(p=>p.id),MAX_TABS,Date.now())}
+    catch{return null}
+  }
+  const previousLayout=readTabLayout();
+  function persistTabLayout(){
+    if(restoringLayout)return;
+    try{sessionStorage.setItem(TAB_LAYOUT_KEY,JSON.stringify({
+      version:2,pages:tabs.map(t=>t.pageId),
+      activeIndex:Math.max(0,tabs.findIndex(t=>t.id===activeTabId)),
+      hadUnsaved:tabs.some(t=>t.dirty),savedAt:Date.now()
+    }))}catch(e){console.warn('작업 탭 임시 저장에 실패했습니다.',e?.message||e)}
+  }
 
   function pageOf(pageId){ return PAGES.find(x=>x.id===pageId); }
   function iconForTitle(title){
@@ -5234,6 +5262,7 @@ body.clg-tabs-enabled .appFooter{display:none!important}
     });
     countEl.textContent=`${tabs.length}/${MAX_TABS}`;
     addBtn.disabled=tabs.length>=MAX_TABS;
+    persistTabLayout();
     requestAnimationFrame(()=>{
       const a=scroller.querySelector('.clgWorkTab.active');
       a?.scrollIntoView?.({block:'nearest',inline:'nearest'});
@@ -5336,14 +5365,41 @@ body.clg-tabs-enabled .appFooter{display:none!important}
     tab.dirty=false; renderTabs(); loadFrame(tab);
   }
 
-  // 이미 열려 있는 기존 iframe을 첫 작업 탭으로 편입한다.
-  const initialPage=pageOf(activePageId) || PAGES[0];
+  // Keep the primary iframe, but restore previously opened workspace tabs after F5.
+  // This reopens only tools; each iframe's *unsaved form inputs* are NOT captured.
+  const startPage=pageOf(activePageId) || PAGES[0];
+  const initialPage=pageOf(previousLayout?.pages?.[0]) || startPage;
   const initial={id:'tab-1',pageId:initialPage?.id,title:initialPage?.title||'상담 화면',frame:primaryFrame,dirty:false};
   primaryFrame.dataset.clgTabId=initial.id; primaryFrame.dataset.pageId=initial.pageId;
   configureFrame(primaryFrame);
   tabs.push(initial);
   wireDirty(initial);
   renderTabs(); updateHeader(initial);
+  if(initialPage?.id!==startPage?.id)loadFrame(initial);
+  if(previousLayout){
+    previousLayout.pages.slice(1).forEach(pageId=>createTab(pageId,{newInstance:true}));
+    const target=tabs[previousLayout.activeIndex]||initial;
+    activateTab(target.id);
+  }
+  restoringLayout=false;
+  persistTabLayout();
+  if(previousLayout?.pages.length>1){
+    const notice=document.createElement('div');
+    notice.className='clgWorkTabRestoreNotice';
+    notice.setAttribute('role','status');
+    notice.textContent=previousLayout.hadUnsaved
+      ? '작업 탭 위치를 복원했습니다. 이전에 저장하지 않은 상담 입력 내용은 복원되지 않을 수 있으니 확인하세요.'
+      : '이전에 열어 둔 작업 탭 '+tabs.length+'개를 복원했습니다.';
+    card.insertAdjacentElement('afterend',notice);
+    setTimeout(()=>notice.remove(),previousLayout.hadUnsaved?16000:6500);
+  }
+  // Warn before a page-wide refresh if any embedded tool has user-typed unsaved changes.
+  window.addEventListener('beforeunload',e=>{
+    if(!tabs.some(t=>t.dirty))return;
+    persistTabLayout();
+    e.preventDefault();e.returnValue='';
+  });
+  window.addEventListener('pagehide',persistTabLayout);
 
   // 이후 메뉴 선택은 기존 화면 교체가 아니라 탭 열기/전환으로 동작한다.
   const tabLoadPage=function(pageId,options){ return createTab(pageId,options||{}); };
