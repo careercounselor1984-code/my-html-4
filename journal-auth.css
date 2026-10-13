@@ -104,3 +104,25 @@
 /* All PIN/password/recovery overlays are hidden until their .show state is explicitly set. */
 .cc-lock-overlay{display:none!important}
 .cc-lock-overlay.show{display:flex!important}
+
+/* 2026-10-13: keep incoming task-alert pill away from the bottom workspace tabs.
+   The alert popup remains clickable and the existing [hidden] rule still wins. */
+#clgWorkAlertFloat.clgAlertFloat{
+  position:fixed!important;
+  top:calc(78px + env(safe-area-inset-top, 0px))!important;
+  right:16px!important;
+  bottom:auto!important;
+  left:auto!important;
+  transform:none!important;
+  max-width:calc(100vw - 32px);
+  white-space:nowrap;
+}
+@media(max-width:760px){
+  #clgWorkAlertFloat.clgAlertFloat{
+    top:calc(76px + env(safe-area-inset-top, 0px))!important;
+    right:10px!important;
+    left:auto!important;
+    bottom:auto!important;
+    max-width:calc(100vw - 20px);
+  }
+}
