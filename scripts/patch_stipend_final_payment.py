@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Update the already-embedded p06 stipend record to always show final expected amount."""
+"""Update the embedded p06 stipend record to show only the final payout amount."""
 import base64,re
 from pathlib import Path
 index=Path('index.html')
@@ -10,7 +10,7 @@ html=base64.b64decode(m.group(2)).decode('utf-8')
 old="""            if (incomeStatus === '있음' || familyChange || ratePct !== 100) {
                 lines.push('- 지급 예상액: ' + calc.pay.toLocaleString() + '원 (고용센터 심사 후 확정)');
             }"""
-new="""            lines.push('- 최종 지급 예상액: ' + calc.pay.toLocaleString() + '원 (고용센터 심사 후 확정)');"""
+new="""            lines.push('- 최종 지급액: ' + calc.pay.toLocaleString() + '원');"""
 if new in html and old not in html:
     print('ALREADY_PATCHED')
 else:
@@ -18,7 +18,7 @@ else:
     html=html.replace(old,new,1)
     s=s[:m.start(2)]+base64.b64encode(html.encode('utf-8')).decode('ascii')+s[m.end(2):]
     index.write_text(s,encoding='utf-8')
-    print('PATCH_OK: final estimated payment now always included')
+    print('PATCH_OK: final payment amount now always included, without qualifications')
 # Extract page scripts to check syntax
 for i,match in enumerate(re.finditer(r'<script\b([^>]*)>([\s\S]*?)</script>',html,re.I)):
     if 'src=' in match.group(1) or not match.group(2).strip():continue
