@@ -2,7 +2,7 @@ name: Apply stipend final payment line
 on:
   push:
     branches: ['fix/stipend-final-payment-always-20261013']
-    paths: ['.github/workflows/stipend-final-payment-once.yml']
+    paths: ['.github/workflows/stipend-final-payment-once.yml', 'tests/stipend-record-output.test.cjs']
 permissions:
   contents: write
 jobs:
