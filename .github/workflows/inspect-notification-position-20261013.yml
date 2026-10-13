@@ -1,0 +1,28 @@
+name: Inspect journal alert layout
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/inspect-notification-position-20261013.yml'
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Locate alert popup selectors
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          s=Path('index.html').read_text(encoding='utf-8')
+          pats=['goodjob:alert-feed:v1','clgWorkAlert','alert-toast','toast','알림이 도착','새 알림','notification','workAlert','clg-work-alert']
+          for q in pats:
+              spans=list(re.finditer(re.escape(q),s,re.I))
+              print('===',q,'count',len(spans))
+              for m in spans[:12]:
+                  st=max(0,m.start()-180);end=min(len(s),m.end()+260)
+                  print('offset',m.start(),'SNIPPET',s[st:end].replace(chr(10),'\\n')[:500])
+          PY
