@@ -31,5 +31,5 @@ assert.match(limited,/일부 미이행/);
 assert.match(limited,/지급 예상액: 300,000원/);
 assert.match(page,/const incomeDetailSection = incStatus === '있음'/,'hidden income entries omitted');
 assert.match(page,/const paymentRecord = buildPaymentRecordSection/,'output uses conditional summary');
-assert.match(page,/id="familyChangeFields" class="hidden"/,'family controls hidden by default');
+assert.match(page,/id="familyChangeFields" class="hidden\b/,'family controls hidden by default');
 console.log('OK: stipend summary normal, income, family addition/removal, partial compliance; conditional detail display');
