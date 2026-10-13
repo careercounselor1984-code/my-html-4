@@ -18,7 +18,7 @@ jobs:
           from pathlib import Path
           import re
           s=Path('index.html').read_text(encoding='utf-8')
-          pats=['goodjob:alert-feed:v1','clgWorkAlert','alert-toast','toast','알림이 도착','새 알림','notification','workAlert','clg-work-alert']
+          pats=['.clgAlertFloat','journal-auth.css','clgAlertDialog','goodjob:alert-feed:v1','clgWorkAlert','alert-toast','toast','알림이 도착','새 알림','notification','workAlert','clg-work-alert']
           for q in pats:
               spans=list(re.finditer(re.escape(q),s,re.I))
               print('===',q,'count',len(spans))
