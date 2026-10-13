@@ -1,4 +1,0 @@
-PATCH_OK p06 chars=56018
-OK: stipend summary normal, income, family addition/removal, partial compliance; conditional detail display
-OK: journal scripts 20 ; embedded pages 28 ; p05/p06/p23 scripts 3 3 3 ; month-end cases 5 ; IAP 6th-cycle alignment.
-PASSED patch, script syntax, newtest, regression
