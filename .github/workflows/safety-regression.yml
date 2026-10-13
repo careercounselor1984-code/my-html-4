@@ -19,6 +19,7 @@ jobs:
           node tests/journal-safety.test.cjs
           node tests/schedule-tab.test.cjs
           node tests/tab-f5-shortcut.test.cjs
+          node tests/alert-tab-clearance.test.cjs
 
       - name: Headless Chrome initial-screen smoke (unauthenticated)
         shell: bash
