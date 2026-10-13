@@ -2,7 +2,7 @@ name: Apply and test stipend record cleanup
 on:
   push:
     branches: ['fix/stipend-dynamic-record-20261013']
-    paths: ['.github/workflows/apply-stipend-record.yml']
+    paths: ['.github/workflows/apply-stipend-record.yml', 'tests/stipend-record-output.test.cjs']
 permissions:
   contents: write
 jobs:
