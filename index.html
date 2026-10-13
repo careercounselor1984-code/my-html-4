@@ -4762,9 +4762,9 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
   function showDisconnected(){
     if(bridgeReady)return; if(panel)panel.hidden=false;
     setCompactMode('disconnected');
-    setTitle('Work24 연결 안 됨','상담일지 페이지에서 확장프로그램 브리지가 실행되지 않았습니다.','국취 전산 상담 도우미 1.4.0 연결 필요');
-    setDetails([['확인','파일 URL 액세스 및 확장프로그램 버전을 확인하세요.']]);
-    showMessage('국취 전산 상담 도우미 1.4.0이 설치·활성화되어 있는지 확인하고, GitHub Pages 주소에서 통합본을 열어주세요.','warn');
+    setTitle('Work24 연결 안 됨','상담일지 페이지에서 확장프로그램 브리지가 실행되지 않았습니다.','국취 전산 상담 도우미 연결 확인 필요');
+    setDetails([['확인','GitHub Pages 연결 또는 로컬 파일 URL 권한 및 확장프로그램 버전을 확인하세요.']]);
+    showMessage('국취 전산 상담 도우미 최신 확장프로그램이 활성화되어 있는지 확인하고, 통합본을 GitHub Pages에서 열어주세요. 로컬 HTML인 경우 확장프로그램의 파일 URL 액세스를 허용해야 합니다.','warn');
   }
   function showIapConnected(){
     if(panel)panel.hidden=false; currentKind='';
@@ -5024,78 +5024,89 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
 })();
 </script>
 
-<script id="clg-iap-reverse-bridge-v130-script">
+<script id="clg-readiness-parent-bridge-v148-script">
 (function(){
   'use strict';
-  if(window.__CLG_IAP_PARENT_BRIDGE_V130__) return;
-  window.__CLG_IAP_PARENT_BRIDGE_V130__=true;
-  const PAGE_MARKER='CLG_IAP_PAGE_V120';
-  const EXT_MARKER='CLG_IAP_BRIDGE_V120';
-  const frame=document.getElementById('frame');
-  let lastPayload=null;
-  let verifyTimer=null;
-  let retryCount=0;
-
-  function sendToPage(type,payload){
-    try{ frame?.contentWindow?.postMessage({marker:PAGE_MARKER,type,payload},'*'); }catch(err){}
-  }
-  function requestStored(){
-    window.postMessage({marker:EXT_MARKER,type:'REQUEST_IAP_PENDING'},'*');
-  }
-  function armVerify(){
-    clearTimeout(verifyTimer);
-    verifyTimer=setTimeout(requestStored,350);
-  }
-  function saveToExtension(payload){
-    lastPayload=payload||null;
-    retryCount=0;
-    window.postMessage({marker:EXT_MARKER,type:'SAVE_IAP_PENDING',payload:lastPayload},'*');
-    armVerify();
-  }
-
-  window.addEventListener('message',function(e){
+  if(window.__CLG_READINESS_PARENT_BRIDGE_V148__)return;
+  window.__CLG_READINESS_PARENT_BRIDGE_V148__=true;
+  const PAGE='CLG_READINESS_PAGE_V150', EXT='CLG_READINESS_BRIDGE_V150';
+  const requests=new Map();
+  const frameFor=source=>[...document.querySelectorAll('iframe.clgWorkFrame, iframe#frame')].find(f=>{
+    if(f.contentWindow!==source)return false;
+    if(f.dataset.pageId)return f.dataset.pageId==='p07';
+    try{return !!f.contentDocument?.getElementById('readinessSendBtn')}catch{return false}
+  })||null;
+  const reply=(source,type,payload)=>{try{source?.postMessage({marker:PAGE,type,payload},'*')}catch(e){console.warn('[구직준비도 연결]',e)}};
+  function clear(id){const p=requests.get(id);if(p){clearTimeout(p.timer);requests.delete(id)}return p;}
+  window.addEventListener('message',e=>{
     const d=e.data||{};
-
-    // iframe의 IAP 전송 요청을 받는다. WindowProxy 비교가 브라우저 상태에 따라 달라질 수 있어
-    // 전용 marker/type을 기준으로 전달하되, 현재 IAP iframe이 있는 경우에만 처리한다.
-    if(d.marker===PAGE_MARKER && d.type==='SAVE_IAP_PENDING'){
-      if(!frame?.contentWindow) return;
-      saveToExtension(d.payload);
+    if(d.marker===PAGE&&d.type==='SAVE_READINESS_PENDING'){
+      if(!frameFor(e.source))return;
+      const p=d.payload;
+      if(!p||typeof p!=='object'||!p.sentAt){reply(e.source,'READINESS_SAVE_ERROR',{message:'전송 자료 형식이 올바르지 않습니다.'});return}
+      clear(p.sentAt);
+      const timer=setTimeout(()=>{
+        if(!requests.has(p.sentAt))return;
+        clear(p.sentAt);
+        reply(e.source,'READINESS_SAVE_ERROR',{message:'확장프로그램 저장 응답이 없습니다. 연결과 설치 상태를 확인해주세요.'});
+      },2200);
+      requests.set(p.sentAt,{source:e.source,timer});
+      window.postMessage({marker:EXT,type:'SAVE_READINESS_PENDING',payload:p},'*');
       return;
     }
-
-    if(e.source===window && d.marker===EXT_MARKER){
-      if(d.type==='IAP_PENDING_SAVED'){
-        clearTimeout(verifyTimer);
-        lastPayload=null;
-        sendToPage('IAP_SAVED',d.payload);
-        return;
-      }
-      if(d.type==='IAP_PENDING_ERROR'){
-        clearTimeout(verifyTimer);
-        lastPayload=null;
-        sendToPage('IAP_SAVE_ERROR',d.payload);
-        return;
-      }
-      if(d.type==='IAP_PENDING_STATE'){
-        clearTimeout(verifyTimer);
-        if(d.payload){
-          const p=d.payload||{};
-          lastPayload=null;
-          sendToPage('IAP_SAVED',{
-            sentAt:p.sentAt||'',
-            jobCount:(p.jobRows||[]).length,
-            actCount:(p.actRows||[]).length,
-            verified:true
-          });
-        }else if(lastPayload && retryCount<1){
-          retryCount++;
-          window.postMessage({marker:EXT_MARKER,type:'SAVE_IAP_PENDING',payload:lastPayload},'*');
-          verifyTimer=setTimeout(requestStored,500);
-        }else if(lastPayload){
-          sendToPage('IAP_SAVE_ERROR',{message:'확장프로그램 저장 확인에 실패했습니다. 연결 다시 확인 후 재전송해주세요.'});
-          lastPayload=null;
+    if(e.source!==window||d.marker!==EXT)return;
+    if(d.type==='READINESS_PENDING_SAVED'){
+      const req=d.payload?.sentAt&&clear(d.payload.sentAt);
+      if(req)reply(req.source,'READINESS_SAVED',d.payload);
+    }else if(d.type==='READINESS_PENDING_ERROR'){
+      for(const id of [...requests.keys()]){const req=clear(id);if(req)reply(req.source,'READINESS_SAVE_ERROR',d.payload)}
+    }
+  });
+})();
+</script>
+<script id="clg-iap-reverse-bridge-v148-script">
+(function(){
+  'use strict';
+  if (window.__CLG_IAP_PARENT_BRIDGE_V148__) return;
+  window.__CLG_IAP_PARENT_BRIDGE_V148__=true;
+  const PAGE='CLG_IAP_PAGE_V120', EXT='CLG_IAP_BRIDGE_V120';
+  const requests=new Map();
+  const frameFor=(source)=>[...document.querySelectorAll('iframe.clgWorkFrame, iframe#frame')].find(f=>{
+    if(f.contentWindow!==source)return false;
+    if(f.dataset.pageId)return f.dataset.pageId==='p05';
+    try{return !!f.contentDocument?.getElementById('iapSendWork24Btn')}catch{return false}
+  })||null;
+  const reply=(source,type,payload)=>{try{source?.postMessage({marker:PAGE,type,payload},'*')}catch(e){console.warn('[IAP 연결]',e)}};
+  function clear(sentAt){const item=requests.get(sentAt);if(item){clearTimeout(item.timer);requests.delete(sentAt)}return item;}
+  window.addEventListener('message',e=>{
+    const d=e.data||{};
+    if(d.marker===PAGE){
+      if(d.type==='SAVE_IAP_PENDING'){
+        if(!frameFor(e.source))return;
+        const p=d.payload;
+        if(!p||typeof p!=='object'||!Array.isArray(p.jobRows)||!Array.isArray(p.actRows)||!p.sentAt){
+          reply(e.source,'IAP_SAVE_ERROR',{message:'IAP 전송 자료 형식을 확인해주세요.'});return;
         }
+        clear(p.sentAt);
+        const timer=setTimeout(()=>{
+          if(!requests.has(p.sentAt))return;
+          clear(p.sentAt);
+          reply(e.source,'IAP_SAVE_ERROR',{message:'확장프로그램의 저장 확인 응답이 없습니다. 확장프로그램 활성화와 연결 주소를 확인해주세요.'});
+        },2450);
+        requests.set(p.sentAt,{source:e.source,timer});
+        window.postMessage({marker:EXT,type:'SAVE_IAP_PENDING',payload:p},'*');
+      }else if(d.type==='IAP_SEND_CONFIRMED'&&d.payload?.ok&&frameFor(e.source)){
+        for(const [id,item] of requests){if(item.source===e.source)clear(id)}
+      }
+      return;
+    }
+    if(e.source!==window||d.marker!==EXT)return;
+    if(d.type==='IAP_PENDING_SAVED'){
+      const id=d.payload?.sentAt, req=id&&clear(id);
+      if(req)reply(req.source,'IAP_SAVED',d.payload);
+    }else if(d.type==='IAP_PENDING_ERROR'){
+      for(const id of [...requests.keys()]){
+        const req=clear(id);if(req)reply(req.source,'IAP_SAVE_ERROR',d.payload);
       }
     }
   });
