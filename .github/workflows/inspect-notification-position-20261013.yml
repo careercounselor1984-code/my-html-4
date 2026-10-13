@@ -11,6 +11,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Run alert and tab regression
+        run: |
+          node tests/alert-tab-clearance.test.cjs
+          node tests/schedule-tab.test.cjs
+          node tests/tab-f5-shortcut.test.cjs
+          node tests/journal-safety.test.cjs
       - name: Locate alert popup selectors
         shell: bash
         run: |
