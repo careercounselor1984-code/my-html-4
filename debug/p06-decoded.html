@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>구직촉진수당 상담일지</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/js/all.min.js"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f7f7f9; }
+        .section-title { border-left: 4px solid #059669; padding-left: 1rem; }
+        input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        .row-animation { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+        textarea.result-box { font-family: 'Malgun Gothic', dotum, sans-serif; font-size: 0.9rem; line-height: 1.5; }
+        .activity-row input[type="date"], .activity-row input[type="text"], .activity-row select { min-width: 0; }
+        .period-inputs { display: grid; grid-template-columns: minmax(0,1fr) auto minmax(0,1fr); gap: .25rem; align-items: center; }
+        @media (max-width: 768px) {
+            .activity-row { grid-template-columns: 1fr !important; }
+            .activity-row > * { grid-column: 1 / -1 !important; }
+            .activity-head { display: none !important; }
+        }
+    </style>
+
+<style id="clg-ui-polish">
+/* 통합본 공통 가독성 보정: 기능은 변경하지 않고 글꼴·포커스·선택영역만 정돈 */
+body,button,input,select,textarea{font-family:Pretendard,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans KR","Malgun Gothic",sans-serif}
+input:focus,select:focus,textarea:focus{outline:none;box-shadow:0 0 0 3px rgba(37,99,235,.10)}
+button{transition:background-color .15s ease,border-color .15s ease,color .15s ease,box-shadow .15s ease}
+::selection{background:#dbeafe;color:#172033}
+</style>
+
+<style id="clg-sudang-iap-ref-style">
+#clgSudangIapBox{margin:0 0 12px;padding:8px 10px;border:1px solid #c7d8ef;border-radius:10px;background:#f8fbff;font-size:11px;color:#334155}.clg-sudang-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap}.clg-sudang-row input{min-width:180px;padding:6px 8px;border:1px solid #cbd5e1;border-radius:7px;background:#fff}.clg-sudang-row button{padding:6px 9px;border:1px solid #9bb9dd;border-radius:7px;background:#fff;color:#245a9b;font-weight:850}.clg-sudang-iap-result{display:none;margin-top:7px;padding:7px 8px;background:#fff;border:1px solid #e3ebf5;border-radius:7px;line-height:1.55;white-space:pre-wrap}.clg-sudang-iap-result.show{display:block}.clg-sudang-iap-muted{color:#64748b;font-size:10px}
+</style>
+</head>
+<body class="p-4 sm:p-8">
+
+    <div class="max-w-5xl mx-auto bg-white shadow-xl rounded-2xl p-6 md:p-10">
+        <h1 class="text-3xl font-bold text-gray-800 mb-6 text-center border-b pb-4 text-emerald-700">
+            구직촉진수당 상담일지
+        </h1>
+
+
+<div id="clgSudangIapBox"><div class="clg-sudang-row"><b style="color:#1f4f86">🔗 IAP 계획 참고</b><input id="clgSudangIapRegNo" type="text" placeholder="IAP 등록번호 (선택)"><button type="button" id="clgSudangIapLoad">계획 확인</button><span class="clg-sudang-iap-muted">입력하지 않으면 기존처럼 사용</span></div><div id="clgSudangIapResult" class="clg-sudang-iap-result"></div></div>
+        <form id="sudang-form">
+            
+            <div class="mb-8 p-4 border rounded-xl shadow-sm bg-emerald-50 border-emerald-300">
+                <h2 class="text-xl font-bold text-emerald-700 mb-4 section-title">회차 및 상담 시간</h2>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div class="form-group md:col-span-1">
+                        <label class="block text-sm text-gray-700 mb-1">회차</label>
+                        <select id="round" class="w-full p-2 border border-gray-300 rounded-lg">
+                            <option value="1">1회차</option><option value="2">2회차</option><option value="3">3회차</option>
+                            <option value="4">4회차</option><option value="5">5회차</option><option value="6">6회차</option>
+                        </select>
+                        <div id="onlineLabel" class="hidden text-red-600 font-bold text-sm mt-2 ml-1">*온라인제출</div>
+                    </div>
+
+                    <div class="form-group md:col-span-3">
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="block text-sm text-gray-700">상담일시</label>
+                            <div class="flex items-center bg-white px-3 py-1 rounded-full border border-gray-200 shadow-sm">
+                                <input type="checkbox" id="isOnline" class="h-4 w-4 text-emerald-600 cursor-pointer">
+                                <label for="isOnline" class="ml-2 text-sm font-bold text-gray-700 cursor-pointer">온라인 제출</label>
+                            </div>
+                            <label class="flex items-center bg-white px-3 py-1 rounded-full border border-indigo-200 shadow-sm cursor-pointer">
+                                <input type="checkbox" id="fieldCounseling" class="h-4 w-4 text-indigo-600 cursor-pointer">
+                                <span class="ml-2 text-sm font-bold text-indigo-700">출장상담</span>
+                            </label>
+                        </div>
+                        <div id="counselingTimeGroup" class="flex space-x-2">
+                            <input type="date" id="counselingDate" class="w-1/3 p-2 border border-gray-300 rounded-lg">
+                            <select id="startTime" class="w-1/3 p-2 border border-gray-300 rounded-lg time-select"></select>
+                            <span class="self-center">~</span>
+                            <select id="endTime" class="w-1/3 p-2 border border-gray-300 rounded-lg time-select"></select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-8 p-4 border rounded-xl shadow-sm">
+                <h2 class="text-xl font-bold text-gray-700 mb-4 section-title">신청 내역 및 기간</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-sm text-gray-700 mb-1">시작일</label>
+                        <input type="date" id="startDate" onchange="autoSetMainPeriodDates()" oninput="autoSetMainPeriodDates()" class="w-full p-2 border border-gray-300 rounded-lg">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-700 mb-1">종료일</label>
+                        <input type="date" id="endDate" onchange="syncDesignationDate()" class="w-full p-2 border border-gray-300 rounded-lg">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-700 mb-1">지정일 (자동)</label>
+                        <input type="date" id="designationDate" class="w-full p-2 border border-emerald-500 rounded-lg bg-emerald-50 font-bold text-emerald-700">
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-8 p-4 border rounded-xl shadow-sm bg-gray-50">
+                <h2 class="text-xl font-bold text-gray-700 mb-4 section-title">구직활동 이행 내역</h2>
+                
+                <div class="mb-6">
+                    <div class="flex justify-between items-center mb-2">
+                        <h3 class="font-bold text-blue-700"><i class="fas fa-chalkboard-teacher mr-1"></i> 1. 취업지원 프로그램</h3>
+                        <div class="space-x-1">
+                            <button type="button" onclick="addActivityRow('prog1_list')" class="text-xs bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700">+ 행 추가</button>
+                            <button type="button" onclick="deleteLastRow('prog1_list')" class="text-xs bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">- 행 삭제</button>
+                        </div>
+                    </div>
+                    <div class="activity-head grid grid-cols-12 gap-2 text-xs text-gray-500 text-center mb-1 font-bold">
+                        <div class="col-span-4">기간 (시작일 ~ 종료일)</div>
+                        <div class="col-span-3">내용</div>
+                        <div class="col-span-3">세부내용</div>
+                        <div class="col-span-2">상태</div>
+                    </div>
+                    <div id="prog1_list" class="space-y-2"></div>
+                </div>
+
+                <div>
+                    <div class="flex justify-between items-center mb-2">
+                        <h3 class="font-bold text-indigo-700"><i class="fas fa-briefcase mr-1"></i> 2. 구직활동 프로그램 참여 계획</h3>
+                        <div class="space-x-1">
+                            <button type="button" onclick="addActivityRow('prog2_list')" class="text-xs bg-indigo-600 text-white px-3 py-1 rounded hover:bg-indigo-700">+ 행 추가</button>
+                            <button type="button" onclick="deleteLastRow('prog2_list')" class="text-xs bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">- 행 삭제</button>
+                        </div>
+                    </div>
+                    <div class="activity-head grid grid-cols-12 gap-2 text-xs text-gray-500 text-center mb-1 font-bold">
+                        <div class="col-span-4">기간 (시작일 ~ 종료일)</div>
+                        <div class="col-span-3">내용</div>
+                        <div class="col-span-3">세부내용</div>
+                        <div class="col-span-2">상태</div>
+                    </div>
+                    <div id="prog2_list" class="space-y-2"></div>
+                </div>
+            </div>
+
+            <div class="mb-8 p-4 border rounded-xl shadow-sm bg-yellow-50 border-yellow-300">
+                <h2 class="text-xl font-bold text-yellow-700 mb-4 section-title">소득 확인 (2026년 감액·지급정지 자동판정)</h2>
+                
+                <div class="flex items-center mb-4 bg-white p-3 rounded-lg">
+                    <input type="radio" id="incomeNone" name="incomeStatus" value="없음" checked onchange="toggleIncome()" class="h-4 w-4 text-yellow-600">
+                    <label for="incomeNone" class="ml-2 mr-6 text-gray-700">소득 없음</label>
+                    <input type="radio" id="incomeExist" name="incomeStatus" value="있음" onchange="toggleIncome()" class="h-4 w-4 text-yellow-600">
+                    <label for="incomeExist" class="ml-2 text-gray-700">소득 있음</label>
+                </div>
+
+                <div id="incomeGroups" class="hidden space-y-4">
+                    <div class="bg-red-50 p-3 rounded-lg border border-red-200">
+                        <div class="flex justify-between items-center mb-2">
+                            <h4 class="text-sm font-bold text-red-700">🔴 신고소득 중 프로그램 수당 제외 소득 (근로·사업·재산 등)</h4>
+                            <button type="button" onclick="addIncomeRow('deductibleList')" class="text-xs bg-red-600 text-white px-2 py-1 rounded">+ 추가</button>
+                        </div>
+                        <div id="deductibleList" class="space-y-2"></div>
+                        <div class="text-right text-xs mt-1 text-red-600 font-bold">합계: <span id="totalDeductibleDisplay">0</span>원</div>
+                    </div>
+
+                    <div class="bg-amber-50 p-3 rounded-lg border border-amber-200">
+                        <div class="flex justify-between items-center mb-2">
+                            <h4 class="text-sm font-bold text-amber-700">🟠 취업지원프로그램 수당 (신고소득 중 별도 구분)</h4>
+                            <button type="button" onclick="addIncomeRow('programIncomeList')" class="text-xs bg-amber-600 text-white px-2 py-1 rounded">+ 추가</button>
+                        </div>
+                        <div id="programIncomeList" class="space-y-2"></div>
+                        <div class="text-right text-xs mt-1 text-amber-700 font-bold">합계: <span id="totalProgramIncomeDisplay">0</span>원</div>
+                        <div class="text-xs text-amber-800 mt-1">※ 기준금액 초과 시 지급정지/0원 부지급을 구분하기 위해 별도 입력합니다.</div>
+                    </div>
+
+                    <div class="bg-blue-50 p-3 rounded-lg border border-blue-200">
+                        <div class="flex justify-between items-center mb-2">
+                            <h4 class="text-sm font-bold text-blue-700">🔵 산정 제외·참고 항목 (지급판정 미반영)</h4>
+                            <button type="button" onclick="addIncomeRow('nonDeductibleList')" class="text-xs bg-blue-600 text-white px-2 py-1 rounded">+ 추가</button>
+                        </div>
+                        <div id="nonDeductibleList" class="space-y-2"></div>
+                         <div class="text-right text-xs mt-1 text-blue-600 font-bold">합계: <span id="totalNonDeductibleDisplay">0</span>원</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-8 p-4 border rounded-xl bg-white shadow-sm">
+                <h2 class="text-lg font-bold text-gray-700 mb-3 border-b pb-2">지급 금액 산정 (2026년 기준)</h2>
+                <div class="space-y-3 text-sm">
+                    <div class="flex justify-between items-center bg-gray-50 p-2 rounded">
+                        <span>지급 비율 (이행 여부)</span>
+                        <select id="paymentRate" onchange="updateBaseAllowance()" class="p-1 border border-indigo-300 rounded text-indigo-700 font-bold">
+                            <option value="100">전액 지급 (100%) - 활동 이행</option>
+                            <option value="50">50% 감액 (50%) - 일부 미이행</option>
+                            <option value="0">부지급 (0%) - 전체 미이행</option>
+                        </select>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span>적용 기본수당</span>
+                        <div class="flex items-center">
+                            <input type="number" id="baseAllowance" value="600000" readonly class="w-28 p-1 border rounded text-right mr-1 font-bold bg-gray-50">원
+                        </div>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span>부양가족 수</span>
+                        <div class="flex items-center">
+                            <select id="familyCount" onchange="calculate()" class="p-1 border rounded text-right mr-1">
+                                <option value="0">0명</option><option value="1">1명</option><option value="2">2명</option><option value="3">3명</option><option value="4">4명</option>
+                            </select>
+                            <span class="text-xs text-gray-500">1인 10만원 · 최대 4인</span>
+                        </div>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span>적용 가족수당</span><span class="font-bold"><span id="appliedFamilyDisplay">0</span>원</span>
+                    </div>
+                    <div class="flex justify-between items-center text-gray-600">
+                        <span>소득 판정 기준금액</span><span class="font-bold"><span id="criteriaDisplay">1,538,543</span>원</span>
+                    </div>
+                    <div class="flex justify-between items-center text-gray-600">
+                        <span>소득 판정</span><span class="font-bold" id="incomeDecisionDisplay">소득 없음</span>
+                    </div>
+                    <div class="flex justify-between items-center text-red-600">
+                        <span>감액 적용액</span>
+                        <span class="font-bold">- <span id="deductionAmount">0</span> 원</span>
+                    </div>
+                    <div class="flex justify-between items-center text-lg font-black border-t pt-2 mt-2">
+                        <span>최종 지급액</span>
+                        <span class="text-emerald-600"><span id="finalPayment">600,000</span> 원</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-8 p-4 border rounded-xl bg-gray-50">
+                 <h2 class="text-xl font-bold text-gray-700 mb-4 section-title">상담사 의견</h2>
+                 <div class="mb-3 flex items-center bg-white p-3 rounded-lg border border-gray-200">
+                    <input type="checkbox" id="faceToFaceDone" onchange="syncFaceToFaceOpinion()" class="h-4 w-4 text-emerald-600 cursor-pointer">
+                    <label for="faceToFaceDone" class="ml-2 text-sm font-bold text-gray-700 cursor-pointer">이번 회차 필수 대면상담 진행</label>
+                    <span class="ml-2 text-xs text-gray-500">체크 시 상담사 의견에 필수상담(재진단) 문구가 자동 포함됩니다.</span>
+                 </div>
+                 <textarea id="counselorOpinion" class="w-full p-3 border rounded-lg h-24">금일 상담을 통해 구직활동 이행 여부와 소득 발생 내역을 확인하고, 다음 회차 구직활동 계획을 점검함. </textarea>
+            </div>
+
+            <div class="mb-8 p-4 border-2 border-yellow-400 rounded-xl bg-yellow-50">
+                <h2 class="text-xl font-bold text-yellow-800 mb-4 section-title"><i class="fas fa-calendar-alt mr-2"></i>다음 회차 계획 (카톡 안내용)</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-1">다음 회차 지정일</label>
+                        <input type="date" id="nextDesignationDate" class="w-full p-2 border border-yellow-300 rounded-lg bg-white">
+                    </div>
+                    <div class="flex items-center pt-6">
+                        <input type="checkbox" id="isVisitRequired" class="w-5 h-5 text-red-600 border-gray-300 rounded focus:ring-red-500">
+                        <label for="isVisitRequired" class="ml-2 block text-sm font-bold text-red-600">
+                            ※ 다음 회차 필수 방문 (체크 시 강조 안내)
+                        </label>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">합의된 구직활동 계획</label>
+                    <textarea id="nextPlanActivities" class="w-full p-2 border border-yellow-300 rounded-lg h-20 bg-white" placeholder="예: 고용24 입사지원 2회, 직업훈련 출석률 80% 이상 달성 등"></textarea>
+                </div>
+            </div>
+
+            <div class="flex justify-center mb-8">
+                <button type="button" onclick="generateResult()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-12 rounded-xl shadow-lg transform hover:scale-105 transition text-lg">
+                    <i class="fas fa-magic mr-2"></i> 상담 내용 생성하기
+                </button>
+            </div>
+
+            <div id="resultArea" class="hidden space-y-8 mb-8">
+                <div class="p-4 border-2 border-gray-300 rounded-xl bg-white">
+                    <div class="flex justify-between items-center mb-2">
+                        <h3 class="font-bold text-gray-800">📄 상담일지 등록용</h3>
+                        <button type="button" onclick="copyText('logResult')" class="text-xs bg-gray-200 hover:bg-gray-300 px-2 py-1 rounded">복사</button>
+                    </div>
+                    <textarea id="logResult" class="w-full h-80 p-2 bg-gray-50 border rounded text-xs result-box"></textarea>
+                </div>
+
+                <div class="p-4 border-2 border-yellow-300 rounded-xl bg-white">
+                    <div class="flex justify-between items-center mb-2">
+                        <h3 class="font-bold text-gray-800">💬 카톡: 금일 상담 결과 안내</h3>
+                        <button type="button" onclick="copyText('kakaoResult')" class="text-xs bg-yellow-200 hover:bg-yellow-300 px-2 py-1 rounded">복사</button>
+                    </div>
+                    <textarea id="kakaoResult" class="w-full h-48 p-2 bg-yellow-50 border rounded text-xs result-box"></textarea>
+                </div>
+
+                <div class="p-4 border-2 border-red-300 rounded-xl bg-white">
+                    <div class="flex justify-between items-center mb-2">
+                        <h3 class="font-bold text-red-600">📅 카톡: 다음 회차 및 과제 안내</h3>
+                        <button type="button" onclick="copyText('nextKakaoResult')" class="text-xs bg-red-100 hover:bg-red-200 px-2 py-1 rounded">복사</button>
+                    </div>
+                    <textarea id="nextKakaoResult" class="w-full h-48 p-2 bg-red-50 border rounded text-xs result-box"></textarea>
+                </div>
+            </div>
+
+            <div class="p-6 border-t-2 border-dashed border-gray-300 bg-gray-50 mt-10 rounded-xl">
+                <h3 class="font-bold text-gray-800 mb-4"><i class="fas fa-book-open mr-2"></i>[참고] 구직촉진수당 감액 및 소득 기준 (2026년 규정)</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+                    <div>
+                        <h4 class="font-bold text-red-600 mb-2 border-b pb-1">🔴 취업·창업 및 신고대상 소득</h4>
+                        <ul class="list-disc pl-5 space-y-1 text-gray-600 text-xs">
+                            <li><strong>근로소득:</strong> 상시, 일용, 자활근로 소득 (세전)</li>
+                            <li><strong>사업소득:</strong> 사업자 소득, 프리랜서(3.3%), 임대소득</li>
+                            <li><strong>재산소득:</strong> 이자·배당 소득</li>
+                            <li><strong>공적연금소득:</strong> 5대 공적연금소득</li>
+                            <li><strong>프로그램 소득:</strong> 취업지원·구직활동지원 프로그램 참여로 발생한 소득</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-blue-600 mb-2 border-b pb-1">🔵 소득 불산정 (신고 시 감액 없음)</h4>
+                        <ul class="list-disc pl-5 space-y-1 text-gray-600 text-xs">
+                            <li><strong>사적 이전 소득:</strong> 가족/지인에게 받은 용돈, 생활비</li>
+                            <li><strong>퇴직금:</strong> 근로관계 종료로 받는 일시금</li>
+                            <li><strong>부채:</strong> 대출금</li>
+                            <li><strong>실비 변상:</strong> 출장비, 여비 등 실비 성격</li>
+                            <li><strong>특정 복지급여:</strong> 양육수당, 주거급여, 국가보훈 급여 등</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+        </form>
+    </div>
+
+    <template id="activityRowTemp">
+        <div class="row-animation grid grid-cols-12 gap-2 items-center mb-2 activity-row bg-white p-2 rounded border border-gray-100 shadow-sm">
+            <div class="col-span-4 period-inputs">
+                <input type="date" class="w-full p-1.5 border rounded text-xs act-start" placeholder="시작">
+                <span class="self-center text-gray-400 text-xs">~</span>
+                <input type="date" class="w-full p-1.5 border rounded text-xs act-end" placeholder="종료">
+            </div>
+            <select class="col-span-3 p-1.5 border rounded text-xs act-content">
+                <option value="">선택</option>
+            </select>
+            <input type="text" placeholder="세부내용 직접 입력" class="col-span-3 p-1.5 border rounded text-xs act-detail">
+            <select class="col-span-2 p-1.5 border rounded text-xs act-status">
+                <option value="이행">이행</option>
+                <option value="미이행" class="text-red-600">미이행</option>
+            </select>
+        </div>
+    </template>
+
+    <template id="incomeRowTemp">
+        <div class="row-animation grid grid-cols-10 gap-2 items-center income-row mb-2">
+            <input type="date" class="col-span-3 p-1.5 border rounded text-xs inc-date">
+            <input type="text" placeholder="내용" class="col-span-4 p-1.5 border rounded text-xs inc-desc">
+            <input type="number" placeholder="금액" oninput="calculate()" class="col-span-2 p-1.5 border rounded text-xs text-right inc-amt">
+            <button type="button" onclick="removeIncRow(this)" class="col-span-1 text-red-400 hover:text-red-600"><i class="fas fa-trash"></i></button>
+        </div>
+    </template>
+
+    <script>
+        document.getElementById('counselingDate').valueAsDate = new Date();
+        initTimeSelects();
+
+        function initTimeSelects() {
+            const selects = document.querySelectorAll('.time-select');
+            selects.forEach(sel => {
+                sel.innerHTML = '<option value="">선택</option>';
+                for(let h=9; h<=18; h++) {
+                    let hh = h.toString().padStart(2, '0');
+                    sel.add(new Option(`${hh}:00`, `${hh}:00`));
+                    if(h < 18) sel.add(new Option(`${hh}:30`, `${hh}:30`));
+                }
+            });
+            document.getElementById('startTime').value = "09:00";
+            document.getElementById('endTime').value = "09:30";
+        }
+
+        document.getElementById('isOnline').addEventListener('change', function(e) {
+            const fc=document.getElementById('fieldCounseling');
+            if(fc){ fc.disabled=!!e.target.checked; if(e.target.checked) fc.checked=false; }
+            const timeGroup = document.getElementById('counselingTimeGroup');
+            if(e.target.checked) timeGroup.classList.add('hidden');
+            else timeGroup.classList.remove('hidden');
+        });
+
+        document.getElementById('round').addEventListener('change', function() {
+            if(this.value === '6') removeNextIapSentenceFromOpinion();
+        });
+        document.getElementById('faceToFaceDone')?.addEventListener('change', syncFaceToFaceOpinion);
+
+        function parseLocalDate(value) {
+            if(!value) return null;
+            const parts = value.split('-').map(Number);
+            if(parts.length !== 3) return null;
+            const d = new Date(parts[0], parts[1] - 1, parts[2]);
+            if(d.getFullYear() !== parts[0] || d.getMonth() !== parts[1] - 1 || d.getDate() !== parts[2]) return null;
+            return d;
+        }
+        function toInputDate(d) {
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${y}-${m}-${day}`;
+        }
+        function oneMonthPeriodEnd(startValue) {
+            const start = parseLocalDate(startValue);
+            if(!start) return '';
+            const wantedDay = start.getDate();
+            const next = new Date(start.getFullYear(), start.getMonth() + 1, 1);
+            const lastDay = new Date(next.getFullYear(), next.getMonth() + 1, 0).getDate();
+            if(wantedDay <= lastDay) {
+                next.setDate(wantedDay);
+                next.setDate(next.getDate() - 1);
+            } else {
+                next.setDate(lastDay);
+            }
+            return toInputDate(next);
+        }
+        function autoSetMainPeriodDates() {
+            const start = document.getElementById('startDate').value;
+            const end = oneMonthPeriodEnd(start);
+            if(!end) return;
+            document.getElementById('endDate').value = end;
+            document.getElementById('designationDate').value = end;
+        }
+        function autoSetActivityEnd(startInput) {
+            const row = startInput.closest('.activity-row');
+            if(!row) return;
+            const endInput = row.querySelector('.act-end');
+            const end = oneMonthPeriodEnd(startInput.value);
+            if(endInput && end) endInput.value = end;
+        }
+        const FACE_TO_FACE_RECHECK_TEXT = '- 이번 회차 필수 대면상담(구직준비도 재진단 상담)을 대면으로 진행하였으며, 구직활동 이행상황과 구직준비도를 재점검하고 향후 구직활동 계획을 함께 확인함.';
+        const OLD_FACE_TO_FACE_TEXT = '이번 회차 필수 대면상담을 대면으로 진행하였으며, 구직활동 이행상황 및 향후 계획을 함께 점검함.';
+        function removeFaceToFaceSentence(text) {
+            return (text || '')
+                .split(/\n+/)
+                .map(line => line.trim())
+                .filter(line => line && !line.includes('이번 회차 필수 대면상담') && !line.includes('구직준비도 재진단 상담'))
+                .join('\n')
+                .replace(/\n{3,}/g, '\n\n')
+                .trim();
+        }
+        function bulletizeCounselorOpinion(text) {
+            return (text || '')
+                .split(/\n+/)
+                .map(line => line.trim())
+                .filter(Boolean)
+                .map(line => line.startsWith('-') ? line : `- ${line}`)
+                .join('\n');
+        }
+        function syncFaceToFaceOpinion() {
+            const el = document.getElementById('counselorOpinion');
+            const chk = document.getElementById('faceToFaceDone');
+            if(!el || !chk) return;
+            let text = removeFaceToFaceSentence(el.value);
+            if(chk.checked) text = (text ? text + '\n' : '') + FACE_TO_FACE_RECHECK_TEXT;
+            el.value = text.trim();
+        }
+
+        function removeNextIapSentenceFromOpinion() {
+            const el = document.getElementById('counselorOpinion');
+            if(!el) return '';
+            el.value = el.value
+                .replace(/,?\s*다음 회차 구직활동 계획\(IAP\)에 대해 상세히 안내함\.\s*/g, ' ')
+                .replace(/\s{2,}/g, ' ')
+                .trim();
+            return el.value;
+        }
+        function getFinalCounselorOpinion(round) {
+            let text = document.getElementById('counselorOpinion').value || '';
+            if(round === '6') {
+                text = text
+                    .replace(/,?\s*다음 회차 구직활동 계획\(IAP\)에 대해 상세히 안내함\.\s*/g, ' ')
+                    .replace(/\s{2,}/g, ' ')
+                    .trim();
+            }
+            text = removeFaceToFaceSentence(text);
+            if(document.getElementById('faceToFaceDone')?.checked) {
+                text = (text ? text + '\n' : '') + FACE_TO_FACE_RECHECK_TEXT;
+            }
+            return bulletizeCounselorOpinion(text);
+        }
+
+        function syncDesignationDate() {
+            document.getElementById('designationDate').value = document.getElementById('endDate').value;
+        }
+
+        const programOptions = {
+            prog1_list: ['심리검사', '직업훈련', '창업지원', '일경험', '심리안정', '집단상담', '자격증시험응시', '단기취업특강', '기타'],
+            prog2_list: ['입사지원서(취업알선상담 포함)제출', '입사 면접 참여', '입사지원에 필요한 컨설팅 참여', '상담사가 부과한 과제 이행 후 상담 참여', '기타 구직 활동']
+        };
+
+        function addActivityRow(targetId) {
+            const t = document.getElementById('activityRowTemp');
+            const c = t.content.cloneNode(true);
+            const row = c.querySelector('.activity-row');
+            const select = row.querySelector('.act-content');
+            const detail = row.querySelector('.act-detail');
+            const startInput = row.querySelector('.act-start');
+            const endInput = row.querySelector('.act-end');
+            const mainStart = document.getElementById('startDate')?.value || '';
+            const mainEnd = document.getElementById('endDate')?.value || '';
+            const options = programOptions[targetId] || [];
+            select.innerHTML = '<option value="">선택</option>' + options.map(v => `<option value="${v}">${v}</option>`).join('');
+
+            // 신청 내역 및 기간이 먼저 세팅되어 있으면, 새 행의 기간도 동일하게 기본 입력
+            if(startInput && mainStart) startInput.value = mainStart;
+            if(endInput && mainEnd) endInput.value = mainEnd;
+            else if(startInput && mainStart) autoSetActivityEnd(startInput);
+
+            if(startInput) startInput.addEventListener('change', () => autoSetActivityEnd(startInput));
+            select.addEventListener('change', () => {
+                if(select.value === '기타' || select.value === '기타 구직 활동') detail.placeholder = '관련 내용을 직접 입력';
+                else if(select.value === '입사지원에 필요한 컨설팅 참여') detail.placeholder = '예: 입사지원서·자기소개서 작성 컨설팅 및 면접 준비 상담 참여';
+                else detail.placeholder = '세부내용 직접 입력';
+            });
+            document.getElementById(targetId).appendChild(c);
+        }
+
+        function deleteLastRow(targetId) {
+            const list = document.getElementById(targetId);
+            if(list.children.length > 0) list.removeChild(list.lastElementChild);
+            else alert("삭제할 행이 없습니다.");
+        }
+
+        function addIncomeRow(targetId) {
+            const t = document.getElementById('incomeRowTemp');
+            const c = t.content.cloneNode(true);
+            document.getElementById(targetId).appendChild(c);
+        }
+        function removeIncRow(btn) {
+            btn.closest('.income-row').remove();
+            calculate();
+        }
+
+        function toggleIncome() {
+            const show = document.querySelector('input[name="incomeStatus"]:checked').value === '있음';
+            const grp = document.getElementById('incomeGroups');
+            if(show) {
+                grp.classList.remove('hidden');
+                if(document.getElementById('deductibleList').children.length === 0) addIncomeRow('deductibleList');
+            } else {
+                grp.classList.add('hidden');
+                calculate();
+            }
+        }
+
+        // 지급비율에 따라 기본수당·가족수당을 같은 비율로 적용
+        function updateBaseAllowance() {
+            calculate();
+        }
+
+        function sumIncomeRows(selector) {
+            let total = 0;
+            document.querySelectorAll(selector + ' .inc-amt').forEach(i => total += Number(i.value || 0));
+            return total;
+        }
+
+        function calculate() {
+            const futureYear=['startDate','endDate','counselingDate'].some(id=>Number((document.getElementById(id)?.value||'').slice(0,4))>=2027);
+            if(futureYear){
+                for(const id of ['criteriaDisplay','deductionAmount','finalPayment','appliedFamilyDisplay']){const el=document.getElementById(id);if(el)el.innerText='확인 필요';}
+                const status=document.getElementById('incomeDecisionDisplay');
+                if(status)status.innerText='2027년 이후 지급기준 미검증: 2026년 수식을 적용하지 않습니다';
+                const base=document.getElementById('baseAllowance');if(base)base.value='';
+                return {pay:null,criteria:null,decision:'연도별 법령 확인 필요',futureYear:true};
+            }
+            const ratePct = Number(document.getElementById('paymentRate').value || 0);
+            const rate = ratePct / 100;
+            const fullBase = 600000;
+            const familyCount = Math.max(0, Math.min(4, Number(document.getElementById('familyCount').value || 0)));
+            const fullFam = familyCount * 100000;
+            const fullEntitlement = fullBase + fullFam;
+            const appliedBase = Math.round(fullBase * rate);
+            const appliedFam = Math.round(fullFam * rate);
+            const payCap = appliedBase + appliedFam;
+            document.getElementById('baseAllowance').value = appliedBase;
+            document.getElementById('appliedFamilyDisplay').innerText = appliedFam.toLocaleString();
+
+            const nonProgramIncome = sumIncomeRows('#deductibleList');
+            const programIncome = sumIncomeRows('#programIncomeList');
+            const reportedIncome = nonProgramIncome + programIncome;
+            const excludedIncome = sumIncomeRows('#nonDeductibleList');
+            document.getElementById('totalDeductibleDisplay').innerText = nonProgramIncome.toLocaleString();
+            document.getElementById('totalProgramIncomeDisplay').innerText = programIncome.toLocaleString();
+            document.getElementById('totalNonDeductibleDisplay').innerText = excludedIncome.toLocaleString();
+
+            // 기준금액은 일부 미이행 50% 적용 전의 월 단위 지급액을 기준으로 산정
+            const criteria = Math.max(1538543, fullEntitlement * 2);
+            const hasIncome = document.querySelector('input[name="incomeStatus"]:checked').value === '있음';
+            let pay = payCap;
+            let decision = '소득 없음';
+
+            if(ratePct === 0){
+                pay = 0;
+                decision = '구직활동 전체 미이행 · 부지급';
+            } else if(hasIncome){
+                if(reportedIncome < criteria){
+                    pay = Math.min(payCap, Math.max(0, criteria - reportedIncome));
+                    decision = pay === payCap ? '전액 지급 가능' : (pay > 0 ? '소득 감액 지급' : '0원 지급(부지급)');
+                } else if(reportedIncome === criteria){
+                    pay = 0;
+                    decision = '0원 지급(부지급)';
+                } else if(nonProgramIncome > criteria){
+                    pay = 0;
+                    decision = '지급정지';
+                } else {
+                    pay = 0;
+                    decision = '0원 지급(부지급)';
+                }
+            }
+
+            // 2026년 중위소득 60% 기준액은 연도별 변경 대상: 미래 연도에 2026 계산값을 확정액처럼 표시하지 않는다.
+            const referenceYear = Number(String(document.getElementById('counselingDate')?.value || '').slice(0,4)) || new Date().getFullYear();
+            if(referenceYear > 2026) decision = '최신연도 소득기준 확인 필요(2026년 기준 참고 계산) · ' + decision;
+            const deduction = Math.max(0, payCap - pay);
+            document.getElementById('criteriaDisplay').innerText = criteria.toLocaleString();
+            document.getElementById('incomeDecisionDisplay').innerText = decision;
+            document.getElementById('deductionAmount').innerText = deduction.toLocaleString();
+            document.getElementById('finalPayment').innerText = pay.toLocaleString();
+
+            return {fullBase, fullFam, fullEntitlement, appliedBase, appliedFam, payCap, familyCount,
+                    nonProgramIncome, programIncome, reportedIncome, excludedIncome, criteria, decision, pay};
+        }
+
+        function fmtDate(d) { return d ? d.replace(/-/g, '.') : ''; }
+
+        function generateResult() {
+            const futureYear=['startDate','endDate','counselingDate'].some(id=>Number((document.getElementById(id)?.value||'').slice(0,4))>=2027);
+            if(futureYear){
+                document.getElementById('resultArea').classList.add('hidden');
+                alert('2027년 이후 지급기간은 2026년 구직촉진수당 금액·소득기준으로 산정할 수 없습니다. 2027년 제도 및 대상자별 고시·업무지침 확인 후 생성해 주세요.');
+                return;
+            }
+            document.getElementById('resultArea').classList.remove('hidden');
+
+            const round = document.getElementById('round').value;
+            const isOnline = document.getElementById('isOnline').checked;
+            const dateStr = document.getElementById('counselingDate').value;
+            const timeStr = isOnline ? "(온라인 제출)" : `${dateStr} ${document.getElementById('startTime').value}~${document.getElementById('endTime').value}`;
+
+            const getActivities = (id) => {
+                const rows = document.querySelectorAll(`#${id} .activity-row`);
+                if (rows.length === 0) return " - 해당 사항 없음";
+                let str = "";
+                rows.forEach(r => {
+                    const start = r.querySelector('.act-start').value;
+                    const end = r.querySelector('.act-end').value;
+                    const content = (r.querySelector('.act-content')?.value || '').trim();
+                    const detail = (r.querySelector('.act-detail')?.value || '').trim();
+                    const status = r.querySelector('.act-status').value;
+                    let dText = "";
+                    if(start && end) dText = `(${fmtDate(start)} ~ ${fmtDate(end)})`;
+                    else if(start && !end) dText = `(${fmtDate(start)})`;
+                    if (content || detail) {
+                        const main = content || '기타';
+                        const detailText = detail ? ` - ${detail}` : '';
+                        str += ` - ${main}${detailText} ${dText} [${status}]\n`;
+                    }
+                });
+                return str.trim() || " - 내용 없음";
+            };
+
+            const getIncomeDetailString = () => {
+                let details = [];
+                const groups = [
+                    ['#deductibleList .income-row','신고소득(프로그램 수당 제외)'],
+                    ['#programIncomeList .income-row','취업지원프로그램 수당'],
+                    ['#nonDeductibleList .income-row','산정 제외·참고']
+                ];
+                groups.forEach(([selector,label])=>{
+                    document.querySelectorAll(selector).forEach(row=>{
+                        const d = fmtDate(row.querySelector('.inc-date').value);
+                        const t = row.querySelector('.inc-desc').value;
+                        const raw = Number(row.querySelector('.inc-amt').value || 0);
+                        if(t || raw) details.push(` - ${d} | ${t || '내용 미입력'} | ${raw.toLocaleString()}원 | ${label}`);
+                    });
+                });
+                return details.length ? details.join('\n') : " - 신고된 소득 없음";
+            };
+
+            const calc = calculate();
+            const incStatus = document.querySelector('input[name="incomeStatus"]:checked').value;
+            const finalCounselorOpinion = getFinalCounselorOpinion(round);
+
+            // 상담일지 내용
+            const logContent = `<구직촉진수당 ${round}회차>
+* 상담일시: ${timeStr}
+${(!isOnline && document.getElementById('fieldCounseling')?.checked) ? '※ 해당 상담은 출장상담으로 진행함.\n' : ''}
+<신청 내역>
+- 대상기간: ${fmtDate(document.getElementById('startDate').value)} ~ ${fmtDate(document.getElementById('endDate').value)}
+- 지정일: ${fmtDate(document.getElementById('designationDate').value)}
+
+<구직활동 이행 내역>
+1. 취업지원 프로그램
+${getActivities('prog1_list')}
+
+2. 구직활동 프로그램
+${getActivities('prog2_list')}
+
+<지급 및 소득>
+- 기본 수당: ${calc.appliedBase.toLocaleString()}원
+- 가족 수당: ${calc.appliedFam ? calc.appliedFam.toLocaleString() + '원' : '비해당'}
+- 신고소득 합계: ${incStatus === '없음' ? '0원' : calc.reportedIncome.toLocaleString() + '원'}
+- 프로그램 수당 제외 신고소득: ${incStatus === '없음' ? '0원' : calc.nonProgramIncome.toLocaleString() + '원'}
+- 소득 판정 기준금액: ${calc.criteria.toLocaleString()}원
+- 소득 판정: ${calc.decision}
+- 최종 지급 총액: ${calc.pay.toLocaleString()}원
+
+<소득 신고 상세 내역>
+${getIncomeDetailString()}
+
+<필수 안내사항>
+- 지정일 신청 및 취업·창업·소득 신고사항 안내
+- 구직활동 미이행·부정수급 시 감액·지급중단 등 주요 유의사항 안내
+- 지정일 변경 시 지급주기 변경 기준 안내
+
+<상담사 의견>
+${finalCounselorOpinion}`;
+
+            // 카톡 결과
+            const kakaoContent = `안녕하세요. 국민취업지원제도 담당자입니다.
+${round}회차 구직촉진수당 상담 결과 및 지급 예정 내역입니다.
+
+[상담 일시]
+${timeStr}
+
+[이행 내역 및 결과]
+- 신청기간: ${fmtDate(document.getElementById('startDate').value)} ~ ${fmtDate(document.getElementById('endDate').value)}
+- 활동내역:
+${getActivities('prog1_list').replace(/\[이행\]/g, '').replace(/\[미이행\]/g, '')}
+${getActivities('prog2_list').replace(/\[이행\]/g, '').replace(/\[미이행\]/g, '')}
+
+[지급 예정액]
+${calc.pay.toLocaleString()}원 (심사 완료 후 입금됩니다.)
+
+감사합니다.`;
+
+            // 다음 안내 (수정된 부분)
+            const nextDate = fmtDate(document.getElementById('nextDesignationDate').value);
+            const nextPlan = document.getElementById('nextPlanActivities').value;
+            const isVisit = document.getElementById('isVisitRequired').checked;
+            const visitMsg = isVisit ? "\n🚨 [필독] 이번 회차는 '대면 상담 필수' 회차입니다. 상담사와 협의된 날짜에 꼭 방문해주셔야 하며, 미이행 시 수당이 감액될 수 있습니다." : "\n* 이번 회차는 방문 없이 온라인 제출도 가능합니다 (변경 시 별도 안내).";
+
+            const nextKakaoContent = `[국민취업지원제도 다음 회차 안내]
+
+안녕하세요. 다음 상담 일정과 과제 미리 안내드립니다.
+
+📅 다음 지정일(과제제출일): ${nextDate} ${visitMsg}
+
+✅ 수행해야 할 구직활동(과제)
+${nextPlan}
+
+위 내용을 기간 내에 성실히 이행해주시기 바라며, 활동 중 소득이 발생하거나 취업하게 되시면 즉시 연락주세요.
+감사합니다.`;
+
+            document.getElementById('logResult').value = logContent;
+            document.getElementById('kakaoResult').value = kakaoContent;
+            document.getElementById('nextKakaoResult').value = nextKakaoContent;
+            
+            document.getElementById('resultArea').scrollIntoView({behavior: "smooth"});
+        }
+
+        document.getElementById('startDate')?.addEventListener('change',calculate);
+        document.getElementById('counselingDate')?.addEventListener('change',calculate);
+        calculate();
+
+        function copyText(id) {
+            const el = document.getElementById(id);
+            el.select();
+            document.execCommand('copy');
+            alert('복사되었습니다.');
+        }
+    </script>
+
+<script id="clg-sudang-iap-ref-script">
+(function(){
+ const CKEY='clg_iap_common_profiles_v1',PKEY='iap_participant_records_v1',$=id=>document.getElementById(id);
+ function db(k,f){try{return JSON.parse(localStorage.getItem(k)||JSON.stringify(f))||f}catch(e){return f}}function parse(s){if(!/^\d{4}-\d{2}-\d{2}$/.test(s||''))return null;const [y,m,d]=s.split('-').map(Number),x=new Date(y,m-1,d,12);return x.getFullYear()===y&&x.getMonth()===m-1&&x.getDate()===d?x:null}function fmt(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}function addM(d,n){const x=new Date(d),day=x.getDate();x.setDate(1);x.setMonth(x.getMonth()+n);x.setDate(Math.min(day,new Date(x.getFullYear(),x.getMonth()+1,0).getDate()));return x}function addD(d,n){const x=new Date(d);x.setDate(x.getDate()+n);return x}function period(iap,rec,r){const I=parse(iap),R=parse(rec);if(!I)return null;if(r===1&&R)return{start:R,end:I};if(r>=2&&r<=6)return{start:addD(addM(I,r-2),1),end:addM(I,r-1)};return null}function overlap(r,p){const s=parse(r.start),e=parse(r.end);if(!p||(!s&&!e))return false;const a=s||e,b=e||s;return a<=p.end&&b>=p.start}function planText(r){if(r.name)return `${r.kind||'취업지원'} · ${r.name}${r.creditBand==='ge10'?' · 2회':r.creditBand==='lt10'?' · 1회':''}`;return `${r.kind||'구직활동'} · ${r.detail||''}${r.cnt?` · ${r.cnt}회`:''}`.trim()}
+ function load(){const no=($('clgSudangIapRegNo')?.value||'').trim(),out=$('clgSudangIapResult');if(!out)return;if(!no){out.classList.remove('show');return}const c=db(CKEY,{})[no]||{},st=db(PKEY,{records:{}}).records?.[no]?.state||{},iap=c.iapDate||st.fields?.['#iapDate']||'',rec=c.recognitionDate||st.fields?.['#recognitionDate']||'',round=Number($('round')?.value||1),pd=period(iap,rec,round);if(!pd){out.textContent='저장된 IAP 수립일을 확인할 수 없습니다. IAP 화면에서 해당 등록번호로 저장한 뒤 다시 확인하세요.';out.classList.add('show');return}const jobs=(c.iapJobRows||st.jobRows||[]).filter(r=>String(r.jobCycle||'')===String(round)||overlap(r,pd)),acts=(c.iapActRows||st.actRows||[]).filter(r=>String(r.activityCycle||'')===String(round)||overlap(r,pd)),all=[...jobs,...acts];let cnt=0;jobs.forEach(r=>{if(r.creditBand==='ge10')cnt+=2;else if(r.creditBand==='lt10')cnt+=1});acts.forEach(r=>cnt+=Number(r.cnt||0)||0);const desired=c.iapDesiredJob||st.fields?.['#wishJob']||c.initialDesiredJob||c.desiredJob||'';out.textContent=`IAP 기준 ${round}회차 · ${fmt(pd.start)} ~ ${fmt(pd.end)}${desired?`\n희망직무: ${desired}`:''}\n계획된 활동: ${all.length?all.map(planText).join('\n'):'저장된 해당 회차 계획 없음'}\n계획 횟수 참고: ${cnt||0}회`;out.classList.add('show')}
+ function autoRound(){const no=($('clgSudangIapRegNo')?.value||'').trim();if(!no)return;const c=db(CKEY,{})[no]||{},st=db(PKEY,{records:{}}).records?.[no]?.state||{},iap=c.iapDate||st.fields?.['#iapDate']||'',rec=c.recognitionDate||st.fields?.['#recognitionDate']||'',d=parse($('counselingDate')?.value);if(!d||!iap)return;for(let r=1;r<=6;r++){const pd=period(iap,rec,r);if(pd&&d>=pd.start&&d<=pd.end){$('round').value=String(r);break}}}
+ function refresh(){autoRound();load()}function init(){$('clgSudangIapLoad')?.addEventListener('click',refresh);$('clgSudangIapRegNo')?.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();refresh()}});$('round')?.addEventListener('change',load);$('counselingDate')?.addEventListener('change',refresh);$('clgSudangIapRegNo')?.addEventListener('blur',refresh)}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+})();
+</script>
+<script id="clg-auto-endtime-30m-v1">
+(function(){
+  'use strict';
+  function plus30(v){
+    const m=String(v||'').trim().match(/^(\d{1,2}):(\d{2})$/);
+    if(!m) return '';
+    let total=Number(m[1])*60+Number(m[2])+30;
+    if(!Number.isFinite(total)) return '';
+    total=Math.max(0,Math.min(total,23*60+59));
+    return `${String(Math.floor(total/60)).padStart(2,'0')}:${String(total%60).padStart(2,'0')}`;
+  }
+  function put(el,v){
+    if(!el||!v) return;
+    if(el.tagName==='SELECT' && ![...el.options].some(o=>o.value===v)) el.add(new Option(v,v));
+    if(el.value===v) return;
+    el.value=v;
+    try{ el.dispatchEvent(new Event('input',{bubbles:true})); }catch(e){}
+    try{ el.dispatchEvent(new Event('change',{bubbles:true})); }catch(e){}
+  }
+  function wirePair(doc,start,end,endQuick){
+    if(!start||!end||start.dataset.clgAutoEnd30m==='1') return;
+    start.dataset.clgAutoEnd30m='1';
+    const sync=()=>{ const v=plus30(start.value); if(!v)return; put(end,v); if(endQuick&&endQuick!==end)put(endQuick,v); };
+    start.addEventListener('change',sync);
+    start.addEventListener('input',sync);
+  }
+  function attachDoc(doc){
+    if(!doc||!doc.documentElement) return;
+    try{
+      const sText=doc.getElementById('startTimeText'), eText=doc.getElementById('endTimeText');
+      const s=doc.getElementById('startTime'), e=doc.getElementById('endTime');
+      const sQ=doc.getElementById('startTimeSelect'), eQ=doc.getElementById('endTimeSelect');
+      if(sText&&eText) wirePair(doc,sText,eText,eQ);
+      else if(s&&e) wirePair(doc,s,e,eQ);
+      if(sQ){
+        wirePair(doc,sQ,eQ||eText||e,eQ||eText||e);
+        if(!sQ.dataset.clgAutoEnd30mMirror){
+          sQ.dataset.clgAutoEnd30mMirror='1';
+          const syncQuick=()=>{
+            const v=plus30(sQ.value); if(!v)return;
+            if(eQ) put(eQ,v);
+            if(eText) put(eText,v);
+            else if(e && e!==eQ) put(e,v);
+          };
+          sQ.addEventListener('change',syncQuick);
+        }
+      }
+      const frames=[...doc.querySelectorAll('iframe')];
+      frames.forEach(fr=>{
+        if(!fr.dataset.clgAutoEnd30mFrame){
+          fr.dataset.clgAutoEnd30mFrame='1';
+          fr.addEventListener('load',()=>{ try{attachDoc(fr.contentDocument)}catch(e){} });
+        }
+        try{ if(fr.contentDocument) attachDoc(fr.contentDocument); }catch(e){}
+      });
+      if(!doc.documentElement.dataset.clgAutoEnd30mObserver){
+        doc.documentElement.dataset.clgAutoEnd30mObserver='1';
+        const mo=new MutationObserver(()=>{
+          [...doc.querySelectorAll('iframe')].forEach(fr=>{
+            if(!fr.dataset.clgAutoEnd30mFrame){
+              fr.dataset.clgAutoEnd30mFrame='1';
+              fr.addEventListener('load',()=>{ try{attachDoc(fr.contentDocument)}catch(e){} });
+            }
+            try{ if(fr.contentDocument) attachDoc(fr.contentDocument); }catch(e){}
+          });
+        });
+        mo.observe(doc.documentElement,{childList:true,subtree:true});
+      }
+    }catch(e){}
+  }
+  function boot(){ attachDoc(document); setTimeout(()=>attachDoc(document),150); setTimeout(()=>attachDoc(document),700); }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot,{once:true}); else boot();
+})();
+</script>
+</body>
+</html>

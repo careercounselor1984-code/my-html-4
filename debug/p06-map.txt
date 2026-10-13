@@ -1,0 +1,287 @@
+P06 length=50199 lines=845
+5:     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+6:     <title>구직촉진수당 상담일지</title>
+7:     <script src="https://cdn.tailwindcss.com"></script>
+8:     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+9:     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/js/all.min.js"></script>
+10:     <style>
+11:         body { font-family: 'Inter', sans-serif; background-color: #f7f7f9; }
+12:         .section-title { border-left: 4px solid #059669; padding-left: 1rem; }
+----
+13:         input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+14:         .row-animation { animation: fadeIn 0.3s ease-in-out; }
+15:         @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+----
+16:         textarea.result-box { font-family: 'Malgun Gothic', dotum, sans-serif; font-size: 0.9rem; line-height: 1.5; }
+17:         .activity-row input[type="date"], .activity-row input[type="text"], .activity-row select { min-width: 0; }
+18:         .period-inputs { display: grid; grid-template-columns: minmax(0,1fr) auto minmax(0,1fr); gap: .25rem; align-items: center; }
+19:         @media (max-width: 768px) {
+20:             .activity-row { grid-template-columns: 1fr !important; }
+----
+25: 
+26: <style id="clg-ui-polish">
+27: /* 통합본 공통 가독성 보정: 기능은 변경하지 않고 글꼴·포커스·선택영역만 정돈 */
+28: body,button,input,select,textarea{font-family:Pretendard,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans KR","Malgun Gothic",sans-serif}
+29: input:focus,select:focus,textarea:focus{outline:none;box-shadow:0 0 0 3px rgba(37,99,235,.10)}
+30: button{transition:background-color .15s ease,border-color .15s ease,color .15s ease,box-shadow .15s ease}
+31: ::selection{background:#dbeafe;color:#172033}
+32: </style>
+----
+140:                 <h2 class="text-xl font-bold text-yellow-700 mb-4 section-title">소득 확인 (2026년 감액·지급정지 자동판정)</h2>
+141:                 
+142:                 <div class="flex items-center mb-4 bg-white p-3 rounded-lg">
+143:                     <input type="radio" id="incomeNone" name="incomeStatus" value="없음" checked onchange="toggleIncome()" class="h-4 w-4 text-yellow-600">
+144:                     <label for="incomeNone" class="ml-2 mr-6 text-gray-700">소득 없음</label>
+145:                     <input type="radio" id="incomeExist" name="incomeStatus" value="있음" onchange="toggleIncome()" class="h-4 w-4 text-yellow-600">
+146:                     <label for="incomeExist" class="ml-2 text-gray-700">소득 있음</label>
+147:                 </div>
+----
+148: 
+----
+149:                 <div id="incomeGroups" class="hidden space-y-4">
+----
+150:                     <div class="bg-red-50 p-3 rounded-lg border border-red-200">
+----
+151:                         <div class="flex justify-between items-center mb-2">
+152:                             <h4 class="text-sm font-bold text-red-700">🔴 신고소득 중 프로그램 수당 제외 소득 (근로·사업·재산 등)</h4>
+153:                             <button type="button" onclick="addIncomeRow('deductibleList')" class="text-xs bg-red-600 text-white px-2 py-1 rounded">+ 추가</button>
+----
+154:                         </div>
+155:                         <div id="deductibleList" class="space-y-2"></div>
+156:                         <div class="text-right text-xs mt-1 text-red-600 font-bold">합계: <span id="totalDeductibleDisplay">0</span>원</div>
+157:                     </div>
+----
+159:                     <div class="bg-amber-50 p-3 rounded-lg border border-amber-200">
+160:                         <div class="flex justify-between items-center mb-2">
+161:                             <h4 class="text-sm font-bold text-amber-700">🟠 취업지원프로그램 수당 (신고소득 중 별도 구분)</h4>
+162:                             <button type="button" onclick="addIncomeRow('programIncomeList')" class="text-xs bg-amber-600 text-white px-2 py-1 rounded">+ 추가</button>
+163:                         </div>
+164:                         <div id="programIncomeList" class="space-y-2"></div>
+165:                         <div class="text-right text-xs mt-1 text-amber-700 font-bold">합계: <span id="totalProgramIncomeDisplay">0</span>원</div>
+166:                         <div class="text-xs text-amber-800 mt-1">※ 기준금액 초과 시 지급정지/0원 부지급을 구분하기 위해 별도 입력합니다.</div>
+----
+167:                     </div>
+168: 
+----
+169:                     <div class="bg-blue-50 p-3 rounded-lg border border-blue-200">
+----
+170:                         <div class="flex justify-between items-center mb-2">
+171:                             <h4 class="text-sm font-bold text-blue-700">🔵 산정 제외·참고 항목 (지급판정 미반영)</h4>
+172:                             <button type="button" onclick="addIncomeRow('nonDeductibleList')" class="text-xs bg-blue-600 text-white px-2 py-1 rounded">+ 추가</button>
+173:                         </div>
+174:                         <div id="nonDeductibleList" class="space-y-2"></div>
+175:                          <div class="text-right text-xs mt-1 text-blue-600 font-bold">합계: <span id="totalNonDeductibleDisplay">0</span>원</div>
+176:                     </div>
+----
+197:                     <div class="flex justify-between items-center">
+198:                         <span>부양가족 수</span>
+199:                         <div class="flex items-center">
+200:                             <select id="familyCount" onchange="calculate()" class="p-1 border rounded text-right mr-1">
+201:                                 <option value="0">0명</option><option value="1">1명</option><option value="2">2명</option><option value="3">3명</option><option value="4">4명</option>
+202:                             </select>
+203:                             <span class="text-xs text-gray-500">1인 10만원 · 최대 4인</span>
+204:                         </div>
+----
+205:                     </div>
+206:                     <div class="flex justify-between items-center">
+207:                         <span>적용 가족수당</span><span class="font-bold"><span id="appliedFamilyDisplay">0</span>원</span>
+208:                     </div>
+209:                     <div class="flex justify-between items-center text-gray-600">
+210:                         <span>소득 판정 기준금액</span><span class="font-bold"><span id="criteriaDisplay">1,538,543</span>원</span>
+211:                     </div>
+----
+212:                     <div class="flex justify-between items-center text-gray-600">
+213:                         <span>소득 판정</span><span class="font-bold" id="incomeDecisionDisplay">소득 없음</span>
+214:                     </div>
+----
+215:                     <div class="flex justify-between items-center text-red-600">
+216:                         <span>감액 적용액</span>
+217:                         <span class="font-bold">- <span id="deductionAmount">0</span> 원</span>
+----
+332:         </div>
+333:     </template>
+334: 
+335:     <template id="incomeRowTemp">
+336:         <div class="row-animation grid grid-cols-10 gap-2 items-center income-row mb-2">
+337:             <input type="date" class="col-span-3 p-1.5 border rounded text-xs inc-date">
+338:             <input type="text" placeholder="내용" class="col-span-4 p-1.5 border rounded text-xs inc-desc">
+339:             <input type="number" placeholder="금액" oninput="calculate()" class="col-span-2 p-1.5 border rounded text-xs text-right inc-amt">
+----
+340:             <button type="button" onclick="removeIncRow(this)" class="col-span-1 text-red-400 hover:text-red-600"><i class="fas fa-trash"></i></button>
+----
+508:             else alert("삭제할 행이 없습니다.");
+509:         }
+510: 
+511:         function addIncomeRow(targetId) {
+512:             const t = document.getElementById('incomeRowTemp');
+513:             const c = t.content.cloneNode(true);
+514:             document.getElementById(targetId).appendChild(c);
+515:         }
+----
+516:         function removeIncRow(btn) {
+----
+517:             btn.closest('.income-row').remove();
+518:             calculate();
+519:         }
+520: 
+521:         function toggleIncome() {
+----
+522:             const show = document.querySelector('input[name="incomeStatus"]:checked').value === '있음';
+523:             const grp = document.getElementById('incomeGroups');
+524:             if(show) {
+525:                 grp.classList.remove('hidden');
+----
+526:                 if(document.getElementById('deductibleList').children.length === 0) addIncomeRow('deductibleList');
+----
+527:             } else {
+----
+528:                 grp.classList.add('hidden');
+529:                 calculate();
+530:             }
+----
+535:             calculate();
+536:         }
+537: 
+538:         function sumIncomeRows(selector) {
+539:             let total = 0;
+540:             document.querySelectorAll(selector + ' .inc-amt').forEach(i => total += Number(i.value || 0));
+541:             return total;
+542:         }
+----
+544:         function calculate() {
+545:             const futureYear=['startDate','endDate','counselingDate'].some(id=>Number((document.getElementById(id)?.value||'').slice(0,4))>=2027);
+546:             if(futureYear){
+547:                 for(const id of ['criteriaDisplay','deductionAmount','finalPayment','appliedFamilyDisplay']){const el=document.getElementById(id);if(el)el.innerText='확인 필요';}
+548:                 const status=document.getElementById('incomeDecisionDisplay');
+549:                 if(status)status.innerText='2027년 이후 지급기준 미검증: 2026년 수식을 적용하지 않습니다';
+550:                 const base=document.getElementById('baseAllowance');if(base)base.value='';
+551:                 return {pay:null,criteria:null,decision:'연도별 법령 확인 필요',futureYear:true};
+----
+552:             }
+----
+553:             const ratePct = Number(document.getElementById('paymentRate').value || 0);
+554:             const rate = ratePct / 100;
+555:             const fullBase = 600000;
+556:             const familyCount = Math.max(0, Math.min(4, Number(document.getElementById('familyCount').value || 0)));
+557:             const fullFam = familyCount * 100000;
+558:             const fullEntitlement = fullBase + fullFam;
+559:             const appliedBase = Math.round(fullBase * rate);
+560:             const appliedFam = Math.round(fullFam * rate);
+----
+561:             const payCap = appliedBase + appliedFam;
+----
+562:             document.getElementById('baseAllowance').value = appliedBase;
+563:             document.getElementById('appliedFamilyDisplay').innerText = appliedFam.toLocaleString();
+564: 
+565:             const nonProgramIncome = sumIncomeRows('#deductibleList');
+566:             const programIncome = sumIncomeRows('#programIncomeList');
+567:             const reportedIncome = nonProgramIncome + programIncome;
+----
+568:             const excludedIncome = sumIncomeRows('#nonDeductibleList');
+569:             document.getElementById('totalDeductibleDisplay').innerText = nonProgramIncome.toLocaleString();
+----
+570:             document.getElementById('totalProgramIncomeDisplay').innerText = programIncome.toLocaleString();
+----
+571:             document.getElementById('totalNonDeductibleDisplay').innerText = excludedIncome.toLocaleString();
+----
+572: 
+----
+573:             // 기준금액은 일부 미이행 50% 적용 전의 월 단위 지급액을 기준으로 산정
+----
+574:             const criteria = Math.max(1538543, fullEntitlement * 2);
+----
+575:             const hasIncome = document.querySelector('input[name="incomeStatus"]:checked').value === '있음';
+----
+576:             let pay = payCap;
+577:             let decision = '소득 없음';
+578: 
+579:             if(ratePct === 0){
+----
+580:                 pay = 0;
+581:                 decision = '구직활동 전체 미이행 · 부지급';
+582:             } else if(hasIncome){
+583:                 if(reportedIncome < criteria){
+584:                     pay = Math.min(payCap, Math.max(0, criteria - reportedIncome));
+585:                     decision = pay === payCap ? '전액 지급 가능' : (pay > 0 ? '소득 감액 지급' : '0원 지급(부지급)');
+586:                 } else if(reportedIncome === criteria){
+----
+587:                     pay = 0;
+----
+588:                     decision = '0원 지급(부지급)';
+----
+589:                 } else if(nonProgramIncome > criteria){
+590:                     pay = 0;
+----
+591:                     decision = '지급정지';
+592:                 } else {
+593:                     pay = 0;
+----
+600:             if(referenceYear > 2026) decision = '최신연도 소득기준 확인 필요(2026년 기준 참고 계산) · ' + decision;
+601:             const deduction = Math.max(0, payCap - pay);
+602:             document.getElementById('criteriaDisplay').innerText = criteria.toLocaleString();
+603:             document.getElementById('incomeDecisionDisplay').innerText = decision;
+604:             document.getElementById('deductionAmount').innerText = deduction.toLocaleString();
+605:             document.getElementById('finalPayment').innerText = pay.toLocaleString();
+606: 
+607:             return {fullBase, fullFam, fullEntitlement, appliedBase, appliedFam, payCap, familyCount,
+----
+608:                     nonProgramIncome, programIncome, reportedIncome, excludedIncome, criteria, decision, pay};
+609:         }
+610: 
+611:         function fmtDate(d) { return d ? d.replace(/-/g, '.') : ''; }
+----
+612: 
+----
+646:                 return str.trim() || " - 내용 없음";
+647:             };
+648: 
+649:             const getIncomeDetailString = () => {
+650:                 let details = [];
+651:                 const groups = [
+652:                     ['#deductibleList .income-row','신고소득(프로그램 수당 제외)'],
+653:                     ['#programIncomeList .income-row','취업지원프로그램 수당'],
+----
+654:                     ['#nonDeductibleList .income-row','산정 제외·참고']
+655:                 ];
+656:                 groups.forEach(([selector,label])=>{
+----
+657:                     document.querySelectorAll(selector).forEach(row=>{
+----
+658:                         const d = fmtDate(row.querySelector('.inc-date').value);
+----
+665:             };
+666: 
+667:             const calc = calculate();
+668:             const incStatus = document.querySelector('input[name="incomeStatus"]:checked').value;
+669:             const finalCounselorOpinion = getFinalCounselorOpinion(round);
+670: 
+671:             // 상담일지 내용
+672:             const logContent = `<구직촉진수당 ${round}회차>
+----
+683: 2. 구직활동 프로그램
+684: ${getActivities('prog2_list')}
+685: 
+686: <지급 및 소득>
+687: - 기본 수당: ${calc.appliedBase.toLocaleString()}원
+688: - 가족 수당: ${calc.appliedFam ? calc.appliedFam.toLocaleString() + '원' : '비해당'}
+689: - 신고소득 합계: ${incStatus === '없음' ? '0원' : calc.reportedIncome.toLocaleString() + '원'}
+690: - 프로그램 수당 제외 신고소득: ${incStatus === '없음' ? '0원' : calc.nonProgramIncome.toLocaleString() + '원'}
+----
+691: - 소득 판정 기준금액: ${calc.criteria.toLocaleString()}원
+----
+692: - 소득 판정: ${calc.decision}
+----
+693: - 최종 지급 총액: ${calc.pay.toLocaleString()}원
+----
+694: 
+----
+695: <소득 신고 상세 내역>
+----
+696: ${getIncomeDetailString()}
+----
+697: 
+----
+698: <필수 안내사항>
+699: - 지정일 신청 및 취업·창업·소득 신고사항 안내
+700: - 구직활동 미이행·부정수급 시 감액·지급중단 등 주요 유의사항 안내
+----
