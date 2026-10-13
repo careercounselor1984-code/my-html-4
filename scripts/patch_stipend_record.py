@@ -66,9 +66,7 @@ helper=r'''        function toggleFamilyChange() {
             if (ratePct !== 100) {
                 lines.push('- 구직활동 이행에 따른 조정: ' + (ratePct === 50 ? '일부 미이행(50% 지급)' : '전체 미이행(부지급)'));
             }
-            if (incomeStatus === '있음' || familyChange || ratePct !== 100) {
-                lines.push('- 지급 예상액: ' + calc.pay.toLocaleString() + '원 (고용센터 심사 후 확정)');
-            }
+            lines.push('- 최종 지급 예상액: ' + calc.pay.toLocaleString() + '원 (고용센터 심사 후 확정)');
             return lines.join('\n');
         }
 
