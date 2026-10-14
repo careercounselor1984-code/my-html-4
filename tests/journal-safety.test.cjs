@@ -24,6 +24,24 @@ const getPage=id=>{
 };
 const iap=getPage('p05'),stipend=getPage('p06'),school=getPage('p23');
 const p05Count=scriptsValid(iap,'regular-iap'),p06Count=scriptsValid(stipend,'stipend'),p23Count=scriptsValid(school,'school-iap');
+const firstInitial=getPage('p01'),secondInitial=getPage('p02');
+for(const [name,page] of [['type1',firstInitial],['type2',secondInitial]]){
+  assert(scriptsValid(page,name+'-initial')>=1,name+' initial scripts parse');
+  const a=page.indexOf('function buildRecordText()');
+  const b=page.indexOf('async function copyText',a);
+  assert(a>=0 && b>a,name+' record generator exists');
+  const generator=page.slice(a,b);
+  assert(!generator.includes('[참여자 종합 프로필]'),name+' full record must not duplicate the profile');
+  assert(generator.includes('buildInitialSummary();'),name+' standalone profile preview remains synced');
+  assert(generator.includes('recordLengthStatus'),name+' must display output length');
+  assert(generator.includes('new TextEncoder().encode(text).length'),name+' UTF-8 byte measurement');
+  assert(page.includes('id="copyInitialSummaryBtn"'),name+' standalone profile copying preserved');
+  const opinionBlock=page.slice(page.indexOf('function buildCounselorOpinion()'),page.indexOf('function buildRecordText()'));
+  assert(opinionBlock.includes("['취업 목표 시기','strategyTiming']"),name+' timing included in auto opinion');
+  assert(opinionBlock.includes("['희망직무','strategyTargetJob']"),name+' job target included in auto opinion');
+  assert(opinionBlock.includes('우선 지원과제'),name+' selected tasks included in auto opinion');
+}
+
 function extractPeriodEnd(src){
  const found=src.match(/^  function periodEnd\(dt, months=1\)\{[\s\S]*?^  \}/m);
  assert(found,'periodEnd implemented');
