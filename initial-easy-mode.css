@@ -22,3 +22,14 @@ body.clg-initial-focused .clg-opinion-main .card > button{display:none!important
 .clg-work24-copyrow button{font-size:12px;white-space:nowrap}
 .clg-work24-copyrow button:disabled{opacity:.55;cursor:default}
 @media(max-width:600px){.clg-assessment-main .grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.clg-assessment-main label{font-size:11px}.clg-assessment-main input,.clg-assessment-main select{padding:7px 4px;font-size:12px}.clg-work24-copyrow .small{flex-basis:100%}}
+.clg-opinion-helper{border-top:0;padding-top:0;margin:8px 0 14px}
+.clg-opinion-helper #opinionChoiceFields{margin:8px 0;gap:9px}
+.clg-opinion-helper #opinionChoiceFields label{font-size:12px}
+.clg-opinion-helper #opinionChoiceFields select{padding:8px;font-size:12px}
+.clg-phrase-edit{margin-top:5px}
+.clg-phrase-edit>summary{cursor:pointer;font-size:11px;color:#64748b}
+.clg-phrase-edit textarea,.clg-phrase-edit input{margin-top:6px}
+.clg-selected-phrase{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;margin-top:5px}
+.clg-eval-reference{margin-top:7px}
+.clg-eval-reference>summary{font-size:11px;cursor:pointer;color:#64748b}
+@media(max-width:600px){.clg-opinion-helper #opinionChoiceFields>.col4{grid-column:span 12}}

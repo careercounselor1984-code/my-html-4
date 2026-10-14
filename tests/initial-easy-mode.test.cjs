@@ -6,7 +6,7 @@ for(const id of ['p01','p02']){
  const m=html.match(new RegExp('"id":"'+id+'","title":"[^"]+","b64":"([^"]+)"'));assert.ok(m);
  const page=Buffer.from(m[1],'base64').toString('utf8');
  for(const x of page.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/g))new vm.Script(x[1]);
- assert.ok(page.includes('initial-easy-mode.js?v=20261014c'));
+ assert.ok(page.includes('initial-easy-mode.js?v=20261014d'));
  assert.ok(/id="checkUnifiedGuidance" checked/.test(page));
  assert.ok(/<input[^>]*name="healthPhysical"[^>]*value="없음"[^>]*checked/.test(page));
  assert.ok(page.includes("checkedValue('jobSupportHistory','미확인')"));
