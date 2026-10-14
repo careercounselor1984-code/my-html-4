@@ -126,8 +126,9 @@ function mode(simple){
  render();
 }
 function clipboardCopy(text){
- if(navigator.clipboard?.writeText)return navigator.clipboard.writeText(text);
- return new Promise((resolve,reject)=>{const t=document.createElement('textarea');t.value=text;t.style.position='fixed';t.style.opacity='0';document.body.appendChild(t);t.select();const ok=document.execCommand('copy');t.remove();ok?resolve():reject(new Error('copy unavailable'))});
+ const fallback=()=>new Promise((resolve,reject)=>{const t=document.createElement('textarea');t.value=text;t.style.position='fixed';t.style.opacity='0';document.body.appendChild(t);t.select();const ok=document.execCommand('copy');t.remove();ok?resolve():reject(new Error('copy unavailable'))});
+ if(navigator.clipboard?.writeText)return navigator.clipboard.writeText(text).catch(fallback);
+ return fallback();
 }
 function create(){
  const panel=document.querySelector('.panel'),sub=panel?.querySelector('.sub');
@@ -151,8 +152,8 @@ function create(){
  '<label for="easyOpinion">상담사 의견 (바로 수정 가능)</label><textarea id="easyOpinion" placeholder="메모 정리 후 자동작성된 상담사 의견을 검토하세요."></textarea>',
  '<div class="clg-easy-hint" id="easyBytes" role="status">0/4,000Byte</div>',
  '<details class="clg-easy-extra"><summary>전체 상담기록 미리보기</summary><div id="easyPreview"></div></details>',
- '<label class="clg-easy-verify"><input type="checkbox" id="easyVerified"><span>기본정보·이력·필수 안내·수당 해당 여부를 실제 확인했습니다. ',
- '<button type="button" class="btn" id="easyReviewDetail" style="padding:2px 7px;font-size:11px">상세 항목 확인</button></span></label>',
+ '<label class="clg-easy-verify"><input type="checkbox" id="easyVerified"><span>기본정보·이력·필수 안내·수당 해당 여부를 실제 확인했습니다.</span></label>',
+ '<button type="button" class="btn" id="easyReviewDetail" style="margin-top:7px;padding:5px 8px;font-size:11px">상세 항목 확인</button>',
  '<div class="clg-easy-toolbar"><button type="button" class="btn primary" id="easyCopy">전체 기록 복사</button><span id="easyCopyMessage" class="clg-easy-hint" role="status"></span></div></div>'
  ].join('');
  sub.insertAdjacentElement('afterend',toggle);toggle.insertAdjacentElement('afterend',page);
