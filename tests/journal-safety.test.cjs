@@ -37,8 +37,8 @@ for(const [name,page] of [['type1',firstInitial],['type2',secondInitial]]){
   assert(generator.includes('new TextEncoder().encode(text).length'),name+' UTF-8 byte measurement');
   assert(page.includes('id="copyInitialSummaryBtn"'),name+' standalone profile copying preserved');
   const opinionBlock=page.slice(page.indexOf('function buildCounselorOpinion()'),page.indexOf('function buildRecordText()'));
-  assert(opinionBlock.includes("['취업 목표 시기','strategyTiming']"),name+' timing included in auto opinion');
-  assert(opinionBlock.includes("['희망직무','strategyTargetJob']"),name+' job target included in auto opinion');
+  assert(opinionBlock.includes("const timing = val('strategyTiming');"),name+' timing included in auto opinion');
+  assert(opinionBlock.includes("const target = val('strategyTargetJob');"),name+' job target included in auto opinion');
   assert(opinionBlock.includes('우선 지원과제'),name+' selected tasks included in auto opinion');
 }
 
