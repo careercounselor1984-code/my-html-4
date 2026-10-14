@@ -1,0 +1,36 @@
+'use strict';
+const {JSDOM}=require('jsdom'),fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
+const root=path.join(__dirname,'..'),html=fs.readFileSync(path.join(root,'index.html'),'utf8');
+(async()=>{for(const id of ['p01','p02']){
+ const m=html.match(new RegExp('"id":"'+id+'","title":"[^"]+","b64":"([^"]+)"'));
+ const dom=new JSDOM(Buffer.from(m[1],'base64').toString('utf8'),{runScripts:'outside-only',url:'https://example.test/',pretendToBeVisual:true}),w=dom.window,d=w.document;
+ w.TextEncoder=TextEncoder;w.confirm=()=>true;w.scrollTo=()=>{};w.HTMLElement.prototype.scrollIntoView=()=>{};
+ let copied='';Object.defineProperty(w.navigator,'clipboard',{value:{writeText:async text=>{copied=text}}});
+ for(const s of d.querySelectorAll('script:not([src])'))w.eval(s.textContent);
+ for(const asset of ['initial-easy-mode.js','initial-work24-assist.js'])w.eval(fs.readFileSync(path.join(root,asset),'utf8'));
+ w.eval(html.match(/<script id="clg-initial-compact-ui-v1">([\s\S]*?)<\/script>/)[1]);d.dispatchEvent(new w.Event('DOMContentLoaded'));
+ const by=id=>d.getElementById(id),set=(id,v)=>{by(id).value=v;by(id).dispatchEvent(new w.Event('input',{bubbles:true}));by(id).dispatchEvent(new w.Event('change',{bubbles:true}));};
+ for(const [name,v] of Object.entries({healthPhysical:'없음',healthMental:'없음',creditIssue:'없음',jobSupportHistory:'무',nbcHistory:'무',workRegistration:'무',otherProgram:'없음',otherCenterPayment:'없음'}))assert.equal(d.querySelector('input[name="'+name+'"]:checked').value,v);
+ assert.equal(by('checkUnifiedGuidance').checked,true);if(id==='p01')assert.equal(d.querySelector('input[name="familySupportStatus"]:checked').value,'대상 아님');
+ assert.ok(by('totalScore').closest('.clg-assessment-main'));assert.ok(by('grade').closest('.clg-assessment-main'));assert.equal(by('totalScore').closest('details'),null);assert.equal(by('grade').closest('details'),null);
+ set('totalScore','80');assert.equal(by('grade').value,'높음');
+ const opinion='상담사가 직접 확인하고 작성한 최종 의견.';set('counselorOpinion',opinion);
+ set('strategyTargetJob','치과위생사');set('strategyTiming','6개월 이내');
+ set('motivationReason','혼자 취업준비를 진행하는 데 어려움이 있어 단계적인 지원을 받고자 신청함.');
+ set('motivationEffort','고용24와 민간 채용사이트에서 희망직무 채용공고를 확인하였음.');
+ set('work24ExpectedSupport','채용정보·취업알선');set('resultType','빠른취업지원형');
+ set('typeReasonText','희망직무와 취업조건이 구체적이고 즉시 활용 가능한 경력·경험이 확인되어, 채용정보 제공과 취업알선을 중심으로 빠른 취업연계가 가능하다고 판단됨.');
+ set('healthCreditDetail','건강·신용 특이사항 없음');by('work24Build').click();
+ assert.equal(by('work24_motivation').value,'- 참여목적 : 혼자 취업준비를 진행하는 데 어려움이 있어 단계적인 지원을 받고자 신청함.\n- 현재까지의 취업준비 노력 : 고용24와 민간 채용사이트에서 희망직무 채용공고를 확인하였음.\n- 기대하는 지원 : 채용정보·취업알선\n- 취업목표 : 치과위생사 (6개월 이내)');
+ assert.ok(by('work24_type').value.includes('- 2차 유형분류 : 빠른취업준비형'));
+ const strategy=by('work24_strategy').value;assert.ok(strategy.includes('* 상담목표\n- 치과위생사'));assert.ok(strategy.includes('* 상담전략'));assert.ok(!strategy.includes('건강·신용'));assert.ok(!strategy.includes('이력서'));
+ for(const key of ['motivation','type','strategy']){assert.equal(by('work24_'+key+'_copy').disabled,false);assert.ok(Buffer.byteLength(by('work24_'+key).value)<=1500);by('work24_'+key+'_copy').click();await Promise.resolve();assert.equal(copied,by('work24_'+key).value);}
+ assert.equal(by('counselorOpinion').value,opinion);
+ set('work24_strategy','상담사가 검토한 별도 목표 및 전략');by('work24_strategy_copy').click();await Promise.resolve();assert.equal(copied,'상담사가 검토한 별도 목표 및 전략');
+ set('work24_motivation','가'.repeat(501));assert.equal(by('work24_motivation_copy').disabled,true);assert.ok(by('work24_motivation_bytes').textContent.includes('초과'));assert.equal(by('work24_motivation').value.length,501);
+ set('strategyTargetJob','간호조무사');assert.equal(by('work24_type_copy').disabled,true);assert.ok(by('work24_type_bytes').textContent.includes('입력 변경됨'));by('work24Build').click();assert.ok(by('work24_motivation').value.includes('간호조무사'));assert.ok(!by('work24_motivation').value.includes('치과위생사'));
+ const health=d.querySelector('input[name="healthPhysical"][value="있음"]');health.checked=true;health.dispatchEvent(new w.Event('change',{bubbles:true}));by('work24Build').click();assert.ok(by('work24_strategy').value.includes('건강·신용'));
+ set('resultType','');by('work24Build').click();assert.equal(by('work24_type_copy').disabled,true);assert.equal(by('work24_motivation_copy').disabled,false);
+ by('resetBtn').click();assert.equal(by('work24Outputs').hidden,true);assert.equal(by('checkUnifiedGuidance').checked,true);assert.equal(d.querySelector('input[name="healthPhysical"]:checked').value,'없음');if(id==='p01')assert.equal(d.querySelector('input[name="familySupportStatus"]:checked').value,'대상 아님');assert.equal(by('work24ExpectedSupport').value,'');
+ dom.window.close();console.log(id+': Work24 formats, defaults, exposed assessment, 1500-byte copy, stale prevention, opinion preservation and reset passed');
+}})().catch(e=>{console.error(e);process.exitCode=1});

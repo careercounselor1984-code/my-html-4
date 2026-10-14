@@ -6,10 +6,10 @@ for(const id of ['p01','p02']){
  const m=html.match(new RegExp('"id":"'+id+'","title":"[^"]+","b64":"([^"]+)"'));assert.ok(m);
  const page=Buffer.from(m[1],'base64').toString('utf8');
  for(const x of page.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/g))new vm.Script(x[1]);
- assert.ok(page.includes('initial-easy-mode.js?v=20261014b'));
- assert.ok(!/id="checkUnifiedGuidance" checked/.test(page));
- assert.ok(!/<input[^>]*name="(?:healthPhysical|healthMental|creditIssue|jobSupportHistory|familySupportStatus)"[^>]*checked/.test(page));
+ assert.ok(page.includes('initial-easy-mode.js?v=20261014c'));
+ assert.ok(/id="checkUnifiedGuidance" checked/.test(page));
+ assert.ok(/<input[^>]*name="healthPhysical"[^>]*value="없음"[^>]*checked/.test(page));
  assert.ok(page.includes("checkedValue('jobSupportHistory','미확인')"));
  assert.ok(page.includes("상담사 의견을 작성한 뒤 복사해 주세요."));
 }
-console.log('Initial I/II syntax, unconfirmed defaults and explicit opinion copy guards passed.');
+console.log('Initial I/II syntax, requested defaults and explicit opinion copy guards passed.');

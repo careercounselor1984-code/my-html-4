@@ -11,3 +11,14 @@ body.clg-initial-focused .clg-opinion-main .card > button{display:none!important
 .clg-opinion-helper textarea{min-height:105px;line-height:1.6}
 .clg-opinion-helper .actions{justify-content:flex-start;margin:8px 0}
 .clg-opinion-helper button{font-size:12px}
+.clg-assessment-main .grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+.clg-assessment-main .col4{grid-column:auto}
+.clg-assessment-main .small{margin-top:7px}
+.clg-work24-assist>summary{cursor:pointer;font-size:14px;font-weight:800;color:#1e3a5f}
+.clg-work24-assist .actions{justify-content:flex-start;align-items:center;flex-wrap:wrap}
+.clg-work24-outputs{display:grid;gap:10px;margin-top:10px}
+.clg-work24-outputs textarea{min-height:105px;font-size:12px;line-height:1.55}
+.clg-work24-copyrow{display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap;margin-top:6px}
+.clg-work24-copyrow button{font-size:12px;white-space:nowrap}
+.clg-work24-copyrow button:disabled{opacity:.55;cursor:default}
+@media(max-width:600px){.clg-assessment-main .grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.clg-assessment-main label{font-size:11px}.clg-assessment-main input,.clg-assessment-main select{padding:7px 4px;font-size:12px}.clg-work24-copyrow .small{flex-basis:100%}}

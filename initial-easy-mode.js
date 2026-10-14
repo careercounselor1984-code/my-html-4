@@ -10,10 +10,22 @@ function create(){
  const basic=by('finalEducation')?.closest('.section');
  if(!card||!basic)return;
  document.body.classList.add('clg-initial-focused');
+ // Move the real assessment controls once; keep their existing calculation/event bindings.
+ const assessmentSource=by('totalScore')?.closest('.section');
+ const assessment=document.createElement('section');assessment.className='section blue clg-assessment-main';
+ const assessmentTitle=document.createElement('h2');assessmentTitle.className='sectionTitle';assessmentTitle.textContent='취업역량평가';
+ const assessmentGrid=document.createElement('div');assessmentGrid.className='grid';
+ for(const id of ['totalScore','grade','resultType']){
+  const col=by(id)?.closest('.col4');if(col)assessmentGrid.append(col);
+ }
+ assessment.append(assessmentTitle,assessmentGrid);
+ const scoreHint=by('scoreValidationHint');if(scoreHint){scoreHint.className='small';assessment.append(scoreHint);}
+ basic.insertAdjacentElement('afterend',assessment);
+ if(assessmentSource)assessmentSource.hidden=true;
  const section=document.createElement('section');
  section.className='section blue clg-opinion-main';
  const title=document.createElement('h2');title.className='sectionTitle';title.textContent='상담사 의견';
- section.append(title,card);basic.insertAdjacentElement('afterend',section);
+ section.append(title,card);assessment.insertAdjacentElement('afterend',section);
  card.querySelector(':scope > label')?.remove();
  card.querySelector(':scope > .grid')?.setAttribute('hidden','');
  card.querySelector(':scope > .actions')?.setAttribute('hidden','');
