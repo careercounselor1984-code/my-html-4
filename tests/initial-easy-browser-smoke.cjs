@@ -11,7 +11,33 @@ for(const id of ['p01','p02']){
  const m=html.match(new RegExp('"id":"'+id+'","title":"[^"]+","b64":"([^"]+)"'));
  assert.ok(m,'missing '+id);
  const file=path.join(root,'.initial-easy-smoke-'+id+'.html');
- fs.writeFileSync(file,Buffer.from(m[1],'base64').toString('utf8'));
+ const scenario=String.raw`<script>
+window.addEventListener('DOMContentLoaded',function(){
+ try{
+  const by=id=>document.getElementById(id);
+  const set=(id,v)=>{by(id).value=v;by(id).dispatchEvent(new Event('input',{bubbles:true}));by(id).dispatchEvent(new Event('change',{bubbles:true}));};
+  const must=(condition,message)=>{if(!condition)throw new Error(message);};
+  for(const id of ['totalScore','grade']){const el=by(id),r=el.getBoundingClientRect();must(!el.closest('details')&&r.width>0&&r.height>0,id+' must be visible outside folds');}
+  must(by('checkUnifiedGuidance').checked,'guidance default');
+  must(document.querySelector('input[name="healthPhysical"]:checked').value==='없음','health default');
+  if(document.querySelector('input[name="familySupportStatus"]'))must(document.querySelector('input[name="familySupportStatus"]:checked').value==='대상 아님','family default');
+  set('totalScore','80');must(by('grade').value==='높음','grade calculation');
+  set('counselorOpinion','상담사가 작성한 의견');
+  by('initialWork24Assist').open=true;
+  set('strategyTargetJob','치과위생사');set('strategyTiming','6개월 이내');
+  set('motivationReason','단계적인 취업지원을 받고자 신청함.');set('motivationEffort','희망직무 채용공고를 확인하였음.');set('work24ExpectedSupport','채용정보·취업알선');set('resultType','빠른취업지원형');
+  by('work24Build').click();must(by('work24_motivation').value.includes('- 취업목표 : 치과위생사 (6개월 이내)'),'motivation format');
+  must(by('work24_type').value.includes('빠른취업준비형'),'Work24 type name');
+  must(by('work24_strategy').value.includes('* 상담목표')&&by('work24_strategy').value.includes('* 상담전략'),'strategy format');
+  must(!by('work24_strategy').value.includes('건강·신용'),'no health plan on negative defaults');
+  must(by('counselorOpinion').value==='상담사가 작성한 의견','manual opinion must be preserved');
+  set('work24_motivation','가'.repeat(501));must(by('work24_motivation_copy').disabled,'1500-byte limit');
+  set('strategyTargetJob','간호조무사');must(by('work24_type_copy').disabled,'stale copy guard');
+  document.body.dataset.work24BrowserTest='passed';
+ }catch(e){document.body.dataset.work24BrowserTest='failed';document.body.dataset.work24BrowserError=e.message;}
+});
+</script>`;
+ fs.writeFileSync(file,Buffer.from(m[1],'base64').toString('utf8').replace('</body>',scenario+'</body>'));
  try{
   const run=cp.spawnSync(chrome,['--headless=new','--no-sandbox','--disable-gpu','--disable-dev-shm-usage','--virtual-time-budget=4000','--dump-dom','file://'+file],{cwd:root,encoding:'utf8',timeout:40000,maxBuffer:12*1024*1024});
   assert.equal(run.status,0,id+' chrome failed: '+(run.stderr||'').slice(0,400));
@@ -20,6 +46,7 @@ for(const id of ['p01','p02']){
   assert.ok(run.stdout.includes('id="opinionAssistMemo"'),id+' memo missing');
   assert.ok(run.stdout.includes('id="copyRecordBtn"'),id+' copy button missing');
   assert.ok(run.stdout.includes('id="counselorOpinion"'),id+' opinion field missing');
+  assert.ok(run.stdout.includes('data-work24-browser-test="passed"'),id+' Work24 browser interaction failed: '+(run.stdout.match(/data-work24-browser-error="([^"]*)/)?.[1]||'no marker'));
  }finally{fs.rmSync(file,{force:true})}
 }
-console.log('Initial counseling I/II headless Chrome easy-mode smoke passed.');
+console.log('Initial counseling I/II headless Chrome defaults, visible assessment and Work24 interaction tests passed.');

@@ -8,6 +8,7 @@ for(const id of ['p01','p02']){
  const w=dom.window,d=w.document;w.TextEncoder=TextEncoder;w.scrollTo=()=>{};w.HTMLElement.prototype.scrollIntoView=()=>{};w.confirm=()=>true;
  for(const s of d.querySelectorAll('script:not([src])'))w.eval(s.textContent);
  w.eval(fs.readFileSync(path.join(root,'initial-easy-mode.js'),'utf8'));
+ w.eval(fs.readFileSync(path.join(root,'initial-work24-assist.js'),'utf8'));
  // Include the actual outer app's compact layout, which previously produced duplicate controls.
  w.eval(html.match(/<script id="clg-initial-compact-ui-v1">([\s\S]*?)<\/script>/)[1]);
  d.dispatchEvent(new w.Event('DOMContentLoaded'));
@@ -16,7 +17,7 @@ for(const id of ['p01','p02']){
  assert.ok(d.body.classList.contains('clg-initial-focused'));assert.equal(by('easyQuick'),null);assert.equal(by('easyDetail'),null);
  assert.ok(by('counselorOpinion').closest('.clg-opinion-main'));assert.equal(by('finalEducation').tagName,'SELECT');
  assert.equal(d.querySelectorAll('.clgQuickBar button').length,id==='p01'?4:3);
- assert.ok(record().includes('건강(육체적) 미확인'));assert.ok(record().includes('참여 이력: 미확인'));assert.ok(!record().includes('과정 안내함'));assert.ok(!record().includes('작성·배부'));
+ assert.ok(record().includes('건강(육체적) 없음'));assert.ok(record().includes('참여 이력: 무'));assert.ok(!record().includes('과정 안내함'));assert.ok(record().includes('작성·배부'));
  set('finalEducation','대졸');set('participatePath','울산대학교');
  const tasks=()=>[...d.querySelectorAll('input[name="strategyTask"]:checked')].map(e=>e.value);
  set('counselorOpinion','상담사가 확인한 내용.');
@@ -29,9 +30,9 @@ for(const id of ['p01','p02']){
  // An explicit negative and an actual completed guidance check still print correctly.
  const radio=d.querySelector('input[name="healthPhysical"][value="없음"]');radio.checked=true;radio.dispatchEvent(new w.Event('change',{bubbles:true}));
  by('checkUnifiedGuidance').checked=true;by('checkUnifiedGuidance').dispatchEvent(new w.Event('change',{bubbles:true}));assert.ok(record().includes('건강(육체적) 없음'));assert.ok(record().includes('작성·배부'));
- if(id==='p01'){assert.ok(record().includes('가족수당 대상: 미확인'));const r=d.querySelector('input[name="familySupportStatus"][value="대상 아님"]');r.checked=true;r.dispatchEvent(new w.Event('change',{bubbles:true}));assert.ok(record().includes('가족수당 대상 없음'));}
+ if(id==='p01'){assert.ok(record().includes('가족수당 대상 없음'));const r=d.querySelector('input[name="familySupportStatus"][value="대상 아님"]');r.checked=true;r.dispatchEvent(new w.Event('change',{bubbles:true}));assert.ok(record().includes('가족수당 대상 없음'));}
  // Copy does not invent an opinion when the counselor has left it blank.
  set('counselorOpinion','');by('copyRecordBtn').click();assert.equal(by('counselorOpinion').value,'');
- by('resetBtn').click();assert.equal(by('checkUnifiedGuidance').checked,false);assert.ok(record().includes('건강(육체적) 미확인'));
+ by('resetBtn').click();assert.equal(by('checkUnifiedGuidance').checked,true);assert.ok(record().includes('건강(육체적) 없음'));
  dom.window.close();console.log(id+': preserved form, simplified navigation, memo-only draft, no overwrite/duplicate, explicit checks and reset passed');
 }
