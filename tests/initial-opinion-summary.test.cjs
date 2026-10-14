@@ -44,7 +44,7 @@ for(const id of ['p01','p02']){
   assert.ok(result.includes('직무목표 구체화, 채용정보·알선, 입사지원서 보완'),id+' priority tasks');
   assert.ok(Buffer.byteLength(result,'utf8')<1300,id+' opinion too verbose');
   assert.ok(!result.includes('상담사 종합의견:'),id+' summary duplication');
-  assert.ok(page.includes("if(!$('counselorOpinion').value.trim()) buildCounselorOpinion()"),id+' manual opinion overwritten on copy');
+  assert.ok(page.includes("if(!$('counselorOpinion').value.trim()){showToast('상담사 의견을 작성한 뒤 복사해 주세요.')"),id+' manual opinion overwritten on copy');
   assert.ok(page.includes('recordLengthStatus'),id+' 4,000 byte status missing');
   const empty=execute(id,{},{}).result;
   assert.ok(!empty.includes('희망직무로 확인됨'),id+' invented goal');

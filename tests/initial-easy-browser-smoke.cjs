@@ -15,11 +15,11 @@ for(const id of ['p01','p02']){
  try{
   const run=cp.spawnSync(chrome,['--headless=new','--no-sandbox','--disable-gpu','--disable-dev-shm-usage','--virtual-time-budget=4000','--dump-dom','file://'+file],{cwd:root,encoding:'utf8',timeout:40000,maxBuffer:12*1024*1024});
   assert.equal(run.status,0,id+' chrome failed: '+(run.stderr||'').slice(0,400));
-  assert.ok(/<body[^>]*class="[^"]*clg-initial-easy/.test(run.stdout),id+' easy mode not default');
-  assert.ok(run.stdout.includes('id="initialEasyPanel"'),id+' easy panel did not mount');
-  assert.ok(run.stdout.includes('id="easyMemo"'),id+' memo missing');
-  assert.ok(run.stdout.includes('id="easyCopy"'),id+' copy button missing');
-  assert.ok(run.stdout.includes('id="easyDetail"'),id+' detail toggle missing');
+  assert.ok(/<body[^>]*class="[^"]*clg-initial-focused/.test(run.stdout),id+' focused form not mounted');
+  assert.ok(run.stdout.includes('class="section blue clg-opinion-main"'),id+' opinion section did not mount');
+  assert.ok(run.stdout.includes('id="opinionAssistMemo"'),id+' memo missing');
+  assert.ok(run.stdout.includes('id="copyRecordBtn"'),id+' copy button missing');
+  assert.ok(run.stdout.includes('id="counselorOpinion"'),id+' opinion field missing');
  }finally{fs.rmSync(file,{force:true})}
 }
 console.log('Initial counseling I/II headless Chrome easy-mode smoke passed.');
