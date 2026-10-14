@@ -17,6 +17,7 @@ jobs:
       - name: Check safety regression
         run: |
           node tests/journal-safety.test.cjs
+          node tests/initial-easy-mode.test.cjs
           node tests/initial-opinion-summary.test.cjs
           node tests/initial-brief-record.test.cjs
           node tests/schedule-tab.test.cjs
