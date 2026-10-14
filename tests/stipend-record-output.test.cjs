@@ -27,6 +27,16 @@ assert.equal(programOnly,'- 취업지원프로그램 수당: 92,800원\n- 최종
 const income=summary({...base,reportedIncome:450000,nonProgramIncome:400000,programIncome:50000,decision:'전액 지급 가능'},'있음',100,null);
 assert.equal(income,'- 근로·사업 등 신고소득: 400,000원\n- 취업지원프로그램 수당: 50,000원\n- 최종 지급액: 600,000원');
 assert(!/소득 판정 기준금액|신고소득 합계|소득 판정:/.test(income));
+
+const described=summary({...base,nonProgramIncome:400000,programIncome:50000,pay:600000},'있음',100,null,['단시간 근로']);
+assert.equal(described,'- 근로·사업 등 신고소득(단시간 근로): 400,000원\n- 취업지원프로그램 수당: 50,000원\n- 최종 지급액: 600,000원');
+const manyDescriptions=summary({...base,nonProgramIncome:400000,pay:600000},'있음',100,null,[' 단시간  근로 ', '단시간 근로','프리랜서\n소득']);
+assert.match(manyDescriptions,/근로·사업 등 신고소득\(단시간 근로 \/ 프리랜서 소득\): 400,000원/);
+const descriptionFallback=summary({...base,nonProgramIncome:400000,pay:600000},'있음',100,null,['  ']);
+assert.match(descriptionFallback,/근로·사업 등 신고소득: 400,000원/);
+assert(!/근로·사업 등 신고소득\(/.test(programOnly),'program income does not attach general income description');
+assert(page.includes("document.querySelectorAll('#deductibleList .income-row')"),'descriptions come from entered income rows');
+assert(page.includes(".filter(row => Number(row.querySelector('.inc-amt')?.value || 0) > 0)"),'only positive income amounts contribute descriptions');
 const excluded=summary({...base,excludedIncome:120000},'있음',100,null);
 assert.match(excluded,/산정 제외·참고 금액: 120,000원/);
 const limited=summary({...base,pay:300000},'없음',50,null);
