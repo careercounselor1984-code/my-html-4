@@ -34,7 +34,7 @@ assert.match(limited,/일부 미이행/);
 assert.match(limited,/최종 지급액: 300,000원/);
 assert.doesNotMatch(page,/<소득 신고 상세 내역>/,'redundant income detail block removed');
 assert.doesNotMatch(page,/incomeDetailSection/,'redundant income detail variable removed');
-assert.match(page,/const hasIncome = document.querySelector/,'income calculation ignores hidden stale rows');
+assert.match(page,/const incomeRowsEnabled = document.querySelector/,'income calculation ignores hidden stale rows');
 assert.match(page,/const paymentRecord = buildPaymentRecordSection/,'output uses conditional summary');
 assert.match(page,/id="familyChangeFields" class="hidden\b/,'family controls hidden by default');
 console.log('OK: stipend summary normal, income, family addition/removal, partial compliance; conditional detail display');
