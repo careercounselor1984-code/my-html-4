@@ -25,7 +25,12 @@ jobs:
           node tests/alert-tab-clearance.test.cjs
           node tests/work24-tab-transfer.test.cjs
 
-      - name: Headless Chrome initial-counseling easy-mode smoke
+      - name: Verify initial opinion helper with actual DOM
+        run: |
+          npm install --prefix /tmp/initial-dom-test jsdom@30.1.2 --no-audit --no-fund
+          NODE_PATH=/tmp/initial-dom-test/node_modules node tests/initial-opinion-assist-dom.test.cjs
+
+      - name: Headless Chrome initial-counseling focused-form smoke
         run: node tests/initial-easy-browser-smoke.cjs
 
       - name: Headless Chrome initial-screen smoke (unauthenticated)

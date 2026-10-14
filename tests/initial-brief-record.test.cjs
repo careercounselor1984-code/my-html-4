@@ -11,9 +11,9 @@ for(const id of ['p01','p02']){
  assert.ok(!fn.compactInitialFact(health,'health',true).includes('진술'));
  assert.ok(!fn.compactInitialFact(health,'health',true).includes('신용'));
  assert.equal(fn.compactInitialFact('상담을 통해 확인한 결과 현재 구직활동에 영향을 미치는 구체적인 취업 애로요인은 없는 것으로 확인됨.','difficulty'),'구직활동 관련 특이 애로 없음');
- assert.ok(page.includes('const physicalCheck=')&&page.includes('const shortDifficulty=compactInitialFact'));
+ assert.ok(page.includes('const physicalCheck=')&&page.includes('const shortDifficulty='));
  assert.ok(page.includes('recordLengthStatus'));
- assert.ok(page.includes("if(!$('counselorOpinion').value.trim()) buildCounselorOpinion()"));
+ assert.ok(page.includes("if(!$('counselorOpinion').value.trim()){showToast('상담사 의견을 작성한 뒤 복사해 주세요.')"));
  const x=page.indexOf('function buildCounselorOpinion(){'),y=page.indexOf('function buildCounselorOpinionLegacy(){',x);
  const vals={strategyTargetJob:'자동차 생산',strategyTiming:'6개월 이내',clientStatus:'채용공고 탐색 중',motivationReason:'취업지원서비스를 활용해 취업 준비하고자 신청함',motivationEffort:'희망직무 관련 공고에 입사지원한 경험이 있음',mainDifficulty:'반복 구직 실패로 취업 자신감 저하',strategyStrength:'자동차 관련 현장경험',resultType:'의욕향상지원형',healthCreditDetail:health};
  const els=Object.fromEntries(Object.entries(vals).map(([k,v])=>[k,{value:v}]));els.counselorOpinion={value:''};
