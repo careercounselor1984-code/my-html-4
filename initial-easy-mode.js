@@ -97,7 +97,7 @@ function compose(){
  for(const [id,value] of Object.entries(data.fields))setExisting(id,value);
  setServices(data.requested);
  const opinion=clean(by('counselorOpinion')?.value);
- if(wasEdited||(opinion&&lastGenerated&&opinion!==clean(lastGenerated))){
+ if(wasEdited||(opinion&&(!lastGenerated||opinion!==clean(lastGenerated)))){
   status('직접 수정한 상담사 의견은 유지했어요. 필요한 항목만 메모에서 반영했습니다.');
  }else{
   by('generateOpinionBtn')?.click();
