@@ -94,6 +94,12 @@ function render(){
 }
 function compose(){
  const memo=clean(by('easyMemo').value),data=parse(by('easyMemo').value);
+ for(const id of Object.keys(prior)){
+  if(Object.prototype.hasOwnProperty.call(data.fields,id))continue;
+  const el=by(id);
+  if(el&&clean(el.value)===prior[id]){el.value='';el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));}
+  delete prior[id];
+ }
  for(const [id,value] of Object.entries(data.fields))setExisting(id,value);
  setServices(data.requested);
  const opinion=clean(by('counselorOpinion')?.value);
@@ -102,7 +108,7 @@ function compose(){
  }else{
   by('generateOpinionBtn')?.click();
   if(data.unknown.length){
-   const additional=data.unknown.join(' / ').slice(0,330);
+   const additional=data.unknown.join(' / ');
    const original=clean(by('counselorOpinion')?.value);
    if(additional&&!original.includes(additional))by('counselorOpinion').value=(original?original+'\n':'')+'- 추가 상담 확인사항: '+additional;
   }
