@@ -4840,24 +4840,60 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
   }
   function setInput(doc,id,val){
     if(val===undefined||val===null||val==='')return false; const el=doc.getElementById(id); if(!el)return false;
+    if(el.type==='date'){
+      const digits=String(val).replace(/\D/g,'');
+      if(digits.length!==8)return false;
+      val=digits.slice(0,4)+'-'+digits.slice(4,6)+'-'+digits.slice(6,8);
+    }
     el.value=String(val); el.dispatchEvent(new Event('input',{bubbles:true})); el.dispatchEvent(new Event('change',{bubbles:true})); return true;
   }
   function setRadio(doc,name,value){
     const el=[...doc.querySelectorAll(`input[name="${name}"]`)].find(x=>x.value===value); if(!el)return false;
     el.checked=true; el.dispatchEvent(new Event('change',{bubbles:true})); return true;
   }
+  // Tabs can be reused without a new iframe load event.
+  function withTargetPage(pageId, readyId, onReady){
+    let target;
+    try{target=window.loadPage(pageId);}catch(e){showMessage('상담 탭을 열지 못했습니다: '+String(e?.message||e),'error');return;}
+    const frame=target?.frame||$('frame');
+    if(!frame || (frame.dataset.pageId && frame.dataset.pageId!==pageId)){
+      showMessage('대상 상담 탭을 열지 못했습니다. 작업 탭 수를 확인해 주세요.','warn');return;
+    }
+    let done=false,attempts=0;
+    const finish=()=>{
+      if(done)return;
+      let doc=null,win=null;
+      try{doc=frame.contentDocument;win=frame.contentWindow}catch(e){}
+      if(!doc || !win || doc.readyState==='loading' || !doc.getElementById(readyId))return;
+      done=true;clearInterval(poll);frame.removeEventListener('load',finish);
+      try{onReady(doc,win)}catch(e){showMessage('전달자료 반영 오류: '+String(e?.message||e),'error');}
+    };
+    const poll=setInterval(()=>{
+      if(done){clearInterval(poll);return;}
+      if(++attempts>45){
+        done=true;clearInterval(poll);frame.removeEventListener('load',finish);
+        showMessage('대상 상담 화면이 준비되지 않았습니다. 탭을 확인하고 다시 반영해 주세요.','warn');
+        return;
+      }
+      finish();
+    },100);
+    frame.addEventListener('load',finish);
+    finish();
+  }
   function applyBasic(p){
     const pageId=targetPage(p.type); if(!pageId){showMessage(`유형을 구분하지 못했습니다: ${p.type||'미인식'}`,'warn');return;}
-    const frame=$('frame'); const go=()=>setTimeout(()=>{
-      let doc=null;try{doc=frame.contentDocument}catch(e){} if(!doc){showMessage('초기상담 화면에 접근하지 못했습니다.','warn');return;}
+    withTargetPage(pageId,'counselingDate',(doc)=>{
       const ok1=setInput(doc,'counselingDate',p.initialCounselDate||''); const ok2=setInput(doc,'noticeDate',p.noticeReceivedDate||'');
       if(!ok1&&!ok2){showMessage('반영할 날짜가 없거나 대상 필드를 찾지 못했습니다.','warn');return;}
       showMessage('✓ 초기상담 날짜 반영 완료. 상담내용은 자동으로 작성하지 않았습니다.','ok');
       window.postMessage({marker:MARKER,type:'CLEAR_PENDING_BASIC'},'*');
-    },120);
-    frame?.addEventListener('load',go,{once:true}); window.loadPage(pageId);
+    });
   }
-  function parseRange(s){const ds=String(s||'').match(/(?:19|20)\d{2}-\d{2}-\d{2}/g)||[];return [ds[0]||'',ds[1]||ds[0]||''];}
+  function parseRange(s){
+    const ds=String(s||'').match(/(?:19|20)\d{2}[-./]\d{1,2}[-./]\d{1,2}|(?:19|20)\d{6}/g)||[];
+    const iso=v=>{const d=String(v||'').replace(/\D/g,'');return d.length===8?d.slice(0,4)+'-'+d.slice(4,6)+'-'+d.slice(6,8):'';};
+    return [iso(ds[0]),iso(ds[1]||ds[0])];
+  }
   function setActivityRow(doc,win,target,item,mode){
     if(typeof win.addActivityRow!=='function')return false; win.addActivityRow(target);
     const list=doc.getElementById(target), row=list?.lastElementChild; if(!row)return false;
@@ -4883,9 +4919,13 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
     box.innerHTML=`<b style="color:#1d4ed8">Work24 전산 확인값</b><br>처리상태: ${esc(d.processStatus||'-')}<br>취업여부: ${esc(empDetail)}${emp30?`<br><b style="display:inline-block;margin-top:5px;padding:4px 7px;border-radius:7px;background:#fff3cd;color:#8a5200">중요 · 주 ${esc(emp.weeklyHours)}시간 취업(30시간 이상) — 해당 회차 구직활동 미이행 예외 적용 여부 확인</b>`:''}<br>검토결과: ${esc(reviewText(p))} · 지급요청액: ${esc(money(p.totalRequest||d.payment?.totalRequest||''))}<br><span style="color:#64748b">※ 위 값은 비교·확인용이며 상담사 의견에는 자동 입력하지 않습니다.</span>`;
   }
   function applyAllowance(p){
-    const frame=$('frame'); const go=()=>setTimeout(()=>{
-      let doc=null,win=null;try{doc=frame.contentDocument;win=frame.contentWindow}catch(e){} if(!doc||!win){showMessage('구촉수당 화면에 접근하지 못했습니다.','warn');return;}
-      const d=p.data||{}; let count=0;
+    withTargetPage('p06','sudang-form',(doc,win)=>{
+      const d=p.data||{};
+      if(!(d.round||p.round||d.supportStart||p.supportStart||d.supportEnd||p.supportEnd)){
+        showMessage('회차와 지원대상기간이 없어 반영하지 않았습니다. Work24에서 현재 회차를 다시 읽어주세요.','warn');
+        return;
+      }
+      let count=0;
       const rv=String(d.round||p.round||'').match(/\d+/)?.[0]||''; if(rv&&setInput(doc,'round',rv))count++;
       if(setInput(doc,'startDate',d.supportStart||p.supportStart||''))count++; if(setInput(doc,'endDate',d.supportEnd||p.supportEnd||''))count++; if(setInput(doc,'designationDate',d.designatedDate||p.designatedDate||''))count++;
       const p1=doc.getElementById('prog1_list'), p2=doc.getElementById('prog2_list'); if(p1)p1.innerHTML=''; if(p2)p2.innerHTML='';
@@ -4903,9 +4943,9 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
       const work24Total=num(p.totalRequest||d.payment?.totalRequest), calcTotal=num(doc.getElementById('finalPayment')?.textContent||'');
       if(work24Total!==null&&calcTotal!==null&&work24Total!==calcTotal) showMessage(`✓ ${count}개 항목 반영 완료. 다만 통합본 계산액 ${money(calcTotal)} / Work24 지급요청액 ${money(work24Total)}가 달라 최종 확인이 필요합니다.`,'warn');
       else showMessage(`✓ ${count}개 항목 반영 완료. 상담사 의견은 자동 작성하지 않았습니다.`,'ok');
-      window.postMessage({marker:MARKER,type:'CLEAR_PENDING_ALLOWANCE'},'*');
-    },160);
-    frame?.addEventListener('load',go,{once:true}); window.loadPage('p06');
+      if(count>0)window.postMessage({marker:MARKER,type:'CLEAR_PENDING_ALLOWANCE'},'*');
+      else showMessage('반영된 항목이 없습니다. Work24 전달자료를 보존했습니다.','warn');
+    });
   }
   function normalizeSuccess(v){
     const t=String(v||'').replace(/\s/g,''); if(!t)return '';
@@ -4920,8 +4960,7 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
     box.innerHTML=`<b style="color:#1d4ed8">Work24 취업종료 전산 확인값</b><br>종료사유: ${esc(reason)} · 종료등록일: ${esc(d.endRegistrationDate||'-')} · 알선형태: ${esc(d.mediationType||'-')}<br>사업자번호: ${esc(d.businessNo||'-')} · 직종: ${esc(d.occupation||'-')} · 업종: ${esc(d.industry||'-')}<br>월 임금: ${esc(money(d.wage))} · 주 근로시간: ${esc(d.weeklyHours?d.weeklyHours+'시간':'-')} · 성공수당: ${esc(d.successAllowance||'-')}<br>고용보험 가입이력: ${esc(ins.company||'-')} / ${esc(ins.acquisitionDate||'-')} / ${esc(ins.weeklyHours?ins.weeklyHours+'시간':'-')} / ${esc(money(ins.wage))}<br>대조: 사업장 ${esc(yn(cmp.company))} · 취업일 ${esc(yn(cmp.employmentDate))} · 시간 ${esc(yn(cmp.weeklyHours))} · 임금 ${esc(yn(cmp.wage))}<br><span style="color:#64748b">※ 위 값은 확인용이며 상담사 의견과 사후관리 안내 체크는 자동 변경하지 않습니다.</span>`;
   }
   function applyTermination(p){
-    const frame=$('frame'); const go=()=>setTimeout(()=>{
-      let doc=null,win=null;try{doc=frame.contentDocument;win=frame.contentWindow}catch(e){} if(!doc||!win){showMessage('종료/사후관리 화면에 접근하지 못했습니다.','warn');return;}
+    withTargetPage('p11','company',(doc,win)=>{
       const d=p.data||{}, ins=d.insurance||{}; let count=0;
       const empTab=doc.querySelector('.tabbtn[data-tab="EMP_END"]'); if(empTab){empTab.click();count++;}
       if(setInput(doc,'company',d.company||p.company||''))count++;
@@ -4934,9 +4973,9 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
       const succ=normalizeSuccess(d.successAllowance||p.successAllowance); if(succ&&setRadio(doc,'succ',succ))count++;
       addTerminationReferenceBox(doc,p);
       showMessage(`✓ 취업종료 ${count}개 항목 반영 완료. 상담사 의견·사후관리 안내는 자동 변경하지 않았습니다.`,'ok');
-      window.postMessage({marker:MARKER,type:'CLEAR_PENDING_TERMINATION'},'*');
-    },170);
-    frame?.addEventListener('load',go,{once:true}); window.loadPage('p11');
+      if(count>0)window.postMessage({marker:MARKER,type:'CLEAR_PENDING_TERMINATION'},'*');
+      else showMessage('반영된 항목이 없습니다. 전달자료를 보존했습니다.','warn');
+    });
   }
   function triggerIapSend(){
     const frame=$('frame');
