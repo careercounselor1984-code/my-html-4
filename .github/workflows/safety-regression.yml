@@ -31,9 +31,12 @@ jobs:
           NODE_PATH=/tmp/initial-dom-test/node_modules node tests/initial-opinion-assist-dom.test.cjs
           NODE_PATH=/tmp/initial-dom-test/node_modules node tests/initial-work24-assist-dom.test.cjs
           NODE_PATH=/tmp/initial-dom-test/node_modules node tests/initial-dropdowns-dom.test.cjs
+          NODE_PATH=/tmp/initial-dom-test/node_modules node tests/card-reason.test.cjs
 
       - name: Headless Chrome initial-counseling focused-form smoke
-        run: node tests/initial-easy-browser-smoke.cjs
+        run: |
+          node tests/initial-easy-browser-smoke.cjs
+          node tests/card-reason-browser-smoke.cjs
 
       - name: Headless Chrome initial-screen smoke (unauthenticated)
         shell: bash
