@@ -3532,6 +3532,7 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
   var client=null;
   var currentUser=null;
   var currentEmployee=null;
+  window.clgJobArchiveClient=function(){return currentUser && currentEmployee && !currentEmployee.must_change_password && gate.classList.contains('cc-hidden') ? client : null;};
   var pendingTakeover=null;
   var idleTimer=null;
   var heartbeatTimer=null;
@@ -6552,3 +6553,5 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 <script src="./journal-push.js"></script>
 </body>
 </html>
+
+<script src="./job-archive.js?v=20261015-1"></script>
