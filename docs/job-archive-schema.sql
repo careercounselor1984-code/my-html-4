@@ -14,7 +14,7 @@ create table public.counselor_job_archive (
  owner_id uuid not null default auth.uid() references auth.users(id) on delete cascade,
  job_key text not null check(length(job_key)=64),
  owner_name text not null default '',
- job jsonb not null check(jsonb_typeof(job)='object' and octet_length(job::text)<=24000),
+ job jsonb not null check(jsonb_typeof(job)='object' and octet_length(job::text)<=64000),
  is_shared boolean not null default false,
  saved_at timestamptz not null default now(),
  unique(owner_id,job_key)
