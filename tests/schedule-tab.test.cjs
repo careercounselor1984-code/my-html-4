@@ -31,12 +31,14 @@ assert.equal(parse('{"version":2,"pages":["p01"],"savedAt":1}',allowed,6,ts),nul
 assert.equal(parse('{bad json',allowed,6,ts),null,'malformed layout safely ignored');
 assert.equal(parse(JSON.stringify({...base,version:1}),allowed,6,ts),null,'old schema ignored');
 assert(script[1].includes('sessionStorage.setItem(TAB_LAYOUT_KEY'),'layout saved in browser-tab session');
-assert(script[1].includes('pages:tabs.map(t=>t.pageId)'),'only page IDs saved, never form contents');
+assert(script[1].includes('pages:tabs.map(t=>t.pageId)'),'layout keeps screen IDs; drafts use their separate account-scoped store');
 assert(script[1].includes('activeIndex:Math.max(0,tabs.findIndex'),'active tab index saved for duplicates');
-assert(script[1].includes('previousLayout.pages.slice(1).forEach(pageId=>createTab(pageId,{newInstance:true}))'),'additional tabs restored');
+assert(script[1].includes('previousLayout.pages.slice(1).forEach((pageId,index)=>createTab(pageId,{newInstance:true,draftId:previousLayout.draftIds?.[index+1]}))'),'additional tabs restored');
 assert(script[1].includes('activateTab(target.id)'),'previously active tab selected');
 assert(script[1].includes("window.addEventListener('beforeunload'"),'unsaved user edits warn before F5');
 assert(script[1].includes('previousLayout.hadUnsaved'),'form-draft restoration is explicitly not promised');
 console.log('OK: F5 tab layout reconstruction, duplicate tabs, invalid/stale state, unsaved-content warning.');
 
 console.log('OK: schedule toolbar uses existing work tab, same-origin iframe, no forced new window.');
+
+require('./client-workspace.test.cjs');
