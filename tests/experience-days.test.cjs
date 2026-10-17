@@ -1,0 +1,13 @@
+'use strict';const assert=require('node:assert/strict');const {calculate}=require('../experience-days.js');
+assert.equal(calculate('2026-10-12','2026-10-16').count,5);
+assert.equal(calculate('2026-10-17','2026-10-18').count,0);
+assert.equal(calculate('2026-10-05','2026-10-09').count,3,'substitute holiday and Hangul Day removed');
+assert.equal(calculate('2026-05-01','2026-05-05').count,1,'2026 Labour Day and Children Day excluded');
+assert.equal(calculate('2026-07-17','2026-07-17').count,0,'2026 Constitution Day excluded');
+assert.equal(calculate('2027-02-06','2027-02-09').count,0,'Lunar holidays including substitute');
+assert.equal(calculate('2026-12-31','2027-01-04').count,2,'year crossing with New Year holiday');
+assert.equal(calculate('2027-05-01','2027-05-05').count,1,'weekend holiday not subtracted twice and substitute excluded');
+const overrides=[{date:'2026-10-12',included:false,reason:'기관휴무'},{date:'2026-10-17',included:true,reason:'예외근무'},{date:'2026-10-17',included:true,reason:'동일날짜 중복 방지'},{date:'2026-10-09',included:true,reason:'기간 밖'}];const r=calculate('2026-10-12','2026-10-18',overrides);assert.equal(r.count,5);assert.equal(r.overrides.length,2);assert(r.dates.includes('2026-10-17'));assert(!r.dates.includes('2026-10-12'));
+const start='2026-10-01',end='2026-11-10',whole=calculate(start,end,overrides);const segments=[calculate(start,'2026-10-15',overrides),calculate('2026-10-16','2026-11-10',overrides)];assert.equal(segments.reduce((n,r)=>n+r.count,0),whole.count,'splitting must conserve days');
+assert.equal(calculate('2028-01-01','2028-01-07').covered,false);assert.deepEqual(calculate('2028-01-01','2028-01-07').missingYears,[2028]);assert.equal(calculate('2026-02-30','2026-03-01').valid,false);assert.equal(calculate('2026-10-12','2026-10-01').valid,false);assert.equal(calculate('2028-02-29','2028-02-29').valid,true);
+console.log('PASS: weekdays, 2026/2027 holidays and substitutes, zero days, overrides, deduplication, split conservation, year boundaries, unknown-year flag and invalid dates');
