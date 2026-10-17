@@ -42,3 +42,5 @@ console.log('OK: F5 tab layout reconstruction, duplicate tabs, invalid/stale sta
 console.log('OK: schedule toolbar uses existing work tab, same-origin iframe, no forced new window.');
 
 require('./client-workspace.test.cjs');
+
+require('./experience-days.test.cjs');
