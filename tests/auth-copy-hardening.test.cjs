@@ -46,6 +46,12 @@ async function scenario(url, options = {}) {
       assert.equal(request.headers['x-journal-device-id'],'device-test');
       return {ok:true,async json(){return {ok:true,version:1,calc:{pay:12345}}}};
     }
+    if(url.endsWith('/journal-protected-core')) {
+      assert.equal(request.headers.Authorization,'Bearer mock-user-token');
+      assert.equal(request.headers['x-journal-device-id'],'device-test');
+      const body=JSON.parse(request.body);assert.equal(body.fields.operation,'schoolInitial');
+      return {ok:true,async json(){return {ok:true,version:1,result:{text:'protected core result'}}}};
+    }
     if(url.endsWith('/journal-iap-opinion')) {
       assert.equal(request.headers.Authorization,'Bearer mock-user-token');
       assert.equal(request.headers['x-journal-device-id'],'device-test');
@@ -111,6 +117,7 @@ function assertLocked(w) {
     assert.equal(await active.w.clgGenerateInitialOpinion({strategyTargetJob:'test-job'}),'server opinion');
     assert.equal((await active.w.clgComputeStipend({ratePct:100})).pay,12345);
     assert.equal(await active.w.clgGenerateIapOpinion({wishJob:'test-job'}),'IAP server opinion');
+    assert.equal((await active.w.clgRunProtectedCore('schoolInitial',{})).text,'protected core result');
     let release;
     options.opinionHook=()=>new Promise(resolve=>{release=resolve});
     const late=active.w.clgGenerateInitialOpinion({strategyTargetJob:'test-job'});
@@ -124,6 +131,7 @@ function assertLocked(w) {
     await assert.rejects(active.w.clgGenerateInitialOpinion({strategyTargetJob:'test-job'}),/로그인 상태/);
     await assert.rejects(active.w.clgComputeStipend({ratePct:100}),/로그인 상태/);
     await assert.rejects(active.w.clgGenerateIapOpinion({wishJob:'test-job'}),/로그인 상태/);
+    await assert.rejects(active.w.clgRunProtectedCore('schoolInitial',{}),/로그인 상태/);
     assert.equal(active.stats.opinionCalls,2);
   } finally { active.close(); }
 
