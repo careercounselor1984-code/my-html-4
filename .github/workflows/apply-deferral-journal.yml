@@ -1,237 +1,38 @@
-name: Apply deferral counseling journal update
+name: Verify deferral counseling journal
 
 on:
+  workflow_dispatch:
   push:
     branches: [main]
     paths:
       - '.github/workflows/apply-deferral-journal.yml'
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  patch:
+  verify:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Patch and verify 종료·사후관리 유예 상담일지
-        shell: bash
+      - name: Verify existing deferral form without rewriting source
         run: |
-          set +e
-          python - <<'PY' > patch-status.txt 2>&1
-          from pathlib import Path
-          import re, base64
-
-          index_path = Path('index.html')
-          s = index_path.read_text(encoding='utf-8')
-          pat = re.compile(r'("id":"p11","title":"종료/사후관리","b64":")([A-Za-z0-9+/=]+)(")')
-          m = pat.search(s)
-          if not m:
-              raise RuntimeError('p11 종료/사후관리 module not found')
-
-          html = base64.b64decode(m.group(2)).decode('utf-8')
-          if 'data-tab="DEFER"' in html:
-              print('ALREADY_PATCHED')
-              Path('/tmp/p11-patched.html').write_text(html, encoding='utf-8')
-              raise SystemExit(0)
-
-          def ro(old, new, label):
-              global html
-              c = html.count(old)
-              print(f'{label}: anchor_count={c}')
-              if c != 1:
-                  raise RuntimeError(f'{label}: expected 1 anchor, found {c}')
-              html = html.replace(old, new, 1)
-
-          ro(
-              '취업 종료 / 취업지원서비스 기간 종료 / 국민취업지원제도 종료를 한 화면에서 작성·복사합니다.',
-              '취업 종료 / 취업지원서비스 기간 종료 / 국민취업지원제도 종료·유예·중단을 한 화면에서 작성·복사합니다.',
-              'subtitle'
-          )
-          ro(
-              '          <button class="tabbtn" data-tab="STOP" type="button">4) 중단</button>',
-              '          <button class="tabbtn" data-tab="DEFER" type="button">4) 유예</button>\n          <button class="tabbtn" data-tab="STOP" type="button">5) 중단</button>',
-              'stop tab'
-          )
-          ro(
-              '          <button class="tabbtn" data-tab="SUCC_BONUS" type="button">5) 취업성공수당</button>',
-              '          <button class="tabbtn" data-tab="SUCC_BONUS" type="button">6) 취업성공수당</button>',
-              'succ tab'
-          )
-          ro(
-              '          <button class="tabbtn" data-tab="REVIEW_EVENT" type="button">6) 취업자 후기 이벤트</button>',
-              '          <button class="tabbtn" data-tab="REVIEW_EVENT" type="button">7) 취업자 후기 이벤트</button>',
-              'review tab'
-          )
-
-          defer_pane = '''      <!-- 4) 유예 -->
-      <div class="card col12 tabPane hidden" data-pane="DEFER">
-        <div class="grid" style="margin-top:0">
-          <div class="col12">
-            <div class="note"><b>유예 상담일지</b>: 유예 사유와 기간, 확인사항·증빙, 재개 계획을 기록합니다. 실제 유예 가능기간과 필요 증빙은 기관 기준에 맞게 확인해 입력하세요.</div>
-          </div>
-          <div class="col6">
-            <label>유예 사유</label>
-            <input id="deferReason" type="text" placeholder="유예 사유를 입력하세요"/>
-          </div>
-          <div class="col6">
-            <label>유예 시작일</label>
-            <input id="deferStartDate" type="date"/>
-          </div>
-          <div class="col6">
-            <label>유예 종료예정일</label>
-            <input id="deferEndDate" type="date"/>
-          </div>
-          <div class="col6">
-            <label>재개 예정일</label>
-            <input id="deferResumeDate" type="date"/>
-          </div>
-          <div class="col12">
-            <label>확인사항·증빙</label>
-            <textarea id="deferProof" placeholder="확인한 내용, 제출·확인한 증빙 등을 입력하세요"></textarea>
-          </div>
-          <div class="col12">
-            <label>향후 상담계획</label>
-            <textarea id="deferPlan" placeholder="재개 시점 연락, 참여 재개 여부 확인, 다음 상담계획 등을 입력하세요"></textarea>
-          </div>
-          <div class="col12">
-            <label>특이사항</label>
-            <textarea id="deferNotes" placeholder="추가로 기록할 사항이 있으면 입력하세요"></textarea>
-          </div>
-        </div>
-      </div>
-
-      <!-- 5) 중단 -->'''
-          ro('      <!-- 4) 중단 -->', defer_pane, 'defer pane')
-          html = html.replace('      <!-- 5) 취업성공수당(카톡 멘트용) -->', '      <!-- 6) 취업성공수당(카톡 멘트용) -->', 1)
-          html = html.replace('      <!-- 6) 취업자 후기 이벤트(카톡 발송용) -->', '      <!-- 7) 취업자 후기 이벤트(카톡 발송용) -->', 1)
-
-          record_block = '''    if(tab==='DEFER'){
-      const reason = ($('deferReason')?.value || '').trim();
-      const start = $('deferStartDate')?.value || '';
-      const end = $('deferEndDate')?.value || '';
-      const resume = $('deferResumeDate')?.value || '';
-      const proof = ($('deferProof')?.value || '').trim();
-      const plan = ($('deferPlan')?.value || '').trim();
-      const notes = ($('deferNotes')?.value || '').trim();
-
-      lines.push('');
-      lines.push('<국민취업지원제도 유예>');
-      lines.push(`- 유예 사유 : ${reason || '-'}`);
-      lines.push(`- 유예 시작일 : ${start || '-'}`);
-      lines.push(`- 유예 종료예정일 : ${end || '-'}`);
-      lines.push(`- 재개 예정일 : ${resume || '-'}`);
-      lines.push(`- 확인사항·증빙 : ${proof || '-'}`);
-      lines.push('- 유예 사유 또는 기간에 변동사항 발생 시 담당자에게 연락하도록 안내함');
-      lines.push('- 재개 예정 시점에 참여 재개 여부 및 상담 일정을 다시 확인하기로 함');
-      lines.push('');
-      lines.push('<향후 상담계획>');
-      lines.push(plan || '-');
-      lines.push('');
-      lines.push('<특이사항>');
-      lines.push(notes || '-');
-    }
-
-'''
-          rs = html.index('  function buildRecord(){')
-          re_ = html.index('  function buildServEndPreMent(){', rs)
-          pos = html.index("    if(tab==='STOP'){", rs, re_)
-          html = html[:pos] + record_block + html[pos:]
-
-          ment_block = '''    if(tab==='DEFER'){
-      const reason = ($('deferReason')?.value || '').trim();
-      const start = $('deferStartDate')?.value || '';
-      const end = $('deferEndDate')?.value || '';
-      const resume = $('deferResumeDate')?.value || '';
-
-      let periodLine = '유예 기간은 입력된 일정에 따라 처리될 예정입니다.';
-      if(start && end) periodLine = `${start}부터 ${end}까지 유예 기간으로 확인했습니다.`;
-      else if(start) periodLine = `${start}부터 유예가 시작되는 것으로 확인했습니다.`;
-      else if(end) periodLine = `유예 종료예정일은 ${end}입니다.`;
-
-      return [
-        '국민취업지원제도 유예 관련하여 안내드립니다.',
-        '',
-        reason ? `확인된 유예 사유 : ${reason}` : '유예 사유와 관련된 내용을 확인했습니다.',
-        periodLine,
-        resume ? `재개 예정일은 ${resume}입니다.` : '유예 종료 후 참여 재개 가능 여부와 일정을 다시 확인하겠습니다.',
-        '',
-        '유예 사유나 기간에 변동이 생기면 담당자에게 미리 연락 부탁드립니다.',
-        '재개 시점에 다시 연락드려 참여 재개 여부와 상담 일정을 확인하겠습니다.'
-      ].join('\\n');
-    }
-
-'''
-          ms = html.index('  function buildMent(){')
-          me = html.index('function renderMentChat', ms)
-          pos2 = html.index("    if(tab==='STOP'){", ms, me)
-          html = html[:pos2] + ment_block + html[pos2:]
-
-          ro(
-              "'empOpinion','stopDate','stopReason','stopOpinion','sbExtra'",
-              "'empOpinion','deferReason','deferStartDate','deferEndDate','deferResumeDate','deferProof','deferPlan','deferNotes','stopDate','stopReason','stopOpinion','sbExtra'",
-              'reset ids'
-          )
-
-          html = html.replace('// 5) 취업성공수당 탭은 상담일지 기록이 아니라 카톡 멘트 생성용', '// 6) 취업성공수당 탭은 상담일지 기록이 아니라 카톡 멘트 생성용', 1)
-          html = html.replace('// 6) 취업자 후기 이벤트 탭은 상담일지 기록이 아니라 카톡 멘트 생성용', '// 7) 취업자 후기 이벤트 탭은 상담일지 기록이 아니라 카톡 멘트 생성용', 1)
-
-          expected = {
-              'data-tab="DEFER"': 1,
-              'data-pane="DEFER"': 1,
-              "if(tab==='DEFER')": 2,
-              'id="deferReason"': 1,
-              'id="deferStartDate"': 1,
-              'id="deferEndDate"': 1,
-              'id="deferResumeDate"': 1,
-              'id="deferProof"': 1,
-              'id="deferPlan"': 1,
-              'id="deferNotes"': 1,
+          node <<'JS'
+          const fs = require('node:fs');
+          const assert = require('node:assert/strict');
+          const vm = require('node:vm');
+          const source = fs.readFileSync('index.html', 'utf8');
+          const pages = JSON.parse(source.match(/const PAGES = (.*?);\n/s)[1]);
+          const page = pages.find(value => value.id === 'p11');
+          assert(page, 'termination/follow-up page exists');
+          const html = Buffer.from(page.b64, 'base64').toString('utf8');
+          for (const token of ['data-tab="DEFER"', 'data-pane="DEFER"', 'id="deferReason"', 'id="deferStartDate"', 'id="deferEndDate"']) {
+            assert(html.includes(token), 'existing deferral form: ' + token);
           }
-          for token, want in expected.items():
-              got = html.count(token)
-              print(f'check {token}: {got}')
-              if got != want:
-                  raise RuntimeError(f'validation failed: {token}={got}, expected {want}')
-
-          new_b64 = base64.b64encode(html.encode('utf-8')).decode('ascii')
-          s = s[:m.start(2)] + new_b64 + s[m.end(2):]
-          index_path.write_text(s, encoding='utf-8')
-          Path('/tmp/p11-patched.html').write_text(html, encoding='utf-8')
-          print('PATCH_OK')
-          print('patched_module_chars=', len(html))
-          PY
-          py_status=$?
-
-          if [ "$py_status" -eq 0 ] && [ -f /tmp/p11-patched.html ]; then
-            python - <<'PY'
-          from pathlib import Path
-          import re
-          h = Path('/tmp/p11-patched.html').read_text(encoding='utf-8')
-          m = re.search(r'<script>(.*?)</script>', h, re.S)
-          if not m:
-              raise SystemExit('script block not found')
-          Path('/tmp/p11.js').write_text(m.group(1), encoding='utf-8')
-          PY
-            node --check /tmp/p11.js >> patch-status.txt 2>&1
-            node_status=$?
-          else
-            node_status=1
-          fi
-
-          if [ "$py_status" -ne 0 ] || [ "$node_status" -ne 0 ]; then
-            echo "PATCH_FAILED py=$py_status node=$node_status" >> patch-status.txt
-            git checkout -- index.html
-          else
-            echo "JS_SYNTAX_OK" >> patch-status.txt
-          fi
-
-      - name: Commit patch result
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add index.html patch-status.txt
-          git diff --cached --quiet && exit 0
-          git commit -m "feat: 종료·사후관리 상담일지 유예 기능 반영"
-          git push
+          for (const match of html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)) {
+            new vm.Script(match[1]);
+          }
+          console.log('PASS: existing deferral form and scripts; no source files changed');
+          JS
+      - name: Confirm source was not modified
+        run: git diff --exit-code
