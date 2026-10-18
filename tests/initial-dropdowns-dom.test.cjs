@@ -4,6 +4,7 @@ const root=path.join(__dirname,'..'),html=fs.readFileSync(path.join(root,'index.
 (async()=>{for(const id of ['p01','p02']){
  const m=html.match(new RegExp('"id":"'+id+'","title":"[^"]+","b64":"([^"]+)"'));
  const dom=new JSDOM(Buffer.from(m[1],'base64').toString('utf8'),{runScripts:'outside-only',url:'https://example.test/',pretendToBeVisual:true}),w=dom.window,d=w.document;
+ w.clgGenerateInitialOpinion=async fields=>Object.values(fields).filter(value=>typeof value==='string').join('\n');
  w.TextEncoder=TextEncoder;w.confirm=()=>true;w.scrollTo=()=>{};w.HTMLElement.prototype.scrollIntoView=()=>{};let copied='';Object.defineProperty(w.navigator,'clipboard',{value:{writeText:async t=>{copied=t}}});
  for(const s of d.querySelectorAll('script:not([src])'))w.eval(s.textContent);
  for(const asset of ['initial-easy-mode.js','initial-work24-assist.js'])w.eval(fs.readFileSync(path.join(root,asset),'utf8'));
@@ -30,6 +31,7 @@ const root=path.join(__dirname,'..'),html=fs.readFileSync(path.join(root,'index.
  set('resultType','빠른취업지원형');await Promise.resolve();
  choose('clientStatusPreset','퇴사 후 재취업 · 경력 활용 가능');choose('opinionNeedPreset','구직활동 관련 특이 애로 없음');choose('opinionDirectionPreset','채용정보 제공·취업알선');
  set('counselorOpinion','기존 직접 작성한 의견');by('opinionPresetBuild').click();assert.equal(by('counselorOpinion').value,'기존 직접 작성한 의견');
+ await new Promise(resolve=>setImmediate(resolve));
  const draft=by('opinionAssistDraft').value;assert.ok(draft.includes('치과위생사'));assert.ok(draft.includes(purpose));assert.ok(draft.includes('퇴사 후 재취업'));assert.ok(draft.includes('애로요인은 확인되지'));assert.ok(draft.includes('취업알선'));
  by('opinionAssistApply').click();assert.ok(by('counselorOpinion').value.startsWith('기존 직접 작성한 의견'));assert.ok(by('counselorOpinion').value.includes(draft));
  if(id==='p01'){assert.ok(by('stipendGuide').value.includes('취업·창업·소득 신고'));assert.ok(by('recordOutput').textContent.includes('- 구직촉진수당 유의사항: 지정일 신청'));set('stipendGuide','직접 안내한 내용');assert.ok(by('recordOutput').textContent.includes('직접 안내한 내용'));}

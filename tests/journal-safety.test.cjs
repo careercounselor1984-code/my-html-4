@@ -36,10 +36,10 @@ for(const [name,page] of [['type1',firstInitial],['type2',secondInitial]]){
   assert(generator.includes('recordLengthStatus'),name+' must display output length');
   assert(generator.includes('new TextEncoder().encode(text).length'),name+' UTF-8 byte measurement');
   assert(page.includes('id="copyInitialSummaryBtn"'),name+' standalone profile copying preserved');
-  const opinionBlock=page.slice(page.indexOf('function buildCounselorOpinion()'),page.indexOf('function buildRecordText()'));
-  assert(opinionBlock.includes("const timing = val('strategyTiming');"),name+' timing included in auto opinion');
-  assert(opinionBlock.includes("const target = val('strategyTargetJob');"),name+' job target included in auto opinion');
-  assert(opinionBlock.includes('우선 지원과제'),name+' selected tasks included in auto opinion');
+  const opinionBlock=page.slice(page.indexOf('function collectCounselorOpinionInput()'),page.indexOf('function buildMotivationRecordLines()'));
+  for(const field of ['strategyTiming','strategyTargetJob','strategyTasks','motivationSupports'])assert(opinionBlock.includes(field),name+' server input '+field);
+  assert(opinionBlock.includes('window.parent?.clgGenerateInitialOpinion'),name+' authenticated server bridge');
+  assert(!page.includes('buildCounselorOpinionLegacy'),name+' obsolete local synthesis removed');
 }
 
 function extractPeriodEnd(src){

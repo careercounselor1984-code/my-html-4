@@ -14,16 +14,6 @@ for(const id of ['p01','p02']){
  assert.ok(page.includes('const physicalCheck=')&&page.includes('const shortDifficulty='));
  assert.ok(page.includes('recordLengthStatus'));
  assert.ok(page.includes("if(!$('counselorOpinion').value.trim()){showToast('상담사 의견을 작성한 뒤 복사해 주세요.')"));
- const x=page.indexOf('function buildCounselorOpinion(){'),y=page.indexOf('function buildCounselorOpinionLegacy(){',x);
- const vals={strategyTargetJob:'자동차 생산',strategyTiming:'6개월 이내',clientStatus:'채용공고 탐색 중',motivationReason:'취업지원서비스를 활용해 취업 준비하고자 신청함',motivationEffort:'희망직무 관련 공고에 입사지원한 경험이 있음',mainDifficulty:'반복 구직 실패로 취업 자신감 저하',strategyStrength:'자동차 관련 현장경험',resultType:'의욕향상지원형',healthCreditDetail:health};
- const els=Object.fromEntries(Object.entries(vals).map(([k,v])=>[k,{value:v}]));els.counselorOpinion={value:''};
- const selected={'input[name="strategyTask"]:checked':[{value:'goal'},{value:'matching'},{value:'documents'}]};
- const opinion=vm.runInNewContext(page.slice(x,y)+'\nbuildCounselorOpinion()',{$:id=>els[id]||null,qa:s=>selected[s]||[],checkedValue:()=>'',autoExpand:()=>{},hasPhysicalWorkConstraint:fn.hasPhysicalWorkConstraint});
- assert.ok(opinion.includes('자동차 생산')&&opinion.includes('6개월 이내'));
- assert.ok(opinion.indexOf('참여 배경')>0&&opinion.indexOf('취업 준비상 애로')>opinion.indexOf('참여 배경'));
- assert.ok(opinion.indexOf('향후')>opinion.indexOf('취업 준비상 애로'));
- assert.ok(opinion.includes('반복된 구직 어려움과 취업 자신감 저하'));
- assert.ok(opinion.includes('직무목표 구체화, 채용정보·알선, 입사지원서 보완'));
- assert.ok(!opinion.includes('진술함'));assert.ok(Buffer.byteLength(opinion,'utf8')<1500);
+
 }
-console.log('Initial counseling brief output and narrative tests passed.');
+console.log('Initial counseling brief fact output tests passed.');
