@@ -41,6 +41,7 @@
       iapDate:c.iapDate||st.fields?.['#iapDate']||'',
       recognitionDate:c.recognitionDate||st.fields?.['#recognitionDate']||'',
       desired:c.iapDesiredJob||st.fields?.['#wishJob']||'',
+      type:st.fields?.['name:userType:2']===true?'2':'1',
       jobs:Array.isArray(jobs)?jobs:[],
       acts:Array.isArray(acts)?acts:[]
     };
@@ -61,6 +62,7 @@
     if(!regNo)return {error:'먼저 위쪽 IAP 등록번호를 입력해 주세요.'};
     const plan=savedPlan(regNo);
     if(!plan)return {error:'이 등록번호로 저장된 IAP가 없습니다. IAP 수립상담에서 먼저 저장해 주세요.'};
+    if(plan.type==='2')return {error:'Ⅱ유형 참여자는 구직촉진수당 대상 회차 안내를 생성하지 않습니다.'};
     if(!parse(plan.iapDate))return {error:'저장된 IAP 수립일을 확인할 수 없습니다. IAP를 다시 확인해 주세요.'};
     const round=Number(by(doc,'round')?.value||0);
     if(!(round>=1&&round<=6))return {error:'지원 회차를 확인해 주세요.'};
@@ -215,6 +217,7 @@
     button.addEventListener('click',()=>{
       const regNo=by(doc,'iapRegNo')?.value.trim()||'';
       if(!regNo){alert('IAP 등록번호를 입력하고 계획을 저장한 뒤 이용해 주세요.');return;}
+      if(doc.querySelector('input[name="userType"]:checked')?.value==='2'){alert('구직촉진수당 회차별 안내는 Ⅰ유형 전용입니다.');return;}
       if(!savedPlan(regNo)){alert('저장된 IAP가 없습니다. IAP 저장 버튼으로 먼저 저장해 주세요.');return;}
       try{sessionStorage.setItem(PENDING,JSON.stringify({regNo,time:Date.now()}))}catch(e){}
       try{
