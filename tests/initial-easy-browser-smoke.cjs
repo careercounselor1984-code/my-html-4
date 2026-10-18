@@ -12,8 +12,9 @@ for(const id of ['p01','p02']){
  assert.ok(m,'missing '+id);
  const file=path.join(root,'.initial-easy-smoke-'+id+'.html');
  const scenario=String.raw`<script>
-window.addEventListener('DOMContentLoaded',function(){
+window.addEventListener('DOMContentLoaded',async function(){
  try{
+  window.clgGenerateInitialOpinion=async fields=>[fields.strategyTargetJob,fields.clientStatus].join(' · ');
   const by=id=>document.getElementById(id);
   const set=(id,v)=>{by(id).value=v;by(id).dispatchEvent(new Event('input',{bubbles:true}));by(id).dispatchEvent(new Event('change',{bubbles:true}));};
   const must=(condition,message)=>{if(!condition)throw new Error(message);};
@@ -30,7 +31,7 @@ window.addEventListener('DOMContentLoaded',function(){
   choose('motivationReasonPreset','혼자 준비 어려움·단계 지원');choose('motivationEffortPreset','고용24·민간 채용공고 확인');choose('work24SupportPreset','채용정보·취업알선');set('resultType','빠른취업지원형');
   must(by('motivationReason').value.includes('단계적인 지원'),'purpose selection');must(by('motivationEffort').value.includes('고용24'),'effort selection');
   choose('clientStatusPreset','퇴사 후 재취업 · 경력 활용 가능');choose('opinionNeedPreset','구직활동 관련 특이 애로 없음');choose('opinionDirectionPreset','채용정보 제공·취업알선');
-  by('opinionPresetBuild').click();must(by('opinionAssistDraft').value.includes('치과위생사')&&by('opinionAssistDraft').value.includes('퇴사 후 재취업'),'opinion dropdown draft');
+  by('opinionPresetBuild').click();await new Promise(resolve=>setTimeout(resolve,0));must(by('opinionAssistDraft').value.includes('치과위생사')&&by('opinionAssistDraft').value.includes('퇴사 후 재취업'),'opinion dropdown draft');
   if(by('stipendGuide')){must(by('stipendGuide').value.includes('취업·창업·소득 신고'),'stipend guidance restored');must(by('recordOutput').textContent.includes('구직촉진수당 유의사항: 지정일 신청'),'stipend record restored');}
   by('work24Build').click();must(by('work24_motivation').value.includes('- 취업목표 : 치과위생사 (6개월 이내)'),'motivation format');
   must(by('work24_type').value.includes('빠른취업준비형'),'Work24 type name');

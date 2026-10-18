@@ -17,7 +17,7 @@ async function scenario(url, options = {}) {
     url, runScripts: 'outside-only', pretendToBeVisual: true
   });
   const w = dom.window;
-  const stats = {userChecks: 0, serverChecks: 0, signouts: 0};
+  const stats = {userChecks: 0, serverChecks: 0, signouts: 0, opinionCalls: 0};
   const heartbeats = [];
   w.setInterval = callback => { heartbeats.push(callback); return heartbeats.length; };
   w.clearInterval = () => {};
@@ -40,7 +40,15 @@ async function scenario(url, options = {}) {
     }
   };
   if (!options.noSdk) w.supabase = {createClient() {return client;}};
-  w.fetch = async () => {
+  w.fetch = async (url, request) => {
+    if(url.endsWith('/journal-opinion')) {
+      stats.opinionCalls++;
+      assert.equal(request.headers.Authorization,'Bearer mock-user-token');
+      assert.equal(request.headers['x-journal-device-id'],'device-test');
+      const body=JSON.parse(request.body);assert.equal(body.version,1);assert.equal(body.fields.strategyTargetJob,'test-job');
+      if(options.opinionHook)await options.opinionHook();
+      return {ok:true,async json(){return {ok:true,version:1,text:'server opinion'}}};
+    }
     stats.serverChecks++;
     if (options.networkError) throw new Error('network unavailable');
     return {ok: !options.inactive, async json() {
@@ -90,11 +98,19 @@ function assertLocked(w) {
     assert(active.w.clgJobArchiveClient());
     assert.equal(active.stats.serverChecks, 1);
     assert.equal(active.w.__CLG_JOURNAL_EMPLOYEE.email, user.email);
+    assert.equal(await active.w.clgGenerateInitialOpinion({strategyTargetJob:'test-job'}),'server opinion');
+    let release;
+    options.opinionHook=()=>new Promise(resolve=>{release=resolve});
+    const late=active.w.clgGenerateInitialOpinion({strategyTargetJob:'test-job'});
+    await settle();
     options.inactive = true;
     await active.heartbeats[0]();
     await settle();
     assertLocked(active.w);
     assert.equal(active.stats.signouts, 1);
+    release();await assert.rejects(late,/로그인 상태가 변경/);
+    await assert.rejects(active.w.clgGenerateInitialOpinion({strategyTargetJob:'test-job'}),/로그인 상태/);
+    assert.equal(active.stats.opinionCalls,2);
   } finally { active.close(); }
 
   for (const name of ['login-test.html', 'p11-decoded.html']) {
