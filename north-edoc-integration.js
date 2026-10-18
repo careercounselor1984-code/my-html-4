@@ -1,4 +1,4 @@
-/* 좋은일자리 상담일지 통합본 · 북부센터 전용 공문 시험 v1.2
+/* 좋은일자리 상담일지 통합본 · 북부센터 전용 공문 시험 v1.3
  * 공문 전체는 로그인 및 북부센터 소속 검증 뒤에만 서버에서 내려받습니다.
  * 기존 상담 페이지 구성/데이터는 그대로 유지합니다.
  */
@@ -6,7 +6,7 @@
 'use strict';
 const ID='p_north_edoc_trial', GROUP='g_north_trial';
 const CHECK='https://bowxlaiyjxknqccoughl.supabase.co/functions/v1/training-edoc-trial-access';
-const APP='https://bowxlaiyjxknqccoughl.supabase.co/functions/v1/training-edoc-trial-app';
+const APP='https://bowxlaiyjxknqccoughl.supabase.co/functions/v1/training-edoc-trial-document';
 let enabled=false,verifyRun=0,openRun=0,pending=null;
 const frame=()=>document.getElementById('frame');
 const ready=()=>typeof PAGES!=='undefined'&&Array.isArray(PAGES)&&typeof MENU!=='undefined'&&Array.isArray(MENU);
