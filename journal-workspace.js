@@ -22,6 +22,19 @@
   try{s.restoring=true;if(saved.native&&s.win.clgWorkspaceState?.apply)s.win.clgWorkspaceState.apply(saved.native);restoreFields(s.doc,saved.fields);syncClient(s);s.draftStatus='restored'}catch{s.draftStatus='error'}finally{s.restoring=false}
  }
  function attach(tab){if(!supported.has(tab.pageId)||tab.frame.dataset.external==='1')return;let doc,win;try{doc=tab.frame.contentDocument;win=tab.frame.contentWindow}catch{return}if(!doc?.body||doc.readyState==='loading')return;if(installed.has(doc)){hydrate(installed.get(doc));return}for(const old of states){if(old.tab.id===tab.id&&old.doc!==doc){old.closed=true;clearTimeout(old.timer);states.delete(old)}}
+  // Keep the optional common-profile lookup as compact as the native IAP lookup.
+  if(doc.getElementById('clgIapLinkCard')){
+   const style=doc.createElement('style');style.id='clg-compact-registration';
+   style.textContent=`
+    #clgIapLinkCard{padding:10px 12px;margin:8px 0 12px;border-radius:9px}
+    #clgIapLinkCard .clg-iap-link-head{margin-bottom:6px;flex-wrap:wrap;gap:4px 7px}
+    #clgIapLinkCard .clg-iap-link-row{display:grid;grid-template-columns:minmax(0,260px) auto auto;justify-content:start;gap:6px;max-width:100%}
+    #clgIapLinkCard .clg-iap-link-row input{grid-column:auto;width:100%;min-width:0;height:32px;min-height:32px;padding:5px 8px;font-size:12px;border-radius:7px}
+    #clgIapLinkCard .clg-iap-link-row button{width:auto;height:32px;min-height:32px;padding:5px 10px;font-size:11px;border-radius:7px}
+    #clgIapLinkCard .clg-iap-link-status{margin-top:5px;font-size:10px;line-height:1.4}
+    @media(max-width:480px){#clgIapLinkCard .clg-iap-link-row{grid-template-columns:minmax(0,1fr) auto auto}}
+   `;doc.head.appendChild(style);
+  }
   doc.querySelectorAll('.clg-client-workspace').forEach(el=>el.remove());
   const s={tab,doc,win,client:{reg:'',name:'',key:tab.draftId},restoring:false,edited:false,closed:false,timer:null,hydrated:''};installed.set(doc,s);states.add(s);syncClient(s);
   const changed=()=>{if(s.restoring)return;s.edited=true;syncClient(s);schedule(s)};
