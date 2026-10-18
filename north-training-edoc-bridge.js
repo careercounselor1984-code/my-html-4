@@ -1,0 +1,19 @@
+(()=>{
+'use strict';
+const ID='p36',URL='https://bowxlaiyjxknqccoughl.supabase.co/functions/v1/training-edoc-trial-access';
+let allowed=false,modal=null,edoc=null,carry=null;
+const client=()=>window.clgJobArchiveClient?.(), txt=v=>String(v??'').trim();
+function menu(){if(typeof PAGES==='undefined'||typeof MENU==='undefined')return;if(!PAGES.some(x=>x.id===ID))PAGES.push({id:ID,title:'공문 (북부센터 시험)',url:'./north-training-edoc-trial.html'});const g=MENU.find(x=>x.id==='g_plan');if(!g)return;g.items=g.items.filter(x=>x.pageId!==ID);if(allowed)g.items.push({pageId:ID,label:'📄 공문 (북부센터 시험)'});renderMenu();}
+async function check(){allowed=false;try{const c=client(),{data}=await c.auth.getSession(),r=await fetch(URL,{method:'POST',headers:{'content-type':'application/json','authorization':'Bearer '+data.session.access_token},body:'{}'}),d=await r.json();allowed=!!(r.ok&&d.allowed&&d.team==='북부센터');}catch(_){}menu();return allowed;}
+function snapshot(){const d=document.getElementById('frame')?.contentDocument,v=id=>txt(d?.getElementById(id)?.value);return {iap:v('clgIapRegNo'),course:{title:v('clgTrCourse')||v('nextCourse'),institution:v('clgTrOrg'),phone:v('clgTrTel'),startDate:v('clgTrCourseStart'),endDate:v('clgTrCourseEnd')}}}
+function build(){if(modal)return;modal=document.createElement('section');modal.style.cssText='position:fixed;inset:0;z-index:999999;background:white;display:none;flex-direction:column';modal.innerHTML='<div style="padding:10px;background:#edf4ff;display:flex;justify-content:space-between"><b>📄 공문 · 북부센터 시험</b><button id="northEdocBack">← 내일배움카드 상담으로</button></div><iframe title="공문" style="border:0;width:100%;flex:1"></iframe>';document.body.append(modal);edoc=modal.querySelector('iframe');modal.querySelector('button').onclick=back;edoc.onload=()=>edoc.contentWindow.postMessage({type:'gj:north-edoc:init',authorized:true,carryIn:carry},location.origin);}
+async function open(fromJournal){if(!await check())return alert('북부센터 직원만 시험 사용할 수 있습니다.');build();carry=fromJournal?snapshot():null;modal.style.display='flex';if(!edoc.src||edoc.src==='about:blank')edoc.src='./north-training-edoc-trial.html';else edoc.onload();}
+function back(){if(!modal)return;try{const data=edoc.contentWindow.GoodJobEdoc.exportData(),p=data.people[data.activeIndex||0],c=p.courses?.primary||{};const d=document.getElementById('frame')?.contentDocument;if(activePageId==='p13'&&d){for(const [id,k] of Object.entries({clgTrCourse:'title',clgTrOrg:'institution',clgTrTel:'phone',clgTrCourseStart:'startDate',clgTrCourseEnd:'endDate'})){const el=d.getElementById(id);if(el&&txt(c[k])){el.value=c[k];el.dispatchEvent(new Event('input',{bubbles:true}))}}d.defaultView.generate?.();}}catch(_){}modal.style.display='none'}
+function insert(){if(!allowed||activePageId!=='p13')return;const d=document.getElementById('frame')?.contentDocument;if(!d||d.getElementById('northEdocBtn'))return;const b=d.createElement('button');b.id='northEdocBtn';b.textContent='📄 훈련정보로 공문 작성';b.style.cssText='display:block;margin:12px 0;padding:10px;border:1px solid #8ab1dd;border-radius:8px;background:#eaf4ff;color:#245287';b.onclick=()=>void open(true);(d.getElementById('clgTrainingHelper')||d.body).prepend(b);}
+document.addEventListener('click',e=>{const b=e.target.closest?.('.page-btn');if(b?.dataset.pageId===ID){e.preventDefault();e.stopImmediatePropagation();void open(activePageId==='p13')}},true);
+window.addEventListener('message',e=>{if(e.origin===location.origin&&e.source===edoc?.contentWindow&&e.data?.type==='gj:north-edoc:return')back()});
+document.getElementById('frame')?.addEventListener('load',()=>setTimeout(insert,25));
+window.addEventListener('clg-auth-ready',()=>void check().then(insert));
+window.addEventListener('clg-auth-logout',()=>{allowed=false;if(modal)modal.style.display='none';menu()});
+menu();void check().then(insert);
+})();
