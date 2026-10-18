@@ -21,6 +21,9 @@ function showMenu(){
 }
 function hideMenu(){
  enabled=false;opening++;incoming=null;outgoing=null;officialDraft=null;
+ for(const f of document.querySelectorAll('iframe.clgWorkFrame[data-page-id="'+PAGE+'"]')){
+  try{f.removeAttribute('src');f.srcdoc='<!doctype html><html lang="ko"><meta charset="utf-8"><body style="font:14px sans-serif;padding:28px">직원 인증이 해제되어 공문 내용을 닫았습니다.</body></html>'}catch(_){}
+ }
  if(typeof MENU!=='undefined')MENU=MENU.filter(g=>g.id!==GROUP);
  if(typeof PAGES!=='undefined'){const i=PAGES.findIndex(p=>p.id===PAGE);if(i>=0)PAGES.splice(i,1)}
  if(onEdoc()&&previousLoad)previousLoad('p13');
@@ -83,7 +86,7 @@ async function open(){
    if(serial!==opening||!enabled||!onEdoc())return;
    try{
     if(!view.contentDocument?.getElementById('gjNorthAccessGate'))return;
-    view.contentWindow?.postMessage({type:'gj:north-edoc:init',authorized:true,carryIn:carry,draft:officialDraft},location.origin);
+    view.contentWindow?.postMessage({type:'gj:north-edoc:init',authorized:true,carryIn:carry,draft:officialDraft,staff:{name:String(window.__CLG_JOURNAL_EMPLOYEE?.name||'').trim()}},location.origin);
    }catch(e){console.warn('[북부 공문] 승인 신호 재전송 대기',e)}
   };
   currentInit=sendInit;
@@ -134,7 +137,16 @@ function applyReturn(){
 }
 if(previousLoad){
  loadPage=function(id){
-  if(id===PAGE){if(enabled)void open();return}
+  if(id===PAGE){
+   if(!enabled)return;
+   // The workspace must create/activate the corresponding tab first.
+   const tab=previousLoad(id);
+   try{
+    if(frame()?.contentDocument?.documentElement?.classList.contains('gjNorthApproved'))return tab;
+   }catch(_){}
+   void open();
+   return tab;
+  }
   preserve();opening++;return previousLoad(id);
  };
 }
