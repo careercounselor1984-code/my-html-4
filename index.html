@@ -4700,6 +4700,38 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
   let quickAction='';
   let userHidden=false;
 
+  const readinessNames=['q1_jobGoal','q2_jobWill','q3_jobPlan','q4_jobSkill','q5_jobInfo','q6_competencyChange','q7_barrier','health'];
+  const readinessBound=new WeakSet();let readinessSaved=null;
+  function readinessDoc(){try{const frame=window.clgGetActiveFrame?.()||$('frame');const doc=frame?.contentDocument;return doc?.getElementById('readinessSendBtn')?doc:null;}catch{return null;}}
+  function isReadinessPage(){return !!readinessDoc();}
+  function readinessSignature(doc){return JSON.stringify([doc.getElementById('clgIapRegNo')?.value||'',doc.getElementById('counselingDate')?.value||'',...readinessNames.map(n=>doc.querySelector(`input[name="${n}"]:checked`)?.id||'')]);}
+  function showReadinessConnected(){
+    const doc=readinessDoc();if(!doc)return;
+    const count=readinessNames.filter(n=>doc.querySelector(`input[name="${n}"]:checked`)).length;
+    if(!readinessBound.has(doc)){
+      readinessBound.add(doc);doc.addEventListener('change',()=>{if(readinessDoc()===doc&&bridgeReady)showReadinessConnected();});
+      doc.defaultView.addEventListener('message',e=>{
+        if(e.source!==window||e.data?.marker!=='CLG_READINESS_PAGE_V150')return;
+        if(e.data.type==='READINESS_SAVED'){
+          readinessSaved={doc,signature:readinessSignature(doc)};
+          if(readinessDoc()===doc){showReadinessConnected();showMessage('✓ 설문 저장 확인 완료 · Work24에서 전산도우미의 구직준비도 등록을 실행하세요.','ok');}
+        }else if(e.data.type==='READINESS_SAVE_ERROR'&&readinessDoc()===doc)showMessage('설문 전송 실패: '+(e.data.payload?.message||'연결 상태를 확인하세요.'),'error');
+      });
+    }
+    if(panel)panel.hidden=false;currentKind='readiness';setCompactMode('readiness');
+    setTitle('구직준비도 연결','현재 설문을 통합본에서 전산도우미로 보냅니다.',`구직준비도 ${count}/8개 선택`);
+    setDetails([['설문 선택',`${count}/8개`],['전송 방향','통합본 → 전산도우미 → Work24'],['다음 단계','설문 전송 후 Work24에서 구직준비도 등록 실행']]);
+    $('clgBridgeApplyBtn').textContent='설문 전송';
+    const saved=readinessSaved?.doc===doc&&readinessSaved.signature===readinessSignature(doc);
+    showMessage(saved?'✓ 현재 설문 저장 확인 완료 · Work24에서 확인하세요.':count===8?'참여자가 응답한 설문 8개를 전산도우미로 보낼 수 있습니다.':`참여자가 응답한 문항을 확인해 주세요. 현재 ${count}/8개이며, 상담일지 작성·복사는 별도로 가능합니다.`,saved||count===8?'ok':'warn');
+  }
+  function triggerReadinessSend(){
+    const doc=readinessDoc();if(!doc)return;
+    const count=readinessNames.filter(n=>doc.querySelector(`input[name="${n}"]:checked`)).length;
+    if(count!==8){showReadinessConnected();return;}
+    const btn=doc.getElementById('readinessSendBtn');if(btn.disabled){showMessage('설문 저장 확인 중입니다. 잠시 기다려 주세요.','warn');return;}
+    btn.click();showMessage('구직준비도 설문 전송 · 확장프로그램 저장 확인 중입니다.','warn');
+  }
   function isIapPage(){
     try{
       if(typeof activePageId!=='undefined' && activePageId==='p05') return true;
@@ -4732,6 +4764,7 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
     if(quickBtn){
       quickBtn.hidden=true;
       if(mode==='disconnected'){quickAction='retry';quickBtn.textContent='재확인';quickBtn.hidden=false;}
+      else if(isReadinessPage() && mode!=='waiting'){quickAction='readiness-send';quickBtn.textContent='설문 전송';quickBtn.hidden=false;}
       else if(isIapPage() && mode!=='waiting'){
         quickAction='iap-send';
         quickBtn.textContent='IAP 전송';
@@ -4778,6 +4811,7 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
     showMessage('미니바의 “IAP 전송” 또는 IAP 화면 상단의 “국취전산으로 보내기”를 사용할 수 있습니다.','ok');
   }
   function showConnectedEmpty(){
+    if(isReadinessPage()){showReadinessConnected();return;}
     if(isIapPage()){showIapConnected();return;}
     if(panel)panel.hidden=false; currentKind='';
     setCompactMode('connected');
@@ -4825,6 +4859,7 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
   function renderState(s){
     state={basic:s?.basic||null,allowance:s?.allowance||null,termination:s?.termination||null};
     if(panel)panel.hidden=false;
+    if(isReadinessPage()){if(bridgeReady)showReadinessConnected();return;}
     if(isIapPage()){
       if(bridgeReady)showIapConnected();
       return;
@@ -5000,6 +5035,7 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
   }
   function apply(){
     if(typeof window.loadPage!=='function'){showMessage('통합본 메뉴 함수를 찾지 못했습니다.','warn');return;}
+    if(isReadinessPage()){triggerReadinessSend();return;}
     if(isIapPage()){triggerIapSend();return;}
     if(currentKind==='termination'&&state.termination){applyTermination(state.termination);return;}
     if(currentKind==='allowance'&&state.allowance){applyAllowance(state.allowance);return;}
@@ -5048,8 +5084,8 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
   window.addEventListener('message',(e)=>{if(e.source!==window)return;const d=e.data||{};if(d.marker!==MARKER)return;if(d.type==='BRIDGE_READY'){bridgeReady=true;clearTimeout(checkTimer);if(!latestKind())showConnectedEmpty();}if(d.type==='PENDING_STATE'){bridgeReady=true;clearTimeout(checkTimer);renderState(d.payload||{});}});
   $('clgBridgeApplyBtn')?.addEventListener('click',apply);
   $('clgBridgeRetryBtn')?.addEventListener('click',request);
-  $('clgBridgeClearBtn')?.addEventListener('click',()=>{if(currentKind==='termination')window.postMessage({marker:MARKER,type:'CLEAR_PENDING_TERMINATION'},'*');else if(currentKind==='allowance')window.postMessage({marker:MARKER,type:'CLEAR_PENDING_ALLOWANCE'},'*');else if(currentKind==='basic')window.postMessage({marker:MARKER,type:'CLEAR_PENDING_BASIC'},'*');else showMessage('지울 대기자료가 없습니다.','warn');});
-  quickBtn?.addEventListener('click',()=>{if(quickAction==='apply')apply();else if(quickAction==='retry')request();else if(quickAction==='iap-send')triggerIapSend();});
+  $('clgBridgeClearBtn')?.addEventListener('click',()=>{if(isReadinessPage()){showMessage('설문은 구직재점검 화면에서 수정하세요. 이 버튼으로 기본정보 대기자료를 지우지 않습니다.','warn');return;}if(currentKind==='termination')window.postMessage({marker:MARKER,type:'CLEAR_PENDING_TERMINATION'},'*');else if(currentKind==='allowance')window.postMessage({marker:MARKER,type:'CLEAR_PENDING_ALLOWANCE'},'*');else if(currentKind==='basic')window.postMessage({marker:MARKER,type:'CLEAR_PENDING_BASIC'},'*');else showMessage('지울 대기자료가 없습니다.','warn');});
+  quickBtn?.addEventListener('click',()=>{if(quickAction==='apply')apply();else if(quickAction==='retry')request();else if(quickAction==='iap-send')triggerIapSend();else if(quickAction==='readiness-send')triggerReadinessSend();});
   expandBtn?.addEventListener('click',()=>setExpanded(!panel?.classList.contains('is-expanded')));
   $('clgBridgeHeadText')?.addEventListener('click',()=>setExpanded(!panel?.classList.contains('is-expanded')));
   $('clgBridgeCloseBtn')?.addEventListener('click',()=>{userHidden=true;syncPageVisibility();});
@@ -5057,10 +5093,11 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
   function refreshBridgeForPage(){
     syncPageVisibility();
     if(!bridgeReady)return;
-    if(isIapPage()) showIapConnected();
+    if(isReadinessPage())showReadinessConnected();
+    else if(isIapPage()) showIapConnected();
     else renderState(state);
   }
-  window.addEventListener('clg-page-change',()=>setTimeout(refreshBridgeForPage,80));
+  for(const name of ['clg-page-change','clg-tab-switch','clg-tab-frame-load'])window.addEventListener(name,()=>setTimeout(refreshBridgeForPage,80));
   syncPageVisibility();
   request();setTimeout(()=>{if(!bridgeReady)request();},400);
 })();
