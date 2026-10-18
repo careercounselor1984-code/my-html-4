@@ -41,6 +41,11 @@ async function scenario(url, options = {}) {
   };
   if (!options.noSdk) w.supabase = {createClient() {return client;}};
   w.fetch = async (url, request) => {
+    if(url.endsWith('/journal-stipend')) {
+      assert.equal(request.headers.Authorization,'Bearer mock-user-token');
+      assert.equal(request.headers['x-journal-device-id'],'device-test');
+      return {ok:true,async json(){return {ok:true,version:1,calc:{pay:12345}}}};
+    }
     if(url.endsWith('/journal-opinion')) {
       stats.opinionCalls++;
       assert.equal(request.headers.Authorization,'Bearer mock-user-token');
@@ -99,6 +104,7 @@ function assertLocked(w) {
     assert.equal(active.stats.serverChecks, 1);
     assert.equal(active.w.__CLG_JOURNAL_EMPLOYEE.email, user.email);
     assert.equal(await active.w.clgGenerateInitialOpinion({strategyTargetJob:'test-job'}),'server opinion');
+    assert.equal((await active.w.clgComputeStipend({ratePct:100})).pay,12345);
     let release;
     options.opinionHook=()=>new Promise(resolve=>{release=resolve});
     const late=active.w.clgGenerateInitialOpinion({strategyTargetJob:'test-job'});
@@ -110,6 +116,7 @@ function assertLocked(w) {
     assert.equal(active.stats.signouts, 1);
     release();await assert.rejects(late,/로그인 상태가 변경/);
     await assert.rejects(active.w.clgGenerateInitialOpinion({strategyTargetJob:'test-job'}),/로그인 상태/);
+    await assert.rejects(active.w.clgComputeStipend({ratePct:100}),/로그인 상태/);
     assert.equal(active.stats.opinionCalls,2);
   } finally { active.close(); }
 
