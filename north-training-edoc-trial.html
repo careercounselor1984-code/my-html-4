@@ -4020,7 +4020,7 @@ body.gj-training-open{overflow:hidden}
    }catch(err){console.warn('[공문 시험] 훈련정보 자동연동 실패',err)}
  }
  window.addEventListener('message',e=>{
-   if(e.source!==window.parent||e.origin!==location.origin||e.data?.type!=='gj:north-edoc:init'||e.data.authorized!==true)return;
+   if(e.source!==window.parent||e.origin!==window.parent.location.origin||e.data?.type!=='gj:north-edoc:init'||e.data.authorized!==true)return;
    document.documentElement.classList.add('gjNorthApproved');
    applyData(e.data);
  });
@@ -4028,10 +4028,12 @@ body.gj-training-open{overflow:hidden}
    const wrap=document.createElement('div');wrap.style.cssText='padding:8px 18px;background:#ecf4ff;border-bottom:1px solid #cadeef;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;font-family:Malgun Gothic,sans-serif';
    const text=document.createElement('span');text.id='gjNorthTransferNotice';text.textContent='북부센터 시험 · 국민내일배움카드 상담과 연결';text.style.cssText='font-size:12px;color:#345477';
    const btn=document.createElement('button');btn.id='gjNorthReturnButton';btn.textContent='← 내일배움카드 상담으로 돌아가기';btn.style.cssText='background:#235dab;color:white;border:0;border-radius:7px;padding:9px 12px;font-size:13px;font-weight:700;cursor:pointer';
-   btn.onclick=()=>window.parent.postMessage({type:'gj:north-edoc:return'},location.origin);
+   btn.onclick=()=>window.parent.postMessage({type:'gj:north-edoc:return'},window.parent.location.origin);
    wrap.append(text,btn);document.body.prepend(wrap);
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+ const ready=()=>{if(window.parent!==window)window.parent.postMessage({type:'gj:north-edoc:ready'},window.parent.location.origin)};
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready,{once:true});else ready();
 })();
 </script>
 </body></html>
