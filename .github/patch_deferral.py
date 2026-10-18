@@ -1,6 +1,9 @@
 from pathlib import Path
 import base64
 import re
+import tempfile
+
+DECODED_PREVIEW = Path(tempfile.gettempdir()) / "goodjob-p11-decoded.html"
 
 INDEX = Path("index.html")
 s = INDEX.read_text(encoding="utf-8")
@@ -20,7 +23,7 @@ if not match:
 html = base64.b64decode(match.group(1)).decode("utf-8")
 if 'data-tab="DEFER"' in html:
     print("ALREADY_PATCHED")
-    Path("p11-decoded.html").write_text(html, encoding="utf-8")
+    DECODED_PREVIEW.write_text(html, encoding="utf-8")
     raise SystemExit(0)
 
 
@@ -206,6 +209,6 @@ for token, wanted in expected.items():
 new_b64 = base64.b64encode(html.encode("utf-8")).decode("ascii")
 s = s[: match.start(1)] + new_b64 + s[match.end(1) :]
 INDEX.write_text(s, encoding="utf-8")
-Path("p11-decoded.html").write_text(html, encoding="utf-8")
+DECODED_PREVIEW.write_text(html, encoding="utf-8")
 print("PATCH_OK")
 print("patched module chars:", len(html))
