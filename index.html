@@ -4331,24 +4331,8 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
   });
 
   async function bootstrap(){
-    // PC에 내려받은 index.html 및 로컬 미리보기는 편집·테스트용으로 로그인 없이 사용
-    // 실제 GitHub Pages(https://)에서는 기존 로그인 보호를 그대로 적용
-    var localHost=(location.hostname||'').toLowerCase();
-    var isLocalEditMode=
-      location.protocol==='file:' ||
-      localHost==='localhost' ||
-      localHost==='127.0.0.1' ||
-      localHost==='0.0.0.0' ||
-      localHost==='[::1]' ||
-      localHost.endsWith('.localhost');
-
-    if(isLocalEditMode){
-      document.documentElement.classList.remove('cc-auth-pending','cc-auth-checking');
-      gate.classList.add('cc-hidden');
-      dock.classList.remove('show');
-      return;
-    }
-
+    // Downloaded copies and local previews must use the same account checks.
+    // This UI gate is not code-copy protection; protected logic belongs on the server.
     if(!window.supabase || !window.supabase.createClient){
       showLogin('로그인 모듈을 불러오지 못했습니다. 인터넷 연결을 확인해 주세요.');
       return;
