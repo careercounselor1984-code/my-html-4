@@ -38,7 +38,7 @@
  function cancelPending(){if(pending){clearTimeout(pending.timer);pending.resolve(null);pending=null;}}
  function calculate(options={}){
   const fields=collect(),key=JSON.stringify(fields);totals(fields);
-  if(key!==lastKey){lastKey=key;epoch++;cache=null;}
+  if(key!==lastKey){lastKey=key;epoch++;cache=null;stale();}
   const version=epoch;
   if(!authenticated()){cancelPending();unresolved('로그인 후 지급액을 계산합니다.');return Promise.resolve(null);}
   if(!options.fresh&&cache?.key===key&&Date.now()-cache.at<15000){render(cache.calc);return Promise.resolve(cache.calc);}

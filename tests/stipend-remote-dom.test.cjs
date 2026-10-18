@@ -29,6 +29,10 @@ async function setup(){
   await s.w.calculate({immediate:true});assert.equal(s.state.calls.length,before+1);assert.equal(s.d.getElementById('finalPayment').innerText,'900,000');
   await s.w.generateResult();assert(s.d.getElementById('logResult').value.includes('- 최종 지급액: 900,000원'));assert(s.d.getElementById('kakaoResult').value.includes('900,000원'));assert.equal(s.d.getElementById('resultArea').dataset.current,'1');
   s.w.copyText('logResult');assert.equal(s.state.copies,1);
+  s.d.getElementById('familyCount').value='2';await s.w.calculate({immediate:true});
+  assert.equal(s.d.getElementById('resultArea').dataset.current,'0','direct calculate after programmatic amount changes invalidates old output');
+  s.w.copyText('logResult');assert.equal(s.state.copies,1);
+  s.d.getElementById('familyCount').value='3';await s.w.generateResult();
   s.d.getElementById('logResult').value='직접 고친 결과';s.set('nextPlanActivities','새 과제');s.w.copyText('logResult');assert.equal(s.state.copies,1,'copy blocked after source changes');assert.equal(s.d.getElementById('logResult').value,'직접 고친 결과');
   s.state.reply=()=>{throw Error('network failure')};await s.w.generateResult();assert.equal(s.d.getElementById('logResult').value,'직접 고친 결과');assert.equal(s.d.getElementById('generateStipendBtn').disabled,false);assert.equal(s.d.getElementById('resultArea').dataset.current,'0');
   s.state.signedIn=false;s.w.dispatchEvent(new s.w.Event('clg-auth-logout'));const n=s.state.calls.length;assert.equal(await s.w.calculate({immediate:true}),null);assert.equal(s.state.calls.length,n,'no request when logged out');
