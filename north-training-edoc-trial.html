@@ -2519,267 +2519,7 @@ function paper(){
  const widths=w?[9,9,12,17,14,15,24]:[12,12,16,22,15,11,12];
  const values=w?[cell(V('d24PersonName')),cell(V('d24Type')),cell(birthText),iapHTML,cell(koDate(V('d24Apply'))),cell(koDate(V('d24ActionDate'))),cell(V('d24Reason'))]:[cell(V('d24PersonName')),cell(birthText),iapHTML,cell(V('d24Reason')),cell(koDate(V('d24ActionDate'))),cell(V('gjReturnTarget')),cell(V('d24Manager'))];
  const sentence=w?'국민취업지원제도 신청 취하 처리를 아래와 같이 보고 드리오니 검토 후 처리하여 주시기 바랍니다.':'국민취업지원제도 참여자의 지원 종료 보고를 아래와 같이 보고 드리오니 검토 후 처리해주시기 바랍니다.';
- return `<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>${esc(def.title)}</title><style>${fonts}</style><style>*{box-sizing:border-box}body{margin:0;color:#000;background:white;font-family:'Malgun Gothic','Noto Sans KR',sans-serif}main{width:210mm;min-height:297mm;margin:auto;padding:28mm 20mm;font-size:11pt;line-height:1.65}h1{font-size:14pt;margin:0 0 8mm;border-bottom:1px solid #555;padding-bottom:4mm}p{margin:0 0 5mm}.below{text-align:center;margin:12mm 0 3mm}table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:10pt;line-height:1.45}th,td{border:1px solid #000;padding:2mm 1mm;text-align:center;vertical-align:middle;font-weight:400;overflow-wrap:anywhere}tbody tr{height:24mm}th{padding:1mm}th:nth-child(2),td:nth-child(2){white-space:nowrap;word-break:keep-all}.attach{margin-top:7mm;font-size:10pt}@page{size:A4;margin:0}@media print{body{height:auto!important;overflow:visible!important}main{margin:0!important;transform:none!important}}</style></head><body><main><h1>${esc(def.title)}</h1><p>1. 귀 센터의 무궁한 발전을 기원합니다.</p><p>2. ${sentence}</p><div class="below">- 아 래 -</div><table><colgroup>${widths.map(x=>'<col style="width:'+x+'%">').join('')}</colgroup><thead><tr>${heads.map(h=>'<th>'+h+'</th>').join('')}</tr></thead><tbody><tr>${values.map(v=>'<td>'+v+'</td>').join('')}</tr></tbody></table></main><style id="gjTrainingPopupCSS">
-/* v22.21: Keep the legacy course-selection engine; only move the training finder into a modal. */
-#gjTrainingFinderCard{padding:16px 17px!important;border:1px solid #dce6f0;background:#fff;border-radius:11px}
-#gjTrainingFinderCard h2{font-size:15px;margin:0 0 8px}
-#gjTrainingFinderCard .gj-selected-course{color:#426079;font-size:12px;line-height:1.55;margin:7px 0 12px;overflow-wrap:anywhere}
-#gjTrainingFinderCard .gj-finder-launch{background:#1b579f;color:#fff;border:1px solid #1b579f;padding:11px 16px;border-radius:8px;font-weight:750;font-size:13px;width:100%}
-#gjTrainingFinderCard .gj-finder-tip{font-size:11px;color:#6c7e91;line-height:1.5;margin:9px 0 0}
-#trainingSearchPanel.gj-training-legacy-hidden{display:none!important}
-body.gj-training-open{overflow:hidden}
-#gjTrainingOverlay[hidden]{display:none!important}
-#gjTrainingOverlay{position:fixed;inset:0;z-index:99999;background:rgba(15,32,55,.65);display:flex;align-items:center;justify-content:center;padding:18px}
-#gjTrainingModal{width:min(1060px,100%);height:min(790px,92dvh);max-height:92dvh;min-height:0;display:flex;flex-direction:column;border-radius:15px;background:#fff;box-shadow:0 20px 75px #0c1d3490;overflow:hidden;color:#273b55}
-.gj-tr-modal-head{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:17px 21px;border-bottom:1px solid #e1e7ef;background:#fff;flex-shrink:0}
-.gj-tr-modal-head h2{margin:0;font-size:19px;line-height:1.3}
-.gj-tr-modal-head small{color:#687a8f;display:block;font-size:11px;font-weight:400;margin-top:4px}
-#gjTrainingClose{background:#f0f4fa;border:1px solid #dce5ef;border-radius:8px;font-weight:700;color:#445c77;padding:8px 13px;font-size:13px}
-.gj-tr-modal-main{display:grid;grid-template-columns:305px minmax(0,1fr);min-height:0;flex:1;overflow:hidden}
-#gjTrainFilters{min-height:0;overflow-y:auto;padding:17px;background:#f8fafd;border-right:1px solid #e3e9f1}
-#gjTrainFilters .field{margin:0 0 12px}
-#gjTrainFilters .field label{font-size:12px;font-weight:650;margin:0 0 5px}
-#gjTrainFilters input,#gjTrainFilters select{width:100%;min-height:39px;border-radius:7px;border:1px solid #cad7e6;background:#fff;padding:8px;font-size:13px}
-#gjTrainFilters .two{grid-template-columns:1fr 1fr;gap:8px}
-#gjTrainFilters .gj-tr-region-wrap{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-#gjTrainFilters .gj-tr-region-wrap>.field{min-width:0}
-#gjTrainFilters .gj-tr-dates{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-#gjTrainFilters .gj-tr-dates>.field{min-width:0}
-#gjTrainFilters #searchBtn{background:#1b579f;color:#fff;border-color:#1b579f}
-#gjTrainFilters .bar .btn{font-size:12px;padding:10px 8px}
-#gjTrainFilters details{margin:0 0 12px!important}
-#gjTrainFilters details>summary{font-size:11px!important}
-.gj-tr-quick-title{font-size:11px;font-weight:700;color:#58708e;margin:-3px 0 7px}
-#gjTrainRegionChips{display:flex;flex-wrap:wrap;gap:5px;margin:0 0 15px}
-#gjTrainRegionChips button{padding:6px 8px;border:1px solid #cbd8e8;background:white;color:#315275;font-size:11px;border-radius:7px}
-#gjTrainRegionChips button.active{background:#e2f0ff;border-color:#4d8acb;color:#104a87;font-weight:800}
-#gjTrainRegionChips button:disabled{opacity:.45;cursor:not-allowed}
-#gjTrainFilters #query::placeholder{color:#8b9aab}
-.gj-tr-results-pane{min-width:0;min-height:0;overflow:hidden;display:flex;flex-direction:column;padding:0 18px 12px;background:#fff}
-.gj-tr-results-head{flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:15px 0 9px;border-bottom:1px solid #e8edf3}
-.gj-tr-results-head strong{font-size:14px}
-.gj-tr-results-head span{font-size:11px;color:#738497}
-#gjTrainResultsWrap{min-height:0;flex:1;display:flex;flex-direction:column;overflow:hidden}
-#gjTrainResultsWrap #searchStatus{flex-shrink:0;font-size:12px;line-height:1.55;padding:10px 11px;margin:11px 0 5px;white-space:pre-wrap}
-#gjTrainResultsWrap #results{overflow-y:auto;max-height:none;min-height:0;flex:1;display:block;padding:0 2px 5px;margin-top:3px}
-#gjTrainResultsWrap .gj-tr-item{display:flex;width:100%;gap:9px;justify-content:space-between;align-items:center;text-align:left;background:#fff;color:#223a56;border:1px solid #e0e8f1;border-radius:9px;padding:12px 13px;margin-bottom:8px;cursor:pointer}
-#gjTrainResultsWrap .gj-tr-item:hover,#gjTrainResultsWrap .gj-tr-item:focus-visible{background:#f0f6ff;border-color:#7aa7dc}
-.gj-tr-item .gj-tr-item-content{min-width:0;flex:1;display:grid;gap:4px}
-.gj-tr-item strong{font-size:13px;line-height:1.55;word-break:keep-all}
-.gj-tr-item .gj-tr-sub{font-size:11px;color:#61758d;line-height:1.55;overflow-wrap:anywhere}
-.gj-tr-select-hint{border:1px solid #a9c4e5;background:#f0f6ff;color:#20538c;font-size:11px;border-radius:6px;padding:6px 8px;white-space:nowrap}
-.gj-tr-source{font-size:11px;color:#657d98;display:block;margin:0 0 10px;text-decoration:underline;text-underline-offset:2px}
-.gj-tr-results-foot{flex-shrink:0;border-top:1px solid #e8edf3;padding:9px 0 3px;display:flex;justify-content:space-between;align-items:center;gap:10px}
-.gj-tr-results-foot .gj-tr-pager{display:flex;gap:7px;align-items:center}
-.gj-tr-results-foot button{border:1px solid #c6d5e7;background:#f7faff;color:#2c537c;font-size:12px;padding:7px 10px;border-radius:7px}
-.gj-tr-results-foot button:disabled{opacity:.35;cursor:default}
-#gjTrainPageLabel{font-size:12px;color:#516b86;white-space:nowrap;min-width:42px;text-align:center}
-#gjTrainResultsMeta{color:#6a7f94;font-size:11px;min-width:0}
-.gj-tr-footer{font-size:11px;color:#738497;padding:9px 20px;border-top:1px solid #e7edf3;background:#fbfcfe;flex-shrink:0}
-@media(max-width:740px){#gjTrainingOverlay{padding:5px}#gjTrainingModal{height:97dvh;max-height:97dvh;border-radius:9px}.gj-tr-modal-main{display:block;overflow-y:auto}.gj-tr-modal-head{padding:12px 13px}.gj-tr-modal-head h2{font-size:16px}#gjTrainFilters{overflow:visible;border:0;border-bottom:1px solid #e0e8f2;padding:12px}#gjTrainFilters .field{margin-bottom:8px}.gj-tr-results-pane{padding:0 11px 11px;overflow:visible;min-height:330px}#gjTrainResultsWrap{flex:none;overflow:visible}#gjTrainResultsWrap #results{overflow:visible;flex:none;min-height:120px}#gjTrainFilters .gj-tr-dates>.field input{font-size:12px}.gj-tr-footer{padding:7px 12px}}
-@media print{#gjTrainingOverlay,#gjTrainingFinderCard{display:none!important}}
-</style>
-<script id="gjTrainingPopupScript">
-(function(){
- 'use strict';
- const $=id=>document.getElementById(id), fold=$('trainingSearchPanel');
- if(!fold || !$('searchBtn') || !$('gjStep1') || !window.GoodJobForms?.selectTraining)return;
- const body=fold.querySelector('.fold-body');
- if(!body)return;
- const launcher=document.createElement('section');
- launcher.id='gjTrainingFinderCard';launcher.className='box';
- launcher.innerHTML='<h2>훈련과정 찾기 <small>고용24 API</small></h2><p class="gj-selected-course" id="gjFinderCourseSummary">선택된 훈련과정이 없습니다.</p><button id="gjOpenTrainingFinder" type="button" class="gj-finder-launch">훈련과정 찾아보기</button><p class="gj-finder-tip">울산 전체 또는 구·군만 골라도 개강 예정 훈련과정을 조회할 수 있습니다.</p>';
- fold.before(launcher);
- // Keep the original details and IDs for legacy scripts, but prevent duplicate search panels.
- fold.classList.add('gj-training-legacy-hidden');
- const overlay=document.createElement('div');overlay.id='gjTrainingOverlay';overlay.hidden=true;
- overlay.innerHTML='<div id="gjTrainingModal" role="dialog" aria-modal="true" aria-labelledby="gjTrainModalTitle" tabindex="-1"><div class="gj-tr-modal-head"><div><h2 id="gjTrainModalTitle">훈련과정 찾아보기</h2><small>지역만 선택해도 조회됩니다 · 과정 선택 시 공문·추천서·탐색표 자동 반영</small></div><button id="gjTrainingClose" type="button" aria-label="검색창 닫기">닫기 ✕</button></div><div class="gj-tr-modal-main"><section id="gjTrainFilters" aria-label="훈련과정 검색 조건"></section><section class="gj-tr-results-pane" aria-label="훈련과정 검색 결과"><div class="gj-tr-results-head"><strong>조회된 훈련과정</strong><span>개강일 빠른 순 · 20개씩</span></div><div id="gjTrainResultsWrap"></div><div class="gj-tr-results-foot"><div id="gjTrainResultsMeta">과정을 선택하면 문서에 자동 반영됩니다.</div><div class="gj-tr-pager"><button type="button" id="gjTrainPrev">이전</button><span id="gjTrainPageLabel">1 / 1</span><button type="button" id="gjTrainNext">다음</button></div></div></section></div><div class="gj-tr-footer">정보는 고용24 API 조회 기준입니다. 신청 가능 여부 및 실제 훈련일정은 상세페이지에서 최종 확인하세요.</div></div>';
- document.body.append(overlay);
- const filter=$('gjTrainFilters'),resultWrap=$('gjTrainResultsWrap');
- // Move existing native form elements: original IDs, value bindings and change listeners remain unchanged.
- const status=$('searchStatus'),results=$('results');
- for(const el of [...body.children]){
-   if(el===status||el===results||el.classList.contains('mini'))resultWrap.append(el);
-   else filter.append(el);
- }
- // The existing static help belongs below result, not within the scrollable listing.
- for(const el of [...resultWrap.children])if(el.classList.contains('mini'))el.classList.add('gj-tr-help');
- if(status.parentElement===resultWrap && results.parentElement===resultWrap){
-   for(const help of resultWrap.querySelectorAll('.gj-tr-help'))help.remove();
- }
- $('query').placeholder='과정명·자격증 (입력하지 않아도 조회)';
- const regionRow=$('region').closest('.two');if(regionRow)regionRow.classList.add('gj-tr-region-wrap');
- const dates=$('from').closest('.two');if(dates)dates.classList.add('gj-tr-dates');
- const chipsLabel=document.createElement('div');chipsLabel.className='gj-tr-quick-title';chipsLabel.textContent='울산 구·군 빠른 선택';
- const chips=document.createElement('div');chips.id='gjTrainRegionChips';chips.setAttribute('role','group');chips.setAttribute('aria-label','울산 구군 빠른 선택');
- if(regionRow){regionRow.after(chipsLabel,chips);}
- const CHIPS=['전체','북구','남구','동구','중구','울주군'];
- let popupOpen=false,haveSearched=false,page=1,lastItems=[],total=0,hasMore=false,fetchSeq=0,lastFocus=null;
- const PAGE_SIZE=20;
- const formatDate=x=>{const s=String(x||'').replace(/\D/g,'');return s.length===8?s.slice(0,4)+'.'+s.slice(4,6)+'.'+s.slice(6):String(x||'')};
- const fmtTuition=x=>x!==undefined&&x!==null&&String(x).trim()!==''&&!isNaN(Number(x))?Number(x).toLocaleString('ko-KR')+'원':'';
- const setStatus=(s,bad=false)=>{status.textContent=s;status.className='status'+(bad?' error':' success');};
- function targetText(){const opt=$('applyTo').selectedOptions[0];return opt?.textContent||'현재 과정';}
- function refreshSummary(){
-   try{const c=course(value('editSlot'));$('gjFinderCourseSummary').textContent=c?.title?('현재 편집: '+targetText()+' · '+c.title+(c.institution?' / '+c.institution:'')):'현재 편집: '+targetText()+' · 훈련과정 미선택';}
-   catch{$('gjFinderCourseSummary').textContent='훈련과정을 찾아 선택하세요.';}
- }
- function updateChips(){
-   const ul=$('region').value==='31';chipsLabel.hidden=!ul;chips.hidden=!ul;if(!ul)return;
-   const sel=$('subRegion');chips.replaceChildren();
-   for(const name of CHIPS){
-     const b=document.createElement('button');b.type='button';b.textContent=name;
-     let option=null;
-     if(name==='전체')option=sel.options[0];
-     else option=[...sel.options].find(o=>o.value&&o.textContent.replace(/\s/g,'').includes(name));
-     b.dataset.value=option?.value||'';b.disabled=name!=='전체'&&!option;
-     b.classList.toggle('active',!!option&&sel.value===option.value);
-     b.setAttribute('aria-pressed',String(!!option&&sel.value===option.value));
-     b.addEventListener('click',()=>{if(!option)return;sel.value=option.value;sel.dispatchEvent(new Event('change',{bubbles:true}));});
-     chips.append(b);
-   }
- }
- const regionObserver=new MutationObserver(updateChips);regionObserver.observe($('subRegion'),{childList:true,subtree:false});
- function updatePager(){
-   $('gjTrainPrev').disabled=page<=1;
-   $('gjTrainNext').disabled=!hasMore;
-   $('gjTrainPageLabel').textContent=total>0?page+' / '+Math.max(1,Math.ceil(total/PAGE_SIZE)):page+'페이지';
-   $('gjTrainResultsMeta').textContent=(lastItems.length?lastItems.length+'개 표시 · ':'')+(total>0?'전체 '+total.toLocaleString('ko-KR')+'건':'조회 결과')+' · '+targetText();
- }
- function buildResults(items){
-   results.replaceChildren();
-   if(!items.length){const p=document.createElement('p');p.className='mini';p.textContent=page===1?'일치하는 훈련과정이 없습니다. 지역 또는 기간을 변경해 보세요.':'이 페이지에는 과정이 없습니다. 이전 페이지를 확인하세요.';results.append(p);return;}
-   items.forEach(t=>{
-     const el=document.createElement('button');el.type='button';el.className='gj-tr-item';
-     const detail=document.createElement('span');detail.className='gj-tr-item-content';
-     const name=document.createElement('strong');name.textContent=t.title||'(과정명 없음)';detail.append(name);
-     const line=document.createElement('span');line.className='gj-tr-sub';line.textContent=[t.institution,t.round?String(t.round)+'회차':''].filter(Boolean).join(' · ');detail.append(line);
-     const sub=document.createElement('span');sub.className='gj-tr-sub';sub.textContent=[formatDate(t.startDate)+(t.endDate?' ~ '+formatDate(t.endDate):''),fmtTuition(t.tuition)].filter(Boolean).join(' · ');detail.append(sub);
-     if(t.address){const address=document.createElement('span');address.className='gj-tr-sub';address.textContent=t.address;detail.append(address);}
-     const select=document.createElement('span');select.className='gj-tr-select-hint';select.textContent='선택';el.append(detail,select);
-     el.addEventListener('click',()=>{
-       try{window.GoodJobForms.selectTraining(t);haveSearched=true;refreshSummary();close();}
-       catch(e){setStatus('과정 적용 오류: '+(e?.message||String(e)),true);}
-     });
-     results.append(el);
-     if(/^https:\/\/www\.work24\.go\.kr\//.test(String(t.url||''))){
-       const a=document.createElement('a');a.className='gj-tr-source';a.textContent='고용24 과정 상세 확인 ↗';a.href=t.url;a.target='_blank';a.rel='noopener noreferrer';results.append(a);
-     }
-   });
- }
- async function search(nextPage=1){
-   const keyword=$('query').value.trim(),code=$('ncsFilter').value.trim();
-   if(code&&!/^\d{8}$/.test(code)){setStatus('NCS 세분류 코드는 8자리 숫자로 입력하세요.',true);return;}
-   if(!$('from').value||!$('to').value){setStatus('훈련 시작일 검색 기간을 입력하세요.',true);return;}
-   const from=$('from').value.replace(/\D/g,''),to=$('to').value.replace(/\D/g,'');
-   if(from>to){setStatus('시작일 검색 기간을 확인하세요.',true);return;}
-   const seq=++fetchSeq;const btn=$('searchBtn');btn.disabled=true;$('gjTrainPrev').disabled=true;$('gjTrainNext').disabled=true;
-   status.className='status';status.textContent=(keyword?'과정명 '+keyword:'지역 전체')+' · '+(nextPage+'페이지')+' 고용24 조회 중…';
-   try{
-     const request={action:'search_training',keyword,regionCode:$('region').value,subRegionCode:$('subRegion').value,startDate:from,endDate:to,page:nextPage,pageSize:PAGE_SIZE};
-     if(code){request.ncs1=code.slice(0,2);request.ncs2=code.slice(2,4);request.ncs3=code.slice(4,6);request.ncs4=code.slice(6,8);}
-     const ctrl=new AbortController();const timeout=setTimeout(()=>ctrl.abort(),28000);
-     let response;
-     try{response=await fetch('https://bowxlaiyjxknqccoughl.supabase.co/functions/v1/work24-proxy',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(request),signal:ctrl.signal});}
-     finally{clearTimeout(timeout);}
-     let d;
-     try{d=await response.json();}catch{throw Error('검색 API가 올바른 데이터를 반환하지 않았습니다.');}
-     if(!response.ok||d?.ok===false)throw Error(d?.error||('API 응답 오류 '+response.status));
-     if(!Array.isArray(d?.trainings))throw Error('검색 API 응답에 훈련과정 목록이 없습니다.');
-     if(seq!==fetchSeq)return;
-     // Unique training courses within the requested page; preserve one click -> original document autofill.
-     const map=new Map();for(const t of d.trainings){const k=[t.trainingId,t.round,t.institutionId,t.title].join('|');map.set(k,t);}
-     lastItems=[...map.values()].sort((a,b)=>String(a.startDate||'').localeCompare(String(b.startDate||''))||String(a.title||'').localeCompare(String(b.title||''),'ko'));
-     total=Math.max(0,Number(d.total)||0);page=nextPage;haveSearched=true;
-     hasMore=total?nextPage*PAGE_SIZE<total:d.trainings.length>=PAGE_SIZE;
-     if(!d.trainings.length)hasMore=false;
-     buildResults(lastItems);updatePager();
-     setStatus((keyword?'검색어: '+keyword+' · ':'')+($('region').selectedOptions[0]?.textContent||'전국')+' / '+($('subRegion').selectedOptions[0]?.textContent||'전체')+' · '+lastItems.length+'건 표시'+(total?' (총 '+total.toLocaleString('ko-KR')+'건)':''));
-   }catch(e){
-     if(seq!==fetchSeq)return;
-     if(nextPage===1){results.replaceChildren();lastItems=[];total=0;page=1;hasMore=false;}
-     updatePager();
-     const message=e?.name==='AbortError'?'검색 시간이 초과되었습니다. 다시 조회해 주세요.':(e?.message||String(e));
-     setStatus('고용24 조회 실패: '+message+'\nAPI 연결상태·검색 기간을 확인한 뒤 다시 조회해 주세요.',true);
-   }finally{if(seq===fetchSeq)btn.disabled=false;}
- }
- function close(){if(!popupOpen)return;popupOpen=false;overlay.hidden=true;document.body.classList.remove('gj-training-open');lastFocus?.focus?.();refreshSummary();}
- function open(){
-   if(popupOpen)return;
-   lastFocus=document.activeElement;popupOpen=true;overlay.hidden=false;document.body.classList.add('gj-training-open');
-   fold.open=true;refreshSummary();updateChips();
-   if(!haveSearched){
-     const d=new Date(),three=new Date(d.getFullYear(),d.getMonth()+3,d.getDate());
-     // Default to future starts in the next 3 months, but don't overwrite later user edits.
-     $('from').value=[d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-');
-     $('to').value=[three.getFullYear(),String(three.getMonth()+1).padStart(2,'0'),String(three.getDate()).padStart(2,'0')].join('-');
-     search(1);
-   }
-   $('query').focus();
- }
- $('gjOpenTrainingFinder').addEventListener('click',open);
- $('gjTrainingClose').addEventListener('click',close);
- overlay.addEventListener('mousedown',e=>{if(e.target===overlay)close();});
- document.addEventListener('keydown',e=>{if(popupOpen&&e.key==='Escape'){e.preventDefault();close();}if(popupOpen&&e.key==='Tab'){const focusable=[...$('gjTrainingModal').querySelectorAll('button:not(:disabled),input:not(:disabled),select:not(:disabled),a[href],summary')].filter(el=>el.getClientRects().length);if(focusable.length){const first=focusable[0],last=focusable[focusable.length-1];if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}}}});
- // Capture the old click/key listener at the same element before it rejects an empty keyword.
- $('searchBtn').addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();void search(1);},true);
- $('query').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();e.stopImmediatePropagation();void search(1);}},true);
- $('region').addEventListener('change',()=>{updateChips();if(popupOpen)void search(1);});
- $('subRegion').addEventListener('change',()=>{updateChips();if(popupOpen)void search(1);});
- $('gjTrainPrev').addEventListener('click',()=>{if(page>1)void search(page-1);});
- $('gjTrainNext').addEventListener('click',()=>{if(hasMore)void search(page+1);});
- $('clearResults').addEventListener('click',()=>{fetchSeq++;haveSearched=false;page=1;total=0;lastItems=[];hasMore=false;updatePager();status.className='status';},true);
- for(const id of ['gjAddCourse','gjPreviousAdd'])$(id)?.addEventListener('click',()=>{refreshSummary();open();});
- $('editSlot')?.addEventListener('change',refreshSummary);
- $('applyTo')?.addEventListener('change',refreshSummary);
- document.addEventListener('goodjob:training-selected',refreshSummary);
- document.addEventListener('goodjob:iap-loaded',refreshSummary);
- document.addEventListener('goodjob:training-search-open',open);
- updateChips();updatePager();refreshSummary();
- document.title='좋은일자리 | 공문 통합관리 v22.27';
- const h=document.querySelector('.top h1');if(h)h.textContent='좋은일자리 공문 통합관리 v22.27';
- if(window.GoodJobEdoc)GoodJobEdoc.formVersion='22.27';
-})();
-</script>
-
-
-
-
-
-
-<style id="v22SealRealSizeFix">
-/* v22.27: enforce seal relative to glyph height in final paper rendering.
-   The older #paperHost selector set width:100%, which clipped the stamp
-   to the width of the two characters 센터. These higher-specificity rules win. */
-#paperHost .gj-official .train-standard-issuer > span {
-  padding:0!important;margin:0!important;letter-spacing:0!important;
-  position:relative!important;display:inline-block!important;white-space:nowrap!important;
-}
-#paperHost .gj-official .train-standard-issuer .gj-seal-target {
-  padding:0!important;margin:0!important;letter-spacing:0!important;
-  position:relative!important;display:inline-block!important;white-space:nowrap!important;
-}
-#paperHost .gj-official .train-standard-issuer .gj-seal-target > img.gj-issuer-stamp {
-  position:absolute!important;left:70%!important;right:auto!important;top:50%!important;bottom:auto!important;
-  width:3em!important;height:3em!important;min-width:3em!important;max-width:none!important;
-  aspect-ratio:1!important;transform:translate(-50%,-50%)!important;
-  margin:0!important;object-fit:contain!important;opacity:.84!important;mix-blend-mode:multiply!important;
-  pointer-events:none!important;z-index:2!important;
-}
-/* Same ratio for the recommendation's signature, without enlarging the name's text spacing. */
-#paperHost .gj-recommend .gj-rec-sign b {padding:0!important;margin-left:0!important;margin-right:0!important;letter-spacing:0!important;}
-#paperHost .gj-recommend .gj-rec-sign .gj-seal-target > img.gj-issuer-stamp {
-  position:absolute!important;left:70%!important;right:auto!important;top:50%!important;bottom:auto!important;
-  width:3em!important;height:3em!important;min-width:3em!important;max-width:none!important;
-  aspect-ratio:1!important;transform:translate(-50%,-50%)!important;
-  margin:0!important;object-fit:contain!important;opacity:.84!important;mix-blend-mode:multiply!important;
-  pointer-events:none!important;z-index:2!important;
-}
-/* Other training formats use independent stamp elements. */
-.doc-page.letter .seal.train-seal img{width:19mm!important;height:19mm!important;max-width:none!important;opacity:.84!important;}
-.template-doc.tpl-change .train-template-stamp{width:19mm!important;height:19mm!important;opacity:.84!important;}
-</style>
-</body></html>`;
+ return `<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>${esc(def.title)}</title><style>${fonts}</style><style>*{box-sizing:border-box}body{margin:0;color:#000;background:white;font-family:'Malgun Gothic','Noto Sans KR',sans-serif}main{width:210mm;min-height:297mm;margin:auto;padding:28mm 20mm;font-size:11pt;line-height:1.65}h1{font-size:14pt;margin:0 0 8mm;border-bottom:1px solid #555;padding-bottom:4mm}p{margin:0 0 5mm}.below{text-align:center;margin:12mm 0 3mm}table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:10pt;line-height:1.45}th,td{border:1px solid #000;padding:2mm 1mm;text-align:center;vertical-align:middle;font-weight:400;overflow-wrap:anywhere}tbody tr{height:24mm}th{padding:1mm}th:nth-child(2),td:nth-child(2){white-space:nowrap;word-break:keep-all}.attach{margin-top:7mm;font-size:10pt}@page{size:A4;margin:0}@media print{body{height:auto!important;overflow:visible!important}main{margin:0!important;transform:none!important}}</style></head><body><main><h1>${esc(def.title)}</h1><p>1. 귀 센터의 무궁한 발전을 기원합니다.</p><p>2. ${sentence}</p><div class="below">- 아 래 -</div><table><colgroup>${widths.map(x=>'<col style="width:'+x+'%">').join('')}</colgroup><thead><tr>${heads.map(h=>'<th>'+h+'</th>').join('')}</tr></thead><tbody><tr>${values.map(v=>'<td>'+v+'</td>').join('')}</tr></tbody></table></main></body></html>`;
 }
 let currentHTML='',visible=false;
 function refresh(){if(!visible)return;currentHTML=paper();ID('officeReportFrame').srcdoc=currentHTML}
@@ -4019,10 +3759,26 @@ body.gj-training-open{overflow:hidden}
      if(notice)notice.textContent='내일배움카드 상담의 훈련정보를 불러왔습니다. 성명 등 나머지 항목은 확인 후 작성하세요.';
    }catch(err){console.warn('[공문 시험] 훈련정보 자동연동 실패',err)}
  }
+ function applyAuthorizedStaff(staff){
+   const name=clean(staff?.name);
+   if(!name)return;
+   const profile={name,team:'북부센터',division:'국민취업지원사업부'};
+   window.GOODJOB_STAFF_PROFILE=profile;
+   document.dispatchEvent(new CustomEvent('goodjob:staff-ready',{detail:profile}));
+   // The recommendation and the letter must share the authenticated branch,
+   // even when a restored draft contains old sender details.
+   const mappings={agency:'㈜좋은일자리 북부센터',d24Manager:name,officialManager:name,d24Branch:'북부센터'};
+   for(const [id,value] of Object.entries(mappings)){
+     const field=document.getElementById(id);if(!field)continue;
+     if(field.value!==value){field.value=value;field.dispatchEvent(new Event('input',{bubbles:true}));field.dispatchEvent(new Event('change',{bubbles:true}));}
+   }
+   try{window.GoodJobEdoc?.render?.()}catch(err){console.warn('[북부 공문] 출력 미리보기 갱신 실패',err)}
+ }
  window.addEventListener('message',e=>{
    if(e.source!==window.parent||e.origin!==window.parent.location.origin||e.data?.type!=='gj:north-edoc:init'||e.data.authorized!==true)return;
    document.documentElement.classList.add('gjNorthApproved');
    applyData(e.data);
+   applyAuthorizedStaff(e.data.staff);
  });
  function boot(){
    const wrap=document.createElement('div');wrap.style.cssText='padding:8px 18px;background:#ecf4ff;border-bottom:1px solid #cadeef;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;font-family:Malgun Gothic,sans-serif';
