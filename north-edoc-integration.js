@@ -1,4 +1,4 @@
-/* 좋은일자리 상담일지 통합본 · 북부센터 전용 공문 시험 v1.1
+/* 좋은일자리 상담일지 통합본 · 북부센터 전용 공문 시험 v1.2
  * 공문 전체는 로그인 및 북부센터 소속 검증 뒤에만 서버에서 내려받습니다.
  * 기존 상담 페이지 구성/데이터는 그대로 유지합니다.
  */
@@ -79,7 +79,21 @@ async function openDocument(){
   const html=await r.text();
   if(serial!==openRun||!enabled||activePageId!==ID)return;
   if(!html.startsWith('<!DOCTYPE html>')&&!html.startsWith('<!doctype html>'))throw Error('공문 화면 응답이 올바르지 않아.');
+  const payload=pending||{};pending=null;
+  const sync=()=>{
+   if(serial!==openRun||activePageId!==ID)return;
+   let doc;try{doc=view.contentDocument}catch(e){}
+   if(!doc?.querySelector('[data-course="title"]'))return;
+   const map={iapNumber:'#iapLookup',course:'[data-course="title"]',institution:'[data-course="institution"]',phone:'[data-course="phone"]',startDate:'[data-course="startDate"]',endDate:'[data-course="endDate"]'};
+   for(const [key,selector] of Object.entries(map)){
+    const value=String(payload[key]||'').trim();if(!value)continue;
+    const el=doc.querySelector(selector);if(!el)continue;
+    el.value=value;el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));
+   }
+  };
+  view.addEventListener('load',sync,{once:true});
   view.srcdoc=html;
+  setTimeout(sync,400);
  }catch(e){
   if(serial!==openRun||activePageId!==ID)return;
   view.srcdoc=splash('공문 열기 실패',String(e?.message||e));
