@@ -4,7 +4,7 @@
 const PAGE='p_north_edoc_trial',GROUP='g_north_trial';
 const BASE='https://bowxlaiyjxknqccoughl.supabase.co/functions/v1/';
 const CHECK=BASE+'training-edoc-trial-access',DOC=BASE+'training-edoc-north-html-v2';
-let enabled=false,verification=0,opening=0,incoming=null,outgoing=null,officialDraft=null;
+let enabled=false,verification=0,opening=0,incoming=null,outgoing=null,officialDraft=null,currentInit=null;
 const frame=()=>document.getElementById('frame');
 const value=(d,id)=>String(d?.getElementById(id)?.value??'').trim();
 const onTraining=()=>typeof activePageId!=='undefined'&&activePageId==='p13';
@@ -79,11 +79,20 @@ async function open(){
   if(serial!==opening||!onEdoc()||!enabled)return;
   if(!html.includes('gjNorthEdocGateRuntime')||!html.includes('GoodJobEdoc'))throw Error('공문 파일이 완전하지 않습니다.');
   const carry=incoming;incoming=null;
-  view.addEventListener('load',()=>{
+  const sendInit=()=>{
    if(serial!==opening||!enabled||!onEdoc())return;
-   view.contentWindow?.postMessage({type:'gj:north-edoc:init',authorized:true,carryIn:carry,draft:officialDraft},location.origin);
-  },{once:true});
+   try{
+    if(!view.contentDocument?.getElementById('gjNorthAccessGate'))return;
+    view.contentWindow?.postMessage({type:'gj:north-edoc:init',authorized:true,carryIn:carry,draft:officialDraft},location.origin);
+   }catch(e){console.warn('[북부 공문] 승인 신호 재전송 대기',e)}
+  };
+  currentInit=sendInit;
+  view.addEventListener('load',sendInit,{once:true});
   view.srcdoc=html;
+  [160,400,850,1500,2800].forEach(ms=>setTimeout(()=>{
+    if(serial!==opening)return;
+    try{if(!view.contentDocument?.documentElement?.classList.contains('gjNorthApproved'))sendInit()}catch(_){}
+  },ms));
  }catch(e){
   if(serial!==opening||!onEdoc())return;
   view.srcdoc='<!doctype html><html lang="ko"><meta charset="utf-8"><body style="font:14px Malgun Gothic,sans-serif;padding:30px;color:#934"><h3>공문 열기 실패</h3><p>'+String(e.message||e).replaceAll('<','&lt;')+'</p></body></html>';
@@ -131,6 +140,7 @@ if(previousLoad){
 }
 window.addEventListener('message',e=>{
  if(e.origin!==location.origin||e.source!==frame()?.contentWindow||!enabled)return;
+ if(e.data?.type==='gj:north-edoc:ready'&&onEdoc()){currentInit?.();return}
  if(e.data?.type==='gj:north-edoc:return')returnToTraining();
 });
 frame()?.addEventListener('load',()=>{if(onTraining())setTimeout(()=>{injectButton();applyReturn()},50)});
