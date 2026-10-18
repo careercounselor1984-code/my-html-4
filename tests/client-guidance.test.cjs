@@ -27,6 +27,7 @@ function setup(html,withPlan=true){
     }));
   }
   dom.window.eval(source);
+  dom.window.document.dispatchEvent(new dom.window.Event('DOMContentLoaded'));
   return dom;
 }
 
