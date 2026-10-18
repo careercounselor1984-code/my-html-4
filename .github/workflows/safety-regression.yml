@@ -16,6 +16,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Check safety regression
         run: |
+          node --check client-guidance.js
           node tests/journal-safety.test.cjs
           node tests/initial-easy-mode.test.cjs
           node tests/initial-opinion-summary.test.cjs
@@ -33,6 +34,7 @@ jobs:
           NODE_PATH=/tmp/initial-dom-test/node_modules node tests/experience-days-dom.test.cjs
           NODE_PATH=/tmp/initial-dom-test/node_modules node tests/initial-dropdowns-dom.test.cjs
           NODE_PATH=/tmp/initial-dom-test/node_modules node tests/card-reason.test.cjs
+          NODE_PATH=/tmp/initial-dom-test/node_modules node tests/client-guidance.test.cjs
 
       - name: Headless Chrome initial-counseling focused-form smoke
         run: |
