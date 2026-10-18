@@ -33,6 +33,7 @@ jobs:
           NODE_PATH=/tmp/initial-dom-test/node_modules node tests/stipend-remote-dom.test.cjs
           NODE_PATH=/tmp/initial-dom-test/node_modules node tests/iap-opinion-remote-dom.test.cjs
           NODE_PATH=/tmp/initial-dom-test/node_modules node tests/protected-core-dom.test.cjs
+          NODE_PATH=/tmp/initial-dom-test/node_modules node tests/schedule-booking-dom.test.cjs
           NODE_PATH=/tmp/initial-dom-test/node_modules node tests/initial-opinion-assist-dom.test.cjs
           NODE_PATH=/tmp/initial-dom-test/node_modules node tests/initial-work24-assist-dom.test.cjs
           NODE_PATH=/tmp/initial-dom-test/node_modules node tests/experience-days-dom.test.cjs
@@ -45,6 +46,7 @@ jobs:
           node tests/initial-easy-browser-smoke.cjs
           node tests/card-reason-browser-smoke.cjs
           node tests/protected-core-browser-smoke.cjs
+          node tests/full-runtime-browser-smoke.cjs
 
       - name: Headless Chrome initial-screen smoke (unauthenticated)
         shell: bash

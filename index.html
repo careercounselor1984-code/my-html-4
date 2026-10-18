@@ -5605,13 +5605,20 @@ body.clg-tabs-enabled .appFooter{display:none!important}
 'use strict';
 if(window.__CLG_SCHEDULE_BRIDGE_V3__)return;
 window.__CLG_SCHEDULE_BRIDGE_V3__=true;
-const URL='https://careercounselor1984-code.github.io/my-html-9/';
-const ORIGIN=new URL(URL).origin;
+const SCHEDULE_URL='https://careercounselor1984-code.github.io/my-html-9/';
+const ORIGIN=new URL(SCHEDULE_URL).origin;
 const $=id=>document.getElementById(id);
 const dlg=$('clgScheduleNextDialog'),form=$('clgScheduleNextForm'),frame=$('clgScheduleReserveFrame'),viewer=$('clgScheduleViewer'),status=$('clgScheduleStatus');
 const types=['초기','해석','IAP','컨설팅','재진단','훈련등록','카드발급','신청','일경험','연계'];
 const defaults={p01:'해석',p02:'해석',p03:'IAP',p04:'IAP',p05:'컨설팅',p07:'컨설팅',p10:'컨설팅',p17:'IAP',p21:'해석',p23:'컨설팅',p30:'컨설팅'};
-let pending=null;
+let pending=null,uncertain=null,pendingTimer=null;
+function journalOwner(){return window.clgJobArchiveClient?.()?String(window.__CLG_JOURNAL_EMPLOYEE?.email||window.__CLG_JOURNAL_EMPLOYEE?.name||''):'';}
+function stopPendingTimer(){clearTimeout(pendingTimer);pendingTimer=null;}
+function watchPending(){
+ stopPendingTimer();const task=pending;
+ pendingTimer=setTimeout(()=>{if(pending!==task||!task)return;uncertain=task;pending=null;report(task,'예약 응답을 확인하지 못했습니다. 일정표를 먼저 확인해주세요. 같은 내용으로 다시 누르면 기존 요청을 재확인합니다.','error');},30000);
+}
+window.addEventListener('clg-auth-logout',()=>{stopPendingTimer();if(pending)report(pending,'로그아웃되어 예약 확인을 중단했습니다. 일정표에서 저장 여부를 확인해주세요.','error');pending=null;uncertain=null;recruitRequest=null;});
 let recruitRequest=null;
 function id(){
  if(crypto.randomUUID)return crypto.randomUUID();
@@ -5680,18 +5687,23 @@ function valid(d){
 }
 function send(){
  if(pending&&frame.contentWindow){
+  if(!journalOwner()||pending.owner!==journalOwner()){stopPendingTimer();report(pending,'로그인 상태가 변경되었습니다. 일정표에서 예약 여부를 확인해주세요.','error');pending=null;return;}
+  watchPending();
   frame.contentWindow.postMessage({type:'goodjob:schedule-create:v2',payload:pending.payload},ORIGIN);
  }
 }
 function booking(raw,source){
+ const owner=journalOwner();if(!owner){report({source},'직원 로그인 후 예약해주세요.','error');return;}
  if(pending){report({source},'다른 예약을 처리 중입니다. 잠시 후 다시 시도해 주세요.','error');return}
  const n=normalize(raw.name);
  const data={name:n.name,date:raw.date,time:raw.time,consultType:n.type||raw.consultType};
  if(!valid(data)){report({source},'내담자 이름·날짜·시간·상담구분을 확인해 주세요.','error');return}
- pending={payload:{...data,requestId:id()},source};
+ const same=uncertain&&uncertain.owner===owner&&['name','date','time','consultType'].every(key=>uncertain.payload[key]===data[key]);
+ pending={payload:{...data,expectedName:String(window.__CLG_JOURNAL_EMPLOYEE?.name||''),requestId:same?uncertain.payload.requestId:id()},source,owner};
+ watchPending();
  report(pending,'일정표에 자동 등록하고 있어요…','working');
  viewer.classList.remove('is-open');
- if(!frame.getAttribute('src'))frame.src=URL;else send();
+ if(!frame.getAttribute('src'))frame.src=SCHEDULE_URL;else send();
 }
 const injectCSS=[
  '#clgNextApptCard{max-width:1040px;margin:24px auto 30px;padding:0 12px;box-sizing:border-box;color:#243f5b;font-family:inherit}',
@@ -5764,13 +5776,15 @@ window.addEventListener('message',e=>{
  const msg=e.data;
  if(msg?.type==='goodjob:schedule-ready:v1'&&pending){send();return}
  if(msg?.type!=='goodjob:schedule-create-result:v2'||!pending||msg.requestId!==pending.payload.requestId)return;
+ if(pending.owner!==journalOwner()){stopPendingTimer();report(pending,'로그인 상태가 변경되었습니다. 일정표에서 예약 여부를 확인해주세요.','error');pending=null;return;}
  if(msg.status==='login_required'){
+  stopPendingTimer();
   report(pending,'일정관리 로그인이 필요해요. 아래에서 로그인하면 예약을 자동 저장합니다.','working');
   viewer.classList.add('is-open');
   if(!dlg.open)dlg.showModal();
   return;
  }
- const task=pending;pending=null;
+ const task=pending;stopPendingTimer();pending=null;if(uncertain?.payload.requestId===task.payload.requestId)uncertain=null;
  if(task.recruitId&&task.source?.contentWindow){
    task.source.contentWindow.postMessage({type:'goodjob:recruit-schedule-result:v1',status:msg.status,recruitId:task.recruitId,message:msg.message||''},'*');
    if(recruitRequest?.recruitId===task.recruitId)recruitRequest=null;
