@@ -4402,7 +4402,7 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
     try{recoveryRequested=new URLSearchParams(location.search).get('recover')==='1'}catch(e){}
 
     client=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{
-      auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storage:{getItem:function(key){try{return window.sessionStorage.getItem(key)}catch(e){return null}},setItem:function(key,value){try{window.sessionStorage.setItem(key,value)}catch(e){}},removeItem:function(key){try{window.sessionStorage.removeItem(key)}catch(e){}}}}
+      auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storage:{getItem:function(key){try{var pending=window.sessionStorage.getItem(key);if(pending!==null){window.localStorage.setItem(key,pending);if(window.localStorage.getItem(key)===pending)window.sessionStorage.removeItem(key);return pending}return window.localStorage.getItem(key)}catch(e){try{return window.sessionStorage.getItem(key)}catch(e){return null}}},setItem:function(key,value){try{window.localStorage.setItem(key,value);window.sessionStorage.removeItem(key)}catch(e){try{window.sessionStorage.setItem(key,value)}catch(e){}}},removeItem:function(key){try{window.localStorage.removeItem(key)}catch(e){}try{window.sessionStorage.removeItem(key)}catch(e){}}}}
     });
 
     client.auth.onAuthStateChange(function(event,session){

@@ -39,7 +39,7 @@ async function scenario(url, options = {}) {
       return query;
     }
   };
-  if (!options.noSdk) w.supabase = {createClient() {return client;}};
+  if (!options.noSdk) w.supabase = {createClient(url, key, config) {stats.authConfig=config;return client;}};
   w.GoodJobPrivacy={storage:{}};w.GoodJobBackup={};
   w.fetch = async (url, request) => {
     if(url.endsWith('/journal-stipend')) {
@@ -113,6 +113,12 @@ function assertLocked(w) {
     assert(!active.w.document.documentElement.classList.contains('cc-auth-pending'));
     assert(active.w.document.getElementById('ccAuthGate').classList.contains('cc-hidden'));
     assert(active.w.clgJobArchiveClient());
+    const storage=active.stats.authConfig.auth.storage,key='test-auth-session';
+    storage.setItem(key,'persistent-token');assert.equal(active.w.localStorage.getItem(key),'persistent-token');
+    active.w.sessionStorage.clear();assert.equal(storage.getItem(key),'persistent-token','login survives browser session reset');
+    active.w.sessionStorage.setItem(key,'newer-session-token');assert.equal(storage.getItem(key),'newer-session-token');assert.equal(active.w.localStorage.getItem(key),'newer-session-token');assert.equal(active.w.sessionStorage.getItem(key),null);
+    active.w.sessionStorage.setItem(key,'stale');storage.removeItem(key);assert.equal(active.w.localStorage.getItem(key),null);assert.equal(active.w.sessionStorage.getItem(key),null);
+
     assert.equal(active.stats.serverChecks, 1);
     assert.equal(active.w.__CLG_JOURNAL_EMPLOYEE.email, user.email);
     assert.equal(await active.w.clgGenerateInitialOpinion({strategyTargetJob:'test-job'}),'server opinion');
