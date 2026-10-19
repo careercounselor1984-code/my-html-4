@@ -8,9 +8,9 @@ async function extension(){
  const site=new JSDOM('<body></body>',{runScripts:'outside-only',url:'https://www.work24.go.kr/'}),s=site.window;visible(s);
  const inject=func=>s.eval('('+func.toString()+')');
  const p={iapNo:A,sentAt:new Date().toISOString(),audit:{ok:true},jobRows:[{kind:'직업훈련'}],actRows:[{kind:'입사지원'}]};
- let stored=p,mode='match',writes=[],changesDuringWrite=false;
+ let stored=p,mode='match',writes=[],changesDuringWrite=false,removed=0;
  w.confirm=()=>true;
- w.chrome={storage:{local:{get:async(k,cb)=>{const r={[k]:stored};cb?.(r);return r},remove:async()=>{}},onChanged:{addListener(){}}},runtime:{getManifest:()=>({version:'1.4.24'})},tabs:{query:async()=>[{id:1,url:'https://www.work24.go.kr/'}]},scripting:{executeScript:async args=>{
+ w.chrome={storage:{local:{get:async(k,cb)=>{const r={[k]:stored};cb?.(r);return r},remove:async()=>{removed++}},onChanged:{addListener(){}}},runtime:{getManifest:()=>({version:'1.4.24'})},tabs:{query:async()=>[{id:1,url:'https://www.work24.go.kr/'}]},scripting:{executeScript:async args=>{
   const name=args.func.name;
   if(name==='probeIapFrameMAIN')return [{frameId:1,documentId:'job',result:{jobGrid:true}},{frameId:2,documentId:'act',result:{actGrid:true}}];
   if(name==='checkIapParticipantMAIN')return args.target.frameIds.map(id=>({frameId:id,documentId:id===1?'job':'act',result:{ok:mode==='match'||(mode==='split'&&id===1),reason:'번호 불일치'}}));
@@ -38,6 +38,7 @@ async function extension(){
  writes=[];d.getElementById('applyBtn').click();d.getElementById('applyBtn').click();await new Promise(r=>setTimeout(r,20));
  assert.equal(writes.length,2,'rapid double click cannot enter two asynchronous input runs');
  stored={...p,iapNo:B,sentAt:new Date(Date.now()+1).toISOString()};writes=[];await click();assert.deepEqual(writes,[],'replaced pending payload rejected');
+ assert.equal(removed,0,'outdated panel cannot delete a newer transfer');
  w.eval(files['bridge-security.js']);const valid=w.ClgBridgeSecurity.validTransfer;
  assert(valid(p,'iap'));assert(!valid({...p,iapNo:''},'iap'));assert(!valid({...p,iapNo:'K12345678901'},'iap'),'job certificate cannot substitute for IAP');
  assert(files['basic.js'].includes('jobCertNo:lastData.jobCertNo'));
