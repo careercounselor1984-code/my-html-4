@@ -40,7 +40,7 @@ async function scenario(url, options = {}) {
     }
   };
   if (!options.noSdk) w.supabase = {createClient() {return client;}};
-  w.GoodJobPrivacy={storage:w.localStorage};w.GoodJobBackup={};
+  w.GoodJobPrivacy={storage:{}};w.GoodJobBackup={};
   w.fetch = async (url, request) => {
     if(url.endsWith('/journal-stipend')) {
       assert.equal(request.headers.Authorization,'Bearer mock-user-token');
