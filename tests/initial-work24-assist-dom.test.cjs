@@ -32,5 +32,5 @@ const root=path.join(__dirname,'..'),html=fs.readFileSync(path.join(root,'index.
  const health=d.querySelector('input[name="healthPhysical"][value="있음"]');health.checked=true;health.dispatchEvent(new w.Event('change',{bubbles:true}));by('work24Build').click();assert.ok(by('work24_strategy').value.includes('건강·신용'));
  set('resultType','');by('work24Build').click();assert.equal(by('work24_type_copy').disabled,true);assert.equal(by('work24_motivation_copy').disabled,false);
  by('resetBtn').click();assert.equal(by('work24Outputs').hidden,true);assert.equal(by('checkUnifiedGuidance').checked,true);assert.equal(d.querySelector('input[name="healthPhysical"]:checked').value,'없음');if(id==='p01')assert.equal(d.querySelector('input[name="familySupportStatus"]:checked').value,'대상 아님');assert.equal(by('work24ExpectedSupport').value,'');
- dom.window.close();console.log(id+': Work24 formats, defaults, exposed assessment, 1500-byte copy, stale prevention, opinion preservation and reset passed');
+ await new Promise(resolve=>setImmediate(resolve));dom.window.close();console.log(id+': Work24 formats, defaults, exposed assessment, 1500-byte copy, stale prevention, opinion preservation and reset passed');
 }})().catch(e=>{console.error(e);process.exitCode=1});

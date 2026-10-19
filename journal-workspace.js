@@ -8,7 +8,7 @@
  const prefix='clg_work_drafts_v1:';let owner=window.__CLG_JOURNAL_EMPLOYEE?.email||'';
  const installed=new WeakMap(),states=new Set();
  const tabs=()=>window.clgGetWorkTabs?.()||[];
- function read(){try{return JSON.parse(sessionStorage.getItem(prefix+owner)||'{}')}catch{return {}}}
+ function read(){try{const all=JSON.parse(sessionStorage.getItem(prefix+owner)||'{}');let changed=false;for(const [key,row] of Object.entries(all)){if(row&&Number.isFinite(row.at)&&(Date.now()-row.at>24*3600000||row.at>Date.now()+60000)){delete all[key];changed=true}}if(changed)write(all);return all}catch{return {}}}
  function write(all){sessionStorage.setItem(prefix+owner,JSON.stringify(all))}
  function fields(doc){return [...doc.querySelectorAll('input,select,textarea')].filter(el=>!el.closest('.clg-client-workspace')&&!el.closest('#iapLoadConfirmDialog')&&!(el.tagName==='INPUT'&&['file','password','button','submit','reset','hidden'].includes(el.type)))}
  function take(doc){const counts={};return fields(doc).map((el,index)=>{const key=el.id?'id:'+el.id:el.name?'name:'+el.name:'index:'+index;const n=counts[key]||0;counts[key]=n+1;return {key,n,value:el.type==='checkbox'||el.type==='radio'?el.checked:el.value}})}

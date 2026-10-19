@@ -1,0 +1,13 @@
+'use strict';
+const fs=require('fs'),assert=require('node:assert/strict'),{JSDOM}=require('jsdom');
+const dom=new JSDOM('<html></html>',{url:'https://example.test/',runScripts:'outside-only'}),w=dom.window;
+w.localStorage.setItem('career_consult_log_draft_v7','old-legacy-backup-required');w.localStorage.setItem('career_consult_log_saved_v2','formal-record');
+w.eval(fs.readFileSync('privacy-storage.js','utf8'));const s=w.GoodJobPrivacy.storage;
+assert.equal(s.getItem('career_consult_log_draft_v7'),null);assert.throws(()=>s.setItem('career_consult_log_draft_v7','no-owner'));
+function login(email){w.__CLG_JOURNAL_EMPLOYEE={email};w.dispatchEvent(new w.Event('clg-auth-ready'))}login('a@example.test');
+s.setItem('career_consult_log_draft_v7','new-sensitive');assert.equal(s.getItem('career_consult_log_draft_v7'),'new-sensitive');assert.equal(w.localStorage.getItem('career_consult_log_draft_v7'),'old-legacy-backup-required');
+assert.equal(s.getItem('career_consult_log_saved_v2'),'formal-record');s.setItem('career_consult_log_saved_v2','updated-formal');assert.equal(w.localStorage.getItem('career_consult_log_saved_v2'),'updated-formal');
+login('b@example.test');assert.equal(s.getItem('career_consult_log_draft_v7'),null);login('a@example.test');assert.equal(s.getItem('career_consult_log_draft_v7'),null);
+s.setItem('career_consult_log_draft_v7','expire');let k=[...Array(w.sessionStorage.length)].map((_,i)=>w.sessionStorage.key(i)).find(k=>k.startsWith('gj_temp_v1:'));let data=JSON.parse(w.sessionStorage.getItem(k));data.at=Date.now()-86400001;w.sessionStorage.setItem(k,JSON.stringify(data));assert.equal(s.getItem('career_consult_log_draft_v7'),null);assert.equal(w.sessionStorage.getItem(k),null);
+s.setItem('kakao_memo_inputs_v5','sensitive');w.dispatchEvent(new w.Event('clg-auth-logout'));assert.equal(s.getItem('kakao_memo_inputs_v5'),null);assert.equal(w.localStorage.getItem('career_consult_log_saved_v2'),'updated-formal');
+w.close();console.log('PASS: temporary TTL, logout/account switch purge, no persistent new drafts, formal/legacy records preserved');
