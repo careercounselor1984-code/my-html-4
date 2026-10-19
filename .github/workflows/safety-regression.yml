@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - "fix/journal-calc-audit-20261011"
+      - main
   pull_request:
     branches:
       - main
@@ -33,6 +34,7 @@ jobs:
           NODE_PATH=/tmp/initial-dom-test/node_modules node tests/stipend-remote-dom.test.cjs
           NODE_PATH=/tmp/initial-dom-test/node_modules node tests/iap-opinion-remote-dom.test.cjs
           NODE_PATH=/tmp/initial-dom-test/node_modules node tests/iap-client-switch.test.cjs
+          NODE_PATH=/tmp/initial-dom-test/node_modules node tests/consult-reset.test.cjs
           NODE_PATH=/tmp/initial-dom-test/node_modules node tests/protected-core-dom.test.cjs
           NODE_PATH=/tmp/initial-dom-test/node_modules node tests/schedule-booking-dom.test.cjs
           NODE_PATH=/tmp/initial-dom-test/node_modules node tests/initial-opinion-assist-dom.test.cjs

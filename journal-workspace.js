@@ -2,6 +2,7 @@
 (()=>{'use strict';
  if(window.__CLG_CLIENT_WORKSPACE__)return;window.__CLG_CLIENT_WORKSPACE__=true;
  const supported=new Set(['p00','p01','p02','p03','p04','p05','p06','p07','p10','p11','p13','p16','p17','p30','p34']);
+ const resetPages=new Set(['p00','p01','p02','p03','p04','p05','p06','p07','p10','p11','p13','p16','p17','p20','p21','p23','p30','p34']);
  const regSelector='#iapRegNo,#clgIapRegNo,#clgSudangIapRegNo';
  const nameSelector='#clientName,#participantName,#participant_name,#counseleeName,#client_name,#personName';
  const prefix='clg_work_drafts_v1:';let owner=window.__CLG_JOURNAL_EMPLOYEE?.email||'';
@@ -9,7 +10,7 @@
  const tabs=()=>window.clgGetWorkTabs?.()||[];
  function read(){try{return JSON.parse(sessionStorage.getItem(prefix+owner)||'{}')}catch{return {}}}
  function write(all){sessionStorage.setItem(prefix+owner,JSON.stringify(all))}
- function fields(doc){return [...doc.querySelectorAll('input,select,textarea')].filter(el=>!el.closest('.clg-client-workspace')&&!(el.tagName==='INPUT'&&['file','password','button','submit','reset','hidden'].includes(el.type)))}
+ function fields(doc){return [...doc.querySelectorAll('input,select,textarea')].filter(el=>!el.closest('.clg-client-workspace')&&!el.closest('#iapLoadConfirmDialog')&&!(el.tagName==='INPUT'&&['file','password','button','submit','reset','hidden'].includes(el.type)))}
  function take(doc){const counts={};return fields(doc).map((el,index)=>{const key=el.id?'id:'+el.id:el.name?'name:'+el.name:'index:'+index;const n=counts[key]||0;counts[key]=n+1;return {key,n,value:el.type==='checkbox'||el.type==='radio'?el.checked:el.value}})}
  function restoreFields(doc,values){const counts={},map=new Map();fields(doc).forEach((el,index)=>{const key=el.id?'id:'+el.id:el.name?'name:'+el.name:'index:'+index;const n=counts[key]||0;counts[key]=n+1;map.set(key+':'+n,el)});
   const apply=dispatch=>{for(const item of values||[]){const el=map.get(item.key+':'+item.n);if(!el)continue;if(el.type==='checkbox'||el.type==='radio')el.checked=!!item.value;else{if(el.tagName==='SELECT'&&item.value&&!Array.from(el.options).some(o=>o.value===item.value))el.add(new doc.defaultView.Option(item.value,item.value));el.value=String(item.value??'')}if(dispatch){el.dispatchEvent(new doc.defaultView.Event('input',{bubbles:true}));el.dispatchEvent(new doc.defaultView.Event('change',{bubbles:true}))}}};apply(true);apply(false);
@@ -21,7 +22,17 @@
   if(!saved||saved.version!==1||saved.page!==s.tab.pageId||Date.now()-saved.at>24*3600000||saved.at>Date.now()+60000||s.edited)return;
   try{s.restoring=true;if(saved.native&&s.win.clgWorkspaceState?.apply)s.win.clgWorkspaceState.apply(saved.native);restoreFields(s.doc,saved.fields);syncClient(s);s.draftStatus='restored'}catch{s.draftStatus='error'}finally{s.restoring=false}
  }
- function attach(tab){if(!supported.has(tab.pageId)||tab.frame.dataset.external==='1')return;let doc,win;try{doc=tab.frame.contentDocument;win=tab.frame.contentWindow}catch{return}if(!doc?.body||doc.readyState==='loading')return;if(installed.has(doc)){hydrate(installed.get(doc));return}for(const old of states){if(old.tab.id===tab.id&&old.doc!==doc){old.closed=true;clearTimeout(old.timer);states.delete(old)}}
+ function attach(tab){if(tab.frame.dataset.external==='1')return;let doc,win;try{doc=tab.frame.contentDocument;win=tab.frame.contentWindow}catch{return}if(!doc?.body||doc.readyState==='loading')return;
+  if(resetPages.has(tab.pageId)&&!doc.getElementById('clgConsultResetBar')){
+    const bar=doc.createElement('div');bar.id='clgConsultResetBar';bar.className='clg-consult-controls';
+    bar.style.cssText='display:flex;justify-content:flex-end;padding:5px 10px;max-width:1200px;margin:0 auto';
+    const button=doc.createElement('button');button.type='button';button.id='clgConsultResetBtn';button.textContent='↺ 현재 상담 초기화';
+    button.title='현재 탭의 입력과 결과만 초기화합니다. 저장된 상담자료는 유지됩니다.';
+    button.style.cssText='width:auto;margin:0;padding:6px 11px;border:1px solid #e6a4a4;border-radius:7px;background:#fff;color:#a32929;font-size:12px;cursor:pointer';
+    button.onclick=()=>window.clgResetWorkTab?.(tab.id);bar.appendChild(button);doc.body.prepend(bar);
+    const style=doc.createElement('style');style.textContent='@media print{#clgConsultResetBar{display:none!important}}';doc.head.appendChild(style);
+  }
+  if(!supported.has(tab.pageId))return;if(installed.has(doc)){hydrate(installed.get(doc));return}for(const old of states){if(old.tab.id===tab.id&&old.doc!==doc){old.closed=true;clearTimeout(old.timer);states.delete(old)}}
   // Keep the optional common-profile lookup as compact as the native IAP lookup.
   if(doc.getElementById('clgIapLinkCard')){
    const style=doc.createElement('style');style.id='clg-compact-registration';
@@ -47,6 +58,10 @@
  window.addEventListener('clg-auth-ready',()=>{owner=window.__CLG_JOURNAL_EMPLOYEE?.email||'';scan()});
  window.addEventListener('clg-auth-logout',()=>{for(const s of states){clearTimeout(s.timer);s.hydrated=''}if(owner)sessionStorage.removeItem(prefix+owner);owner=''});
  window.addEventListener('clg-work-tab-close',e=>{for(const s of states)if(s.tab.id===e.detail.tabId){s.closed=true;clearTimeout(s.timer);states.delete(s)}if(owner){const all=read();delete all[e.detail.draftId];try{write(all)}catch{}}});
+ window.addEventListener('clg-work-tab-reset',e=>{
+  for(const s of states)if(s.tab.id===e.detail.tabId){s.closed=true;clearTimeout(s.timer);states.delete(s)}
+  if(owner){const all=read();delete all[e.detail.draftId];try{write(all)}catch{}}
+ });
  window.addEventListener('pagehide',()=>{for(const s of states)save(s)});
  window.clgFlushWorkDrafts=()=>{for(const s of states)save(s)};
  scan();setTimeout(scan,250);setTimeout(scan,1000);
