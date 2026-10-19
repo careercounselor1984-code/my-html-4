@@ -35,6 +35,8 @@ async function extension(){
  mode='match';changesDuringWrite=true;await click();assert.deepEqual(writes,[],'participant switch at mutation time rejected');
  changesDuringWrite=false;await click();assert.deepEqual(writes,['applyIapJobProgramsMAIN','applyIapActivitiesMAIN']);
  assert.match(d.getElementById('status').textContent,/입력 완료/);
+ writes=[];d.getElementById('applyBtn').click();d.getElementById('applyBtn').click();await new Promise(r=>setTimeout(r,20));
+ assert.equal(writes.length,2,'rapid double click cannot enter two asynchronous input runs');
  stored={...p,iapNo:B,sentAt:new Date(Date.now()+1).toISOString()};writes=[];await click();assert.deepEqual(writes,[],'replaced pending payload rejected');
  w.eval(files['bridge-security.js']);const valid=w.ClgBridgeSecurity.validTransfer;
  assert(valid(p,'iap'));assert(!valid({...p,iapNo:''},'iap'));assert(!valid({...p,iapNo:'K12345678901'},'iap'),'job certificate cannot substitute for IAP');
