@@ -2949,7 +2949,8 @@ const records=()=>people.flatMap((p,i)=>currentCourses(p).map(({key,c})=>({p,i,k
 const footer=()=>trainingStandardFooter();
 const tableShell=(kind,chunk,isLast,attachmentCount=people.length)=>{
  const issue=kind==='issue';
- const widths=issue?[7.5,7,10.5,13,44.5,7.5,10]:[4,4,8,14,23,23,10,7,7];
+ const cardOnly=!issue&&chunk.length>0&&chunk.every(({p})=>!String(course('previous',p).title||'').trim());
+ const widths=issue?[7.5,7,10.5,13,44.5,7.5,10]:cardOnly?[4,4,8,14,9,37,10,7,7]:[4,4,8,14,23,23,10,7,7];
  const col='<colgroup>'+widths.map(w=>`<col style="width:${w}%">`).join('')+'</colgroup>';
  const head=issue?'<tr><th>연번</th><th>유형</th><th>성명</th><th>주민번호</th><th>과정명</th><th>훈련<br>시간</th><th>담당자</th></tr>':'<tr><th>연<br>번</th><th>유<br>형</th><th>성명</th><th>주민번호</th><th>변경 전</th><th>변경 후</th><th>변경훈련<br>상담일자</th><th>담당자</th><th>훈련<br>시간</th></tr>';
  const identity=p=>{const r=fmtRRN(p.rrn);return r.includes('-')?e(r.split('-')[0])+'-<br>'+e(r.split('-')[1]):e(r)};
