@@ -1849,7 +1849,7 @@ html.gjNorthApproved #gjNorthAccessGate{display:none!important}
 #gjNorthReturnButton{display:none}
 html.gjNorthApproved #gjNorthReturnButton{display:inline-flex}
 </style>
-<style>#paperHost .gj-official[data-doctype="change"] .v20-letter-table td.gj-card-only{vertical-align:middle!important;text-align:center!important;}#paperHost .gj-official[data-doctype="change"] .gj-change-period{text-align:center!important;font-variant-numeric:tabular-nums;}#paperHost .gj-official[data-doctype="change"] .gj-change-round{font-size:8.5pt;}
+<style>#paperHost .gj-official[data-doctype="change"] .v20-letter-table td.gj-card-only{vertical-align:middle!important;text-align:center!important;white-space:nowrap!important;}#paperHost .gj-official[data-doctype="change"] .gj-change-period{text-align:left!important;font-variant-numeric:tabular-nums;}#paperHost .gj-official[data-doctype="change"] .gj-change-round{font-size:8.5pt;}
 </style></head><body>
 <header class="top"><div><h1>좋은일자리 · 공문 작성</h1><p>훈련과정을 선택하거나, 신청 취하·지원 종료 문서를 작성하세요.</p></div><div class="top-tools"><button type="button" class="mainmode active" id="modeTraining">직업훈련</button><button type="button" class="mainmode" id="modeDoc24">취하 · 지원 종료</button><button type="button" id="printAllTop">서류 출력</button></div></header>
 <div class="layout"><aside class="left">
@@ -2950,11 +2950,11 @@ const footer=()=>trainingStandardFooter();
 const tableShell=(kind,chunk,isLast,attachmentCount=people.length)=>{
  const issue=kind==='issue';
  const cardOnly=!issue&&chunk.length>0&&chunk.every(({p})=>!String(course('previous',p).title||'').trim());
- const widths=issue?[7.5,7,10.5,13,44.5,7.5,10]:cardOnly?[4,4,8,14,9,37,10,7,7]:[4,4,8,14,23,23,10,7,7];
+ const widths=issue?[7.5,7,10.5,13,44.5,7.5,10]:cardOnly?[4,4,8,14,11,35,10,7,7]:[4,4,8,14,23,23,10,7,7];
  const col='<colgroup>'+widths.map(w=>`<col style="width:${w}%">`).join('')+'</colgroup>';
  const head=issue?'<tr><th>연번</th><th>유형</th><th>성명</th><th>주민번호</th><th>과정명</th><th>훈련<br>시간</th><th>담당자</th></tr>':'<tr><th>연<br>번</th><th>유<br>형</th><th>성명</th><th>주민번호</th><th>변경 전</th><th>변경 후</th><th>변경훈련<br>상담일자</th><th>담당자</th><th>훈련<br>시간</th></tr>';
  const identity=p=>{const r=fmtRRN(p.rrn);return r.includes('-')?e(r.split('-')[0])+'-<br>'+e(r.split('-')[1]):e(r)};
- const info=(c,change=false)=>{if(!c.title)return '기발급자';if(change){const start=String(c.startDate||'').replaceAll('-','.'),end=String(c.endDate||'').replaceAll('-','.');return '<div class="gj-change-course"><div class="gj-change-period"><span>'+e(start)+'</span><br><span>'+(end?'~ '+e(end):'')+'</span>'+(c.round?'<br><span class="gj-change-round">('+e(c.round)+'회차)</span>':'')+'</div><div class="gj-change-title">'+e(c.title)+'</div><div class="gj-change-institution">'+e(c.institution)+'</div></div>';}return `<div class="gj-course-period">${e(fmtPeriod(c))}${c.round?' ('+e(c.round)+'회차)':''}</div><div>${e(c.institution)}</div><div>${e(c.title)}</div>`;};
+ const info=(c,change=false)=>{if(!c.title)return '기발급자';if(change){const start=String(c.startDate||'').replaceAll('-','.'),end=String(c.endDate||'').replaceAll('-','.');return '<div class="gj-change-course"><div class="gj-change-period"><span>'+e(start)+'</span> <span>'+(end?'~ '+e(end):'')+'</span>'+(c.round?' <span class="gj-change-round">('+e(c.round)+'회차)</span>':'')+'</div><div class="gj-change-title">'+e(c.title)+'</div><div class="gj-change-institution">'+e(c.institution)+'</div></div>';}return `<div class="gj-course-period">${e(fmtPeriod(c))}${c.round?' ('+e(c.round)+'회차)':''}</div><div>${e(c.institution)}</div><div>${e(c.title)}</div>`;};
  const body=chunk.map(({p,i,key,c})=>{
  const old=course('previous',p),manager=p.manager||value('officialManager')||window.GOODJOB_STAFF_PROFILE?.name||'';
  const common=`<td>${i+1}</td><td>${e(p.type)}</td><td class="person-title">${e(p.name)}</td><td class="gj-rrn">${identity(p)}</td>`;
