@@ -39,26 +39,100 @@ $('clearBtn').addEventListener('click',()=>chrome.storage.local.remove(KEY,load)
  */
 async function applyIapActivitiesMAIN(payload){
   function checkIapParticipantMAIN(expected){
-   const required=String(expected||'').trim().toUpperCase();
-   if(!/^A\d{10,}$/.test(required))return {checked:true,ok:false,reason:'유효한 전체 IAP 등록번호가 없습니다. 통합본에서 다시 전송해 주세요.'};
-   const ids=new Set();
-   let doc=document;
-   for(let level=0;doc&&level<8;level++){
-    const view=doc.defaultView||window;
-    for(const el of doc.querySelectorAll('input,textarea,span,td,div')){
-     try{
-      const r=el.getBoundingClientRect(),cs=view.getComputedStyle(el);
-      if(r.width<1||r.height<1||cs.display==='none'||cs.visibility==='hidden'||Number(cs.opacity||1)===0||el.children.length)continue;
-      const text=String(el.value||el.textContent||'').trim();
-      // Whole identifiers only: never compare names, suffixes, masked or partial numbers.
-      for(const m of text.matchAll(/(?:^|[^A-Za-z0-9])A\d{10,}(?![A-Za-z0-9])/ig))ids.add(m[0].replace(/^[^A-Za-z0-9]/,'').toUpperCase());
-     }catch{}
-    }
-    try{const parent=view.parent;if(!parent||parent===view)break;doc=parent.document;}catch{break;}
+ const required=String(expected||'').trim().toUpperCase();
+ if(!/^A\d{10,}$/.test(required))return {checked:true,ok:false,reason:'유효한 전체 IAP 등록번호가 없습니다. 통합본에서 다시 전송해 주세요.'};
+ const ids=new Set(),seen=new Set(),expanded=new Set();
+ const styles=new WeakMap(); // Per-check only: never reuse identity or visibility across writes.
+ let scanned=0,unreadable=0,fieldSeen=false;
+ function visible(el){
+  try{
+   const view=el.ownerDocument.defaultView;
+   const r=el.getBoundingClientRect();
+   if(r.width<1||r.height<1)return false;
+   for(let p=el;p;p=p.parentElement){
+    let cs=styles.get(p);if(!cs){cs=view.getComputedStyle(p);styles.set(p,cs);}
+    if(p.hidden||p.getAttribute('aria-hidden')==='true'||cs.display==='none'||cs.visibility==='hidden'||cs.visibility==='collapse'||Number(cs.opacity||1)===0)return false;
    }
-   if(ids.size!==1)return {checked:true,ok:false,reason:'현재 IAP 화면의 등록번호를 한 개로 확정할 수 없습니다. 다른 참여자 창을 닫고 번호를 표시해 주세요.'};
-   return {checked:true,ok:ids.has(required),reason:ids.has(required)?'등록번호 일치':'통합본과 Work24 등록번호 불일치'};
+   return true;
+  }catch{return false;}
+ }
+ function documentVisible(doc){
+  try{
+   let v=doc.defaultView;
+   for(let n=0;n<16;n++){
+    if(v===v.parent)return true;
+    const host=v.frameElement;
+    if(!host||!visible(host))return false;
+    v=v.parent;
+   }
+  }catch{}
+  return false;
+ }
+
+ function identityFields(doc){
+  const elements=Array.from(doc.querySelectorAll('label,th,td,span,div'));
+  const labelText=el=>String(el.textContent||'').replace(/\s|[:：]/g,'').toUpperCase();
+  const labels=elements.filter(el=>/^(IAP번호|IAP등록번호)$/.test(labelText(el)));
+  const leaves=labels.filter(el=>!labels.some(other=>other!==el&&el.contains(other)));
+  const fields=new Set();let found=false;
+  for(const label of leaves){
+   if(!visible(label))continue;
+   found=true;
+   if(label.htmlFor){const control=doc.getElementById(label.htmlFor);if(control)fields.add(control);continue;}
+   const cell=label.closest('th,td');
+   if(cell){if(cell.nextElementSibling)fields.add(cell.nextElementSibling);continue;}
+   // Nexacro renders label/value as adjacent wrappers, sometimes one level up.
+   let node=label;
+   for(let level=0;node&&level<3;level++,node=node.parentElement){
+    if(node.nextElementSibling){fields.add(node.nextElementSibling);break;}
+    if(!node.parentElement||labelText(node.parentElement)!==labelText(label))break;
+   }
   }
+  return {found,fields};
+ }
+ function collect(doc,depth,includeFrames){
+  if(!doc||depth>16||seen.size>=128)return;
+  const prior=seen.has(doc);
+  if(prior&&!includeFrames)return;
+  seen.add(doc);
+  if(!documentVisible(doc))return;
+  if(!prior)scanned++;
+  const identity=identityFields(doc);
+  const candidates=identity.found?Array.from(new Set(Array.from(identity.fields).flatMap(root=>[root,...root.querySelectorAll('input,textarea,span,td,div')]))):doc.querySelectorAll('input,textarea,span,td,div');
+  if(!prior)for(const el of candidates){
+   // Read native field values and this element's own text. Do not discard
+   // Nexacro wrappers with child elements or concatenate hidden child text.
+   const texts=[];
+   if(el.tagName==='INPUT'||el.tagName==='TEXTAREA')texts.push(String(el.value||''));
+   for(const node of el.childNodes)if(node.nodeType===3)texts.push(node.nodeValue||'');
+   const matches=[];
+   for(const text of texts)for(const m of text.matchAll(/(?:^|[^A-Za-z0-9])A\d{10,}(?![A-Za-z0-9])/ig))matches.push(m[0].replace(/^[^A-Za-z0-9]/,'').toUpperCase());
+   // Layout/style reads are expensive in Work24. Only inspect actual ID candidates.
+   if(matches.length&&visible(el))for(const id of matches)ids.add(id);
+  }
+  // Basic information and the two plan grids can be separate sibling frames.
+  // Only visible, accessible documents in this tab are read; no cached identity.
+  if(identity.found){fieldSeen=true;return;}
+  if(ids.size||!includeFrames||expanded.has(doc))return;
+  expanded.add(doc);
+  for(const host of doc.querySelectorAll('iframe,frame')){
+   if(!visible(host))continue;
+   try{collect(host.contentWindow.document,depth+1,true);}catch{unreadable++;}
+  }
+ }
+ if(!documentVisible(document))return {checked:true,ok:false,reason:'현재 IAP 입력 화면이 숨겨져 있습니다. 입력할 참여자 화면을 선택해 주세요.'};
+ let doc=document;
+ for(let level=0;doc&&level<8;level++){
+  // Expand to sibling frames only inside an identifiable IAP management screen.
+  const iapScreen=Array.from(doc.querySelectorAll('h1,h2,h3,span,div,td')).some(el=>/IAP\s*등록\s*[/／]\s*관리/i.test(Array.from(el.childNodes).filter(n=>n.nodeType===3).map(n=>n.nodeValue||'').join(''))&&visible(el));
+  collect(doc,0,iapScreen);
+  if(ids.size||fieldSeen||iapScreen)break;
+  try{const view=doc.defaultView,parent=view.parent;if(!parent||parent===view)break;doc=parent.document;}catch{unreadable++;break;}
+ }
+ const diagnostic=`번호 종류 ${ids.size}개 · 확인 화면 ${scanned}개 · 접근 제한 ${unreadable}개`;
+ if(ids.size!==1)return {checked:true,ok:false,reason:(ids.size===0?'현재 IAP 화면의 전체 등록번호를 읽지 못했습니다.':'서로 다른 등록번호가 감지되었습니다. 다른 참여자 화면을 닫아 주세요.')+' ('+diagnostic+')'};
+ return {checked:true,ok:ids.has(required),reason:ids.has(required)?'등록번호 일치': '통합본과 Work24 등록번호 불일치'};
+}
   let identityStopped=false;
   function assertIapIdentity(){
     const result=checkIapParticipantMAIN(payload?.iapNo);
@@ -1330,26 +1404,100 @@ async function applyIapActivitiesMAIN(payload){
  */
 async function applyIapJobProgramsMAIN(payload){
   function checkIapParticipantMAIN(expected){
-   const required=String(expected||'').trim().toUpperCase();
-   if(!/^A\d{10,}$/.test(required))return {checked:true,ok:false,reason:'유효한 전체 IAP 등록번호가 없습니다. 통합본에서 다시 전송해 주세요.'};
-   const ids=new Set();
-   let doc=document;
-   for(let level=0;doc&&level<8;level++){
-    const view=doc.defaultView||window;
-    for(const el of doc.querySelectorAll('input,textarea,span,td,div')){
-     try{
-      const r=el.getBoundingClientRect(),cs=view.getComputedStyle(el);
-      if(r.width<1||r.height<1||cs.display==='none'||cs.visibility==='hidden'||Number(cs.opacity||1)===0||el.children.length)continue;
-      const text=String(el.value||el.textContent||'').trim();
-      // Whole identifiers only: never compare names, suffixes, masked or partial numbers.
-      for(const m of text.matchAll(/(?:^|[^A-Za-z0-9])A\d{10,}(?![A-Za-z0-9])/ig))ids.add(m[0].replace(/^[^A-Za-z0-9]/,'').toUpperCase());
-     }catch{}
-    }
-    try{const parent=view.parent;if(!parent||parent===view)break;doc=parent.document;}catch{break;}
+ const required=String(expected||'').trim().toUpperCase();
+ if(!/^A\d{10,}$/.test(required))return {checked:true,ok:false,reason:'유효한 전체 IAP 등록번호가 없습니다. 통합본에서 다시 전송해 주세요.'};
+ const ids=new Set(),seen=new Set(),expanded=new Set();
+ const styles=new WeakMap(); // Per-check only: never reuse identity or visibility across writes.
+ let scanned=0,unreadable=0,fieldSeen=false;
+ function visible(el){
+  try{
+   const view=el.ownerDocument.defaultView;
+   const r=el.getBoundingClientRect();
+   if(r.width<1||r.height<1)return false;
+   for(let p=el;p;p=p.parentElement){
+    let cs=styles.get(p);if(!cs){cs=view.getComputedStyle(p);styles.set(p,cs);}
+    if(p.hidden||p.getAttribute('aria-hidden')==='true'||cs.display==='none'||cs.visibility==='hidden'||cs.visibility==='collapse'||Number(cs.opacity||1)===0)return false;
    }
-   if(ids.size!==1)return {checked:true,ok:false,reason:'현재 IAP 화면의 등록번호를 한 개로 확정할 수 없습니다. 다른 참여자 창을 닫고 번호를 표시해 주세요.'};
-   return {checked:true,ok:ids.has(required),reason:ids.has(required)?'등록번호 일치':'통합본과 Work24 등록번호 불일치'};
+   return true;
+  }catch{return false;}
+ }
+ function documentVisible(doc){
+  try{
+   let v=doc.defaultView;
+   for(let n=0;n<16;n++){
+    if(v===v.parent)return true;
+    const host=v.frameElement;
+    if(!host||!visible(host))return false;
+    v=v.parent;
+   }
+  }catch{}
+  return false;
+ }
+
+ function identityFields(doc){
+  const elements=Array.from(doc.querySelectorAll('label,th,td,span,div'));
+  const labelText=el=>String(el.textContent||'').replace(/\s|[:：]/g,'').toUpperCase();
+  const labels=elements.filter(el=>/^(IAP번호|IAP등록번호)$/.test(labelText(el)));
+  const leaves=labels.filter(el=>!labels.some(other=>other!==el&&el.contains(other)));
+  const fields=new Set();let found=false;
+  for(const label of leaves){
+   if(!visible(label))continue;
+   found=true;
+   if(label.htmlFor){const control=doc.getElementById(label.htmlFor);if(control)fields.add(control);continue;}
+   const cell=label.closest('th,td');
+   if(cell){if(cell.nextElementSibling)fields.add(cell.nextElementSibling);continue;}
+   // Nexacro renders label/value as adjacent wrappers, sometimes one level up.
+   let node=label;
+   for(let level=0;node&&level<3;level++,node=node.parentElement){
+    if(node.nextElementSibling){fields.add(node.nextElementSibling);break;}
+    if(!node.parentElement||labelText(node.parentElement)!==labelText(label))break;
+   }
   }
+  return {found,fields};
+ }
+ function collect(doc,depth,includeFrames){
+  if(!doc||depth>16||seen.size>=128)return;
+  const prior=seen.has(doc);
+  if(prior&&!includeFrames)return;
+  seen.add(doc);
+  if(!documentVisible(doc))return;
+  if(!prior)scanned++;
+  const identity=identityFields(doc);
+  const candidates=identity.found?Array.from(new Set(Array.from(identity.fields).flatMap(root=>[root,...root.querySelectorAll('input,textarea,span,td,div')]))):doc.querySelectorAll('input,textarea,span,td,div');
+  if(!prior)for(const el of candidates){
+   // Read native field values and this element's own text. Do not discard
+   // Nexacro wrappers with child elements or concatenate hidden child text.
+   const texts=[];
+   if(el.tagName==='INPUT'||el.tagName==='TEXTAREA')texts.push(String(el.value||''));
+   for(const node of el.childNodes)if(node.nodeType===3)texts.push(node.nodeValue||'');
+   const matches=[];
+   for(const text of texts)for(const m of text.matchAll(/(?:^|[^A-Za-z0-9])A\d{10,}(?![A-Za-z0-9])/ig))matches.push(m[0].replace(/^[^A-Za-z0-9]/,'').toUpperCase());
+   // Layout/style reads are expensive in Work24. Only inspect actual ID candidates.
+   if(matches.length&&visible(el))for(const id of matches)ids.add(id);
+  }
+  // Basic information and the two plan grids can be separate sibling frames.
+  // Only visible, accessible documents in this tab are read; no cached identity.
+  if(identity.found){fieldSeen=true;return;}
+  if(ids.size||!includeFrames||expanded.has(doc))return;
+  expanded.add(doc);
+  for(const host of doc.querySelectorAll('iframe,frame')){
+   if(!visible(host))continue;
+   try{collect(host.contentWindow.document,depth+1,true);}catch{unreadable++;}
+  }
+ }
+ if(!documentVisible(document))return {checked:true,ok:false,reason:'현재 IAP 입력 화면이 숨겨져 있습니다. 입력할 참여자 화면을 선택해 주세요.'};
+ let doc=document;
+ for(let level=0;doc&&level<8;level++){
+  // Expand to sibling frames only inside an identifiable IAP management screen.
+  const iapScreen=Array.from(doc.querySelectorAll('h1,h2,h3,span,div,td')).some(el=>/IAP\s*등록\s*[/／]\s*관리/i.test(Array.from(el.childNodes).filter(n=>n.nodeType===3).map(n=>n.nodeValue||'').join(''))&&visible(el));
+  collect(doc,0,iapScreen);
+  if(ids.size||fieldSeen||iapScreen)break;
+  try{const view=doc.defaultView,parent=view.parent;if(!parent||parent===view)break;doc=parent.document;}catch{unreadable++;break;}
+ }
+ const diagnostic=`번호 종류 ${ids.size}개 · 확인 화면 ${scanned}개 · 접근 제한 ${unreadable}개`;
+ if(ids.size!==1)return {checked:true,ok:false,reason:(ids.size===0?'현재 IAP 화면의 전체 등록번호를 읽지 못했습니다.':'서로 다른 등록번호가 감지되었습니다. 다른 참여자 화면을 닫아 주세요.')+' ('+diagnostic+')'};
+ return {checked:true,ok:ids.has(required),reason:ids.has(required)?'등록번호 일치': '통합본과 Work24 등록번호 불일치'};
+}
   let identityStopped=false;
   function assertIapIdentity(){
     const result=checkIapParticipantMAIN(payload?.iapNo);
@@ -1900,23 +2048,97 @@ function probeIapFrameMAIN(){
 function checkIapParticipantMAIN(expected){
  const required=String(expected||'').trim().toUpperCase();
  if(!/^A\d{10,}$/.test(required))return {checked:true,ok:false,reason:'유효한 전체 IAP 등록번호가 없습니다. 통합본에서 다시 전송해 주세요.'};
- const ids=new Set();
+ const ids=new Set(),seen=new Set(),expanded=new Set();
+ const styles=new WeakMap(); // Per-check only: never reuse identity or visibility across writes.
+ let scanned=0,unreadable=0,fieldSeen=false;
+ function visible(el){
+  try{
+   const view=el.ownerDocument.defaultView;
+   const r=el.getBoundingClientRect();
+   if(r.width<1||r.height<1)return false;
+   for(let p=el;p;p=p.parentElement){
+    let cs=styles.get(p);if(!cs){cs=view.getComputedStyle(p);styles.set(p,cs);}
+    if(p.hidden||p.getAttribute('aria-hidden')==='true'||cs.display==='none'||cs.visibility==='hidden'||cs.visibility==='collapse'||Number(cs.opacity||1)===0)return false;
+   }
+   return true;
+  }catch{return false;}
+ }
+ function documentVisible(doc){
+  try{
+   let v=doc.defaultView;
+   for(let n=0;n<16;n++){
+    if(v===v.parent)return true;
+    const host=v.frameElement;
+    if(!host||!visible(host))return false;
+    v=v.parent;
+   }
+  }catch{}
+  return false;
+ }
+
+ function identityFields(doc){
+  const elements=Array.from(doc.querySelectorAll('label,th,td,span,div'));
+  const labelText=el=>String(el.textContent||'').replace(/\s|[:：]/g,'').toUpperCase();
+  const labels=elements.filter(el=>/^(IAP번호|IAP등록번호)$/.test(labelText(el)));
+  const leaves=labels.filter(el=>!labels.some(other=>other!==el&&el.contains(other)));
+  const fields=new Set();let found=false;
+  for(const label of leaves){
+   if(!visible(label))continue;
+   found=true;
+   if(label.htmlFor){const control=doc.getElementById(label.htmlFor);if(control)fields.add(control);continue;}
+   const cell=label.closest('th,td');
+   if(cell){if(cell.nextElementSibling)fields.add(cell.nextElementSibling);continue;}
+   // Nexacro renders label/value as adjacent wrappers, sometimes one level up.
+   let node=label;
+   for(let level=0;node&&level<3;level++,node=node.parentElement){
+    if(node.nextElementSibling){fields.add(node.nextElementSibling);break;}
+    if(!node.parentElement||labelText(node.parentElement)!==labelText(label))break;
+   }
+  }
+  return {found,fields};
+ }
+ function collect(doc,depth,includeFrames){
+  if(!doc||depth>16||seen.size>=128)return;
+  const prior=seen.has(doc);
+  if(prior&&!includeFrames)return;
+  seen.add(doc);
+  if(!documentVisible(doc))return;
+  if(!prior)scanned++;
+  const identity=identityFields(doc);
+  const candidates=identity.found?Array.from(new Set(Array.from(identity.fields).flatMap(root=>[root,...root.querySelectorAll('input,textarea,span,td,div')]))):doc.querySelectorAll('input,textarea,span,td,div');
+  if(!prior)for(const el of candidates){
+   // Read native field values and this element's own text. Do not discard
+   // Nexacro wrappers with child elements or concatenate hidden child text.
+   const texts=[];
+   if(el.tagName==='INPUT'||el.tagName==='TEXTAREA')texts.push(String(el.value||''));
+   for(const node of el.childNodes)if(node.nodeType===3)texts.push(node.nodeValue||'');
+   const matches=[];
+   for(const text of texts)for(const m of text.matchAll(/(?:^|[^A-Za-z0-9])A\d{10,}(?![A-Za-z0-9])/ig))matches.push(m[0].replace(/^[^A-Za-z0-9]/,'').toUpperCase());
+   // Layout/style reads are expensive in Work24. Only inspect actual ID candidates.
+   if(matches.length&&visible(el))for(const id of matches)ids.add(id);
+  }
+  // Basic information and the two plan grids can be separate sibling frames.
+  // Only visible, accessible documents in this tab are read; no cached identity.
+  if(identity.found){fieldSeen=true;return;}
+  if(ids.size||!includeFrames||expanded.has(doc))return;
+  expanded.add(doc);
+  for(const host of doc.querySelectorAll('iframe,frame')){
+   if(!visible(host))continue;
+   try{collect(host.contentWindow.document,depth+1,true);}catch{unreadable++;}
+  }
+ }
+ if(!documentVisible(document))return {checked:true,ok:false,reason:'현재 IAP 입력 화면이 숨겨져 있습니다. 입력할 참여자 화면을 선택해 주세요.'};
  let doc=document;
  for(let level=0;doc&&level<8;level++){
-  const view=doc.defaultView||window;
-  for(const el of doc.querySelectorAll('input,textarea,span,td,div')){
-   try{
-    const r=el.getBoundingClientRect(),cs=view.getComputedStyle(el);
-    if(r.width<1||r.height<1||cs.display==='none'||cs.visibility==='hidden'||Number(cs.opacity||1)===0||el.children.length)continue;
-    const text=String(el.value||el.textContent||'').trim();
-    // Whole identifiers only: never compare names, suffixes, masked or partial numbers.
-    for(const m of text.matchAll(/(?:^|[^A-Za-z0-9])A\d{10,}(?![A-Za-z0-9])/ig))ids.add(m[0].replace(/^[^A-Za-z0-9]/,'').toUpperCase());
-   }catch{}
-  }
-  try{const parent=view.parent;if(!parent||parent===view)break;doc=parent.document;}catch{break;}
+  // Expand to sibling frames only inside an identifiable IAP management screen.
+  const iapScreen=Array.from(doc.querySelectorAll('h1,h2,h3,span,div,td')).some(el=>/IAP\s*등록\s*[/／]\s*관리/i.test(Array.from(el.childNodes).filter(n=>n.nodeType===3).map(n=>n.nodeValue||'').join(''))&&visible(el));
+  collect(doc,0,iapScreen);
+  if(ids.size||fieldSeen||iapScreen)break;
+  try{const view=doc.defaultView,parent=view.parent;if(!parent||parent===view)break;doc=parent.document;}catch{unreadable++;break;}
  }
- if(ids.size!==1)return {checked:true,ok:false,reason:'현재 IAP 화면의 등록번호를 한 개로 확정할 수 없습니다. 다른 참여자 창을 닫고 번호를 표시해 주세요.'};
- return {checked:true,ok:ids.has(required),reason:ids.has(required)?'등록번호 일치':'통합본과 Work24 등록번호 불일치'};
+ const diagnostic=`번호 종류 ${ids.size}개 · 확인 화면 ${scanned}개 · 접근 제한 ${unreadable}개`;
+ if(ids.size!==1)return {checked:true,ok:false,reason:(ids.size===0?'현재 IAP 화면의 전체 등록번호를 읽지 못했습니다.':'서로 다른 등록번호가 감지되었습니다. 다른 참여자 화면을 닫아 주세요.')+' ('+diagnostic+')'};
+ return {checked:true,ok:ids.has(required),reason:ids.has(required)?'등록번호 일치': '통합본과 Work24 등록번호 불일치'};
 }
 
 $('repairDatesBtn')?.addEventListener('click',async()=>{

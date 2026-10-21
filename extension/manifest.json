@@ -40,7 +40,8 @@
         "allowance_content.js",
         "termination_content.js",
         "counsel-save-core.js",
-        "counsel-save-content.js"
+        "counsel-save-content.js",
+        "client-context-work24.js"
       ],
       "run_at": "document_idle",
       "all_frames": true,
