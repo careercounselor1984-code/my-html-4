@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>현재 참여자 기본정보</title>
+<style>
+  *{box-sizing:border-box} body{margin:0;width:auto;min-width:320px;max-width:100%;font-family:Pretendard,"Noto Sans KR","Malgun Gothic",sans-serif;background:#f7f9fc;color:#172033}
+  .wrap{padding:16px}.title{font-size:17px;font-weight:900;margin-bottom:5px}.desc{font-size:11.5px;line-height:1.55;color:#718096;margin-bottom:14px}
+  button{font:inherit;cursor:pointer}.primary{width:100%;height:42px;border:0;border-radius:10px;background:#2563eb;color:#fff;font-weight:900}.primary:disabled{opacity:.55;cursor:default}
+  .status{margin-top:11px;border:1px solid #dbe4ef;background:#fff;border-radius:10px;padding:10px 11px;font-size:11.5px;line-height:1.5;color:#607089;white-space:pre-wrap}
+  .status.ok{border-color:#b7e4cb;background:#f0fbf5;color:#17613b}.status.err{border-color:#fecaca;background:#fff4f4;color:#b42318}
+  .result{display:none;margin-top:10px;border:1px solid #dfe7f1;border-radius:12px;background:#fff;overflow:hidden}.result.show{display:block}.row{display:grid;grid-template-columns:125px minmax(0,1fr);border-top:1px solid #edf1f6}.row:first-child{border-top:0}.label{padding:8px 9px;background:#f8fafc;font-size:10.8px;font-weight:850;color:#66758b}.value{padding:8px 9px;font-size:11.5px;font-weight:750;word-break:break-all}.value.empty{color:#a0aabc;font-weight:650}
+  .actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.sub{height:36px;border:1px solid #ccd8e7;border-radius:9px;background:#fff;color:#526178;font-weight:850;font-size:11px}.sub:disabled{opacity:.55;cursor:default}
+  details{margin-top:10px;border:1px dashed #cbd8e8;border-radius:10px;background:#fff} summary{cursor:pointer;padding:9px 10px;font-size:10.5px;font-weight:850;color:#6d7b90}.debug{padding:0 10px 10px;font-size:10px;line-height:1.55;color:#7b889c;white-space:pre-wrap;max-height:160px;overflow:auto}
+  .foot{margin-top:10px;font-size:10px;line-height:1.5;color:#8794a7}
+</style>
+
+<style id="unified-nav-style">
+.unifiedNav{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 10px;padding:7px 9px;border:1px solid #dbe5f1;border-radius:9px;background:#f8fbff;font-family:Pretendard,"Noto Sans KR","Malgun Gothic",sans-serif}
+.unifiedNav a{color:#2563eb;text-decoration:none;font-size:10.5px;font-weight:900}
+.unifiedNav span{color:#7a8799;font-size:9.5px;font-weight:800}
+</style>
+
+</head>
+<body>
+<div class="unifiedNav"><a href="popup.html">← 전체 메뉴</a><span>통합 v1.4.24 · 기본정보 점검</span></div>
+<div class="wrap">
+  <div class="title">현재 참여자 기본정보</div>
+  <div class="desc">현재 열린 국취 전산 화면의 기본정보를 읽고, 확인 후 상담일지 통합본 초기상담으로 전달할 수 있습니다.</div>
+  <button id="readBtn" class="primary">기본정보 읽기</button>
+  <div id="status" class="status">대상자 화면에서 버튼을 눌러주세요.</div>
+  <div id="result" class="result"></div>
+  <div class="actions"><button id="copyBtn" class="sub" disabled>결과 복사</button><button id="clearBtn" class="sub">비우기</button></div>
+  <button id="sendCounselBtn" class="primary" style="margin-top:8px;background:#0f766e" disabled>상담일지 통합본으로 보내기</button>
+  <details><summary>진단 정보 보기</summary><div id="debug" class="debug">아직 실행하지 않았습니다.</div></details>
+  <div class="foot">화면 전체를 무차별 수집하지 않고, 수급자 기본정보 영역과 인접한 값·입력값을 우선 확인합니다.</div>
+</div>
+<script src="basic.js"></script>
+</body>
+</html>

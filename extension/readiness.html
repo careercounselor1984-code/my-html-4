@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>구직준비도 전산 반영</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Pretendard,"Noto Sans KR","Malgun Gothic",sans-serif;background:#f5f7fb;color:#172033}.wrap{padding:14px}.top{display:flex;align-items:center;gap:8px;margin-bottom:12px}.back{text-decoration:none;border:0;background:transparent;color:#2563eb;font-weight:900;cursor:pointer;padding:4px 0}.ver{margin-left:auto;font-size:9px;font-weight:950;color:#2563eb;background:#edf4ff;border:1px solid #cfe0fb;border-radius:999px;padding:4px 7px}h1{font-size:18px;margin:0 0 4px}.desc{font-size:10.5px;color:#7a879a;line-height:1.55;margin-bottom:12px}.status{border:1px solid #dce5f1;background:#fff;border-radius:12px;padding:11px 12px;font-size:11px;line-height:1.55;color:#617189;margin-bottom:10px}.status.ok{border-color:#b9e5cf;background:#f0fbf5;color:#17613b}.status.warn{border-color:#f2d394;background:#fff9e9;color:#8a5a00}.status.error{border-color:#fecaca;background:#fff5f5;color:#b42318}.card{border:1px solid #dfe7f1;background:#fff;border-radius:12px;padding:12px;margin-bottom:9px}.ct{font-size:12px;font-weight:950;margin-bottom:8px;color:#33445d}.grid{display:grid;grid-template-columns:34px minmax(0,1fr);gap:6px 8px;font-size:10.8px;line-height:1.45}.q{font-weight:950;color:#2563eb}.v{color:#354760}.muted{color:#7d8a9d;font-size:10px}.actions{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:10px}.btn{height:38px;border-radius:10px;border:1px solid #cbd8e8;background:#fff;color:#526178;font-size:11px;font-weight:900;cursor:pointer}.btn.primary{grid-column:1/-1;background:#2563eb;border-color:#2563eb;color:#fff}.btn.primary:disabled{opacity:.45;cursor:not-allowed}.note{margin-top:10px;font-size:9.8px;color:#8491a5;line-height:1.55}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><a class="back" href="popup.html">← 전체 메뉴</a><span class="ver">v1.4.24</span></div>
+  <h1>구직준비도 전산 반영</h1>
+  <div class="desc">통합본 「필수상담(구직재점검)」에서 8문항을 선택해 <b>설문 전송</b> → Work24의 구직준비도 팝업을 연 뒤 <b>자동입력</b>하세요.</div>
+  <div id="status" class="status">대기자료를 확인 중입니다.</div>
+  <div id="content"></div>
+  <div class="actions">
+    <button id="refreshBtn" class="btn">다시 확인</button>
+    <button id="clearBtn" class="btn">대기자료 지우기</button>
+    <button id="applyBtn" class="btn primary" disabled>Work24 구직준비도 자동입력</button>
+    <button id="diagnoseBtn" class="btn primary">구직준비도 화면 구조 진단·복사</button>
+  </div>
+  <textarea id="readinessDiag" hidden readonly aria-label="화면 구조 진단 결과" style="width:100%;height:170px;font-size:10px"></textarea>
+  <div class="note">※ 자동입력 후 Work24 화면에서 응답을 직접 확인한 뒤 <b>저장</b>하세요. 도우미는 저장 버튼을 자동으로 누르지 않습니다.</div>
+</div>
+<script src="client-context-core.js"></script>
+<script src="readiness.js"></script>
+<script src="readiness-diagnostic.js"></script>
+</body>
+</html>

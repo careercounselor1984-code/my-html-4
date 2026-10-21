@@ -1,0 +1,3 @@
+(()=>{'use strict';if(window.__CLG_CLIENT_CONTEXT__)return;window.__CLG_CLIENT_CONTEXT__=true;let busy=false;
+window.addEventListener('message',e=>{if(!ClgBridgeSecurity.validOrigin(e))return;const d=e.data;if(d?.marker!=='CLG_CLIENT_LINK_V1'||d.type!=='REQUEST_CONTEXT'||typeof d.requestId!=='string'||d.requestId.length>100||busy)return;busy=true;chrome.runtime.sendMessage({type:'CLG_CLIENT_CONTEXT_REQUEST'},payload=>{busy=false;if(chrome.runtime.lastError)return;window.postMessage({marker:'CLG_CLIENT_LINK_V1',type:'CONTEXT',requestId:d.requestId,payload},ClgBridgeSecurity.targetOrigin())});});
+})();

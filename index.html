@@ -3922,7 +3922,7 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
     adminBtn.style.display=employee && employee.system_role==='admin' ? '' : 'none';
     startHeartbeat();
     resetIdle();
-    window.__CLG_JOURNAL_EMPLOYEE={name:employee&&employee.name||'',email:user&&user.email||''};
+    window.__CLG_JOURNAL_EMPLOYEE={name:employee&&employee.name||'',email:user&&user.email||'',center:employee&&employee.center||''};
     try{window.dispatchEvent(new CustomEvent('clg-auth-ready',{detail:window.__CLG_JOURNAL_EMPLOYEE}))}catch(e){}
   }
 
@@ -4839,13 +4839,7 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
     setDetails([['상태','연결 확인 중']]); $('clgBridgeApplyBtn').textContent='반영';
     showMessage('잠시만 기다려 주세요. 연결 여부를 확인하고 있습니다.','warn');
   }
-  function showDisconnected(){
-    if(bridgeReady)return; if(panel)panel.hidden=false;
-    setCompactMode('disconnected');
-    setTitle('Work24 연결 안 됨','상담일지 페이지에서 확장프로그램 브리지가 실행되지 않았습니다.','국취 전산 상담 도우미 연결 확인 필요');
-    setDetails([['확인','GitHub Pages 연결 또는 로컬 파일 URL 권한 및 확장프로그램 버전을 확인하세요.']]);
-    showMessage('국취 전산 상담 도우미 최신 확장프로그램이 활성화되어 있는지 확인하고, 통합본을 GitHub Pages에서 열어주세요. 로컬 HTML인 경우 확장프로그램의 파일 URL 액세스를 허용해야 합니다.','warn');
-  }
+  function showDisconnected(){if(bridgeReady)return;if(panel)panel.hidden=true;if(launcher)launcher.hidden=true;}
   function showIapConnected(){
     if(panel)panel.hidden=false; currentKind='';
     setCompactMode('connected');
@@ -5165,7 +5159,9 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
     const d=e.data||{};
     if(d.marker===PAGE&&d.type==='SAVE_READINESS_PENDING'){
       if(!frameFor(e.source))return;
-      const p=d.payload;
+      const no=frameFor(e.source)?.contentDocument?.querySelector('#clgIapRegNo')?.value||'';
+      const p={...d.payload,iapNo:no};
+      if(!/^A\d{10,30}$/.test(no)){reply(e.source,'READINESS_SAVE_ERROR',{message:'등록번호 확인 필요'});return}
       if(!p||typeof p!=='object'||!p.sentAt){reply(e.source,'READINESS_SAVE_ERROR',{message:'전송 자료 형식이 올바르지 않습니다.'});return}
       clear(p.sentAt);
       const timer=setTimeout(()=>{
@@ -6665,6 +6661,8 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 <script src="./journal-workspace.js?v=20261019-consult-reset-1"></script>
 <script src="./client-guidance.js?v=20261018-1"></script>
 <script src="./north-edoc-integration.js?v=20261018-north-bidirectional-v4"></script>
+<script src="client-link-model.js"></script>
+<script src="client-link.js"></script>
 </body>
 </html>
 

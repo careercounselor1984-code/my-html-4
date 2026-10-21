@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>국취 전산 상담 도우미</title>
+<style>
+*{box-sizing:border-box}body{margin:0;width:auto;min-width:320px;max-width:100%;font-family:Pretendard,"Noto Sans KR","Malgun Gothic",sans-serif;background:#f5f7fb;color:#172033}
+.wrap{padding:16px}.head{display:flex;gap:11px;align-items:center;margin-bottom:6px}.logo{width:38px;height:38px;border-radius:11px;background:#2563eb;display:grid;place-items:center;box-shadow:0 6px 16px rgba(37,99,235,.22)}
+.doc{width:21px;height:24px;border-radius:4px;background:#fff;position:relative}.doc:after{content:"";position:absolute;left:5px;top:8px;width:10px;height:6px;border-left:2px solid #2563eb;border-bottom:2px solid #2563eb;transform:rotate(-45deg)}
+h1{font-size:17px;margin:0;font-weight:950}.ver{margin-left:auto;font-size:9.5px;font-weight:950;color:#2563eb;background:#edf4ff;border:1px solid #cfe0fb;border-radius:999px;padding:4px 7px}
+.desc{font-size:10.8px;color:#748198;line-height:1.55;margin-bottom:13px}
+.card{display:block;text-decoration:none;color:inherit;border:1px solid #dfe7f1;background:#fff;border-radius:12px;padding:13px 14px;margin-top:9px;transition:.15s;box-shadow:0 2px 7px rgba(40,60,90,.025)}
+.card:hover{border-color:#9db9e7;background:#f8fbff;transform:translateY(-1px)}.row{display:flex;align-items:center;gap:10px}.ico{width:34px;height:34px;border-radius:10px;background:#edf4ff;color:#2563eb;display:grid;place-items:center;font-size:17px;font-weight:950;flex:0 0 auto}
+.t{font-size:12.5px;font-weight:950}.s{font-size:10.3px;color:#7c899d;margin-top:3px;line-height:1.45}.badge{margin-left:auto;font-size:9px;font-weight:900;color:#17613b;background:#ecfdf5;border:1px solid #bbebd7;border-radius:999px;padding:3px 6px}
+.soon{opacity:.58;pointer-events:none}.foot{margin-top:13px;padding:10px 11px;border:1px solid #dfe7f1;border-radius:10px;background:#fff;color:#7a8798;font-size:9.8px;line-height:1.55}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="head"><div class="logo"><div class="doc"></div></div><div><h1>국취 전산 상담 도우미</h1></div><span class="ver">v1.4.24</span></div>
+  <div class="desc">Work24 핵심정보 확인·상담일지 연결, IAP 계획과 구직준비도 자동입력을 지원합니다. 이 패널은 전산 화면을 눌러도 닫히지 않습니다.</div>
+
+  <a class="card" href="basic.html"><div class="row"><div class="ico">기</div><div><div class="t">수급자 기본정보</div><div class="s">현재 참여자 기본정보 · IAP 상태 · 구직인증정보 등</div></div><span class="badge">확인·연결</span></div></a>
+
+  <a class="card" href="allowance.html"><div class="row"><div class="ico">촉</div><div><div class="t">구직촉진수당 현재 회차</div><div class="s">계획·이행·소득·취업·취업지원프로그램·지급요청</div></div><span class="badge">확인·연결</span></div></a>
+
+  <a class="card" href="termination.html"><div class="row"><div class="ico">종</div><div><div class="t">취업종료</div><div class="s">취업(임금근로자) 종료정보 + 고용보험 가입이력 대조</div></div><span class="badge">확인</span></div></a>
+
+  <a class="card" href="iap.html"><div class="row"><div class="ico">I</div><div><div class="t">IAP 전산 반영 준비</div><div class="s">통합본 점검 완료 IAP · 취업지원 + 구직활동 계획 자동입력</div></div><span class="badge">점검·자동입력</span></div></a>
+
+  <a class="card" href="training/popup.html"><div class="row"><div class="ico">훈</div><div><div class="t">훈련 회차별 일수 계산</div><div class="s">IAP일 불러오기 · 고용24 실제 시간표 · 훈련행 기간별 일수</div></div><span class="badge">계산·연계</span></div></a>
+
+  <a class="card" href="readiness.html"><div class="row"><div class="ico">재</div><div><div class="t">구직준비도 등록</div><div class="s">통합본 구직재점검 응답 · Work24 설문 1~8번 자동입력</div></div><span class="badge">자동입력</span></div></a>
+
+  <a class="card" href="counsel-save.html"><div class="row"><div class="ico">상</div><div><div class="t">상담일지 저장 확인</div><div class="s">취업지원서비스기간 · 저장 인식 점검 및 확인 이력</div></div><span class="badge">현장 점검</span></div></a>
+
+  <div class="foot"><button type="button" id="connectJournalBtn" style="width:100%;padding:10px;border:0;border-radius:8px;background:#2563eb;color:white;font-weight:800;cursor:pointer">통합본 연결 다시 설정</button><div id="journalConnectionStatus" role="status" style="margin-top:7px">통합본 탭에서 눌러주세요. 열어둔 화면에 연결 코드를 붙이고 응답을 확인합니다.</div></div>
+  <div class="foot"><a href="privacy.html" style="color:#1d4ed8;font-weight:800">🔒 보관자료 확인·삭제 및 자동 정리 기준</a></div>
+  <div class="foot"><b>안전 원칙</b> · Work24 화면의 정보를 브라우저 안에서 읽어 표시하며, 본 확장프로그램은 외부 서버로 자료를 별도 전송하지 않으며 자동 최종저장·제출 기능이 없습니다. 통합본 연계·기관 이용승인 여부는 별도 확인이 필요합니다.</div>
+</div>
+<script src="connection.js"></script>
+</body>
+</html>

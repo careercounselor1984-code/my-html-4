@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>직업훈련 회차별 일수 계산</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <main class="app">
+    <header><a href="../popup.html">← 전산도우미 전체 메뉴</a>
+      <h1>직업훈련 회차별 일수 계산</h1>
+      <p class="sub">전산도우미 연계 · 실제 시간표 기준 · IAP 2~6회차</p><p class="sub">전산 화면을 눌러도 유지됩니다.</p>
+    </header>
+
+    <section id="unsupported" class="notice error hidden"></section>
+
+    <section id="content" class="hidden">
+      <div class="course-card">
+        <div class="meta-row"><span>과정명</span><strong id="courseName">-</strong></div>
+        <div class="meta-row"><span>기관</span><strong id="institute">-</strong></div>
+        <div class="meta-row"><span>훈련기간</span><strong id="period">-</strong></div>
+        <div class="meta-row"><span>시간표 검증</span><strong id="scheduleStatus" class="muted">계산 전</strong></div>
+      </div>
+
+      <div class="input-area">
+        <label for="iapDate">IAP 수립일</label>
+        <div class="date-entry"><input id="iapDate" type="text" inputmode="numeric" autocomplete="off" placeholder="20261016 / 2026.10.16" aria-describedby="dateHelp"><label class="calendar-label" title="달력에서 선택">달력<input id="datePicker" type="date" aria-label="IAP 수립일 달력"></label></div>
+        <button id="calcBtn" class="primary">회차 계산</button>
+      </div>
+
+      <p id="dateHelp" class="footnote">통합본에서 최근 전송한 IAP 수립일을 불러옵니다. 현재 내담자의 수립일인지 확인하세요. 직접 붙여넣기도 가능합니다.</p><button id="refreshBtn" class="secondary">현재 훈련정보 다시 확인</button>
+      <div id="progress" class="notice info hidden">고용24 시간표를 확인하고 있습니다…</div>
+      <div id="errorBox" class="notice error hidden"></div>
+
+      <section id="results" class="results hidden">
+        <div class="results-head">
+          <h2>계산 결과</h2>
+          <button id="copyBtn" class="secondary">결과 복사</button>
+        </div>
+        <div id="rows"></div>
+      </section>
+
+      <p class="footnote">※ IAP 작성 참고용입니다. 실제 인정 여부·출석 여부는 상담사가 최종 확인하세요.</p>
+    </section>
+    <section class="guide-section">
+      <h2>내담자 훈련 안내</h2>
+      <p class="sub">필요한 안내를 선택하면 아래 문구에 반영됩니다.</p>
+      <div class="toolbar"><button id="essentialBtn" class="secondary">기본 안내</button><button id="allGuideBtn" class="secondary">전체 선택</button><button id="clearGuideBtn" class="secondary">선택 해제</button></div>
+      <div id="guideCards"></div>
+      <label class="include-results"><input id="includeResults" type="checkbox"> 계산 결과도 포함</label>
+      <label for="guidePreview" class="preview-label">보낼 문구 · 직접 수정 가능</label>
+      <textarea id="guidePreview" rows="12"></textarea>
+      <div class="toolbar"><button id="copyGuideBtn" class="primary">카톡용 복사</button><button id="printGuideBtn" class="secondary">PDF 저장 / 출력</button></div>
+      <p id="guideMessage" class="footnote" role="status" aria-live="polite"></p>
+      <details class="sources"><summary>공식 근거 · 확인일 2026.10.16</summary><div id="sourceLinks"></div><p class="footnote">공식 자료를 확인해 수록한 안내입니다. 실시간 API 자동갱신은 아니며, 규정 변경 시 원문 확인이 필요합니다. 일반 집체훈련·비대면 실시간훈련 중심이며 원격훈련 등은 별도 기준을 확인하세요.</p></details>
+    </section>
+  </main>
+  <script src="popup.js"></script>
+  <script src="guide.js"></script>
+</body>
+</html>

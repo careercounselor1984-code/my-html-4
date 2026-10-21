@@ -1,6 +1,6 @@
 'use strict';
 const fs=require('node:fs'),assert=require('node:assert/strict'),cp=require('node:child_process'),{JSDOM}=require('jsdom');
-const files=JSON.parse(cp.execFileSync('python3',['-c',`import zipfile,json; z=zipfile.ZipFile('releases/work24-helper-1.4.24.zip');print(json.dumps({n:z.read(n).decode() for n in ['iap.js','iap.html','bridge-security.js','manifest.json','basic.js','basic_content.js']}))`],{maxBuffer:2e6}));
+const files=Object.fromEntries(['iap.js','iap.html','bridge-security.js','manifest.json','basic.js','basic_content.js'].map(n=>[n,fs.readFileSync('extension/'+n,'utf8')]));
 const A='A12345678901',B='A98765432109';
 function visible(w){w.HTMLElement.prototype.getBoundingClientRect=function(){return {width:100,height:20}};}
 async function extension(){
@@ -43,7 +43,7 @@ async function extension(){
  assert(valid(p,'iap'));assert(!valid({...p,iapNo:''},'iap'));assert(!valid({...p,iapNo:'K12345678901'},'iap'),'job certificate cannot substitute for IAP');
  assert(files['basic.js'].includes('jobCertNo:lastData.jobCertNo'));
  assert(files['basic.js'].includes('jobCertExpire:lastData.jobCertExpire'));
- assert.equal(JSON.parse(files['manifest.json']).version,'1.4.24');w.close();s.close();
+ assert.equal(JSON.parse(files['manifest.json']).version,'1.4.29');w.close();s.close();
 }
 async function journal(){
  const outer=fs.readFileSync('index.html','utf8'),pages=JSON.parse(outer.match(/const PAGES = (\[.*?\]);/s)[1]);
@@ -62,6 +62,6 @@ async function journal(){
  draft.regNo=A;w.clgWorkspaceState.apply(draft);
  d.getElementById('iapAuditRunBtn').addEventListener('click',()=>d.getElementById('iapAuditList').replaceChildren());
  d.getElementById('iapSendWork24Btn').click();const msg=sent.find(x=>x.type==='SAVE_IAP_PENDING');assert.equal(msg?.payload.iapNo,A,'full ID travels with IAP rows');
- assert.match(outer,/!\/\^A\\d\{10,\}\$\/.test\(String\(p.iapNo/,'parent relay rejects numberless old senders');w.close();
+ assert.match(outer,/!\/\^A\\d\{10,\}\$\/.test\(String\(p.iapNo/,'parent relay rejects numberless old senders');await new Promise(r=>setTimeout(r,20));w.close();
 }
 (async()=>{await journal();await extension();console.log('PASS IAP registration required, form owner, mismatch/missing/masked/ambiguous IDs, all-frame preflight, document pinning, changed participant, stale pending and matching transfer.');})().catch(e=>{console.error(e);process.exit(1)});
