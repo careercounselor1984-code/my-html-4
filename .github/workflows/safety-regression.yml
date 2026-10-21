@@ -54,6 +54,7 @@ jobs:
           node tests/card-reason-browser-smoke.cjs
           node tests/protected-core-browser-smoke.cjs
           node tests/full-runtime-browser-smoke.cjs
+          node tests/client-link-browser-smoke.cjs
 
       - name: Headless Chrome initial-screen smoke (unauthenticated)
         shell: bash
