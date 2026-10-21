@@ -1849,7 +1849,7 @@ html.gjNorthApproved #gjNorthAccessGate{display:none!important}
 #gjNorthReturnButton{display:none}
 html.gjNorthApproved #gjNorthReturnButton{display:inline-flex}
 </style>
-</head><body>
+<style>#paperHost .gj-official[data-doctype="change"] .v20-letter-table td.gj-card-only{vertical-align:middle!important;text-align:center!important;}</style></head><body>
 <header class="top"><div><h1>좋은일자리 · 공문 작성</h1><p>훈련과정을 선택하거나, 신청 취하·지원 종료 문서를 작성하세요.</p></div><div class="top-tools"><button type="button" class="mainmode active" id="modeTraining">직업훈련</button><button type="button" class="mainmode" id="modeDoc24">취하 · 지원 종료</button><button type="button" id="printAllTop">서류 출력</button></div></header>
 <div class="layout"><aside class="left">
 <section class="box"><h2>① 작성 업무 <small>출력 서류 자동 선택</small></h2><div class="field"><label>공문 유형</label><select id="workType"><option value="issue">직업능력개발계좌 발급 요청</option><option value="change">직업능력개발계좌 훈련과정 변경 요청</option><option value="recommend">훈련추천서만 작성</option><option value="explore">훈련과정 탐색표만 작성</option></select></div><div class="mini" id="docsIncluded"></div>
@@ -2956,7 +2956,7 @@ const tableShell=(kind,chunk,isLast,attachmentCount=people.length)=>{
  const body=chunk.map(({p,i,key,c})=>{
  const old=course('previous',p),manager=p.manager||value('officialManager')||window.GOODJOB_STAFF_PROFILE?.name||'';
  const common=`<td>${i+1}</td><td>${e(p.type)}</td><td class="person-title">${e(p.name)}</td><td class="gj-rrn">${identity(p)}</td>`;
- return '<tr>'+common+(issue?`<td class="gj-course-cell">${info(c)}</td><td>${e(c.hours)}<br>시간</td><td>${e(manager)}</td>`:`<td class="gj-course-cell">${info(old,true)}</td><td class="gj-course-cell">${info(c,true)}</td><td class="gj-date">${e((p.counselDate||'').replaceAll('-','.'))}</td><td>${e(manager)}</td><td>${e(c.hours)}<br>시간</td>` )+'</tr>';
+ return '<tr>'+common+(issue?`<td class="gj-course-cell">${info(c)}</td><td>${e(c.hours)}<br>시간</td><td>${e(manager)}</td>`:`<td class="gj-course-cell${old.title?'':' gj-card-only'}">${info(old,true)}</td><td class="gj-course-cell">${info(c,true)}</td><td class="gj-date">${e((p.counselDate||'').replaceAll('-','.'))}</td><td>${e(manager)}</td><td>${e(c.hours)}<br>시간</td>` )+'</tr>';
  }).join('');
  const items=v11AttachmentsHTML(kind,attachmentCount);
  const attach=isLast&&items.length?`<div class="v20-attachments"><span>붙임 :</span><div>${items.map((item,i)=>`<div class="gj-attach-line"><span>${item.n}.</span><span>${e(item.text)}${i===items.length-1?' 끝.':''}</span></div>`).join('')}</div></div>`:'';
@@ -3575,7 +3575,7 @@ body.gj-training-open{overflow:hidden}
  const setStatus=(s,bad=false)=>{status.textContent=s;status.className='status'+(bad?' error':' success');};
  function targetText(){const opt=$('applyTo').selectedOptions[0];return opt?.textContent||'현재 과정';}
  function refreshSummary(){
-   try{const c=course(value('editSlot'));$('gjFinderCourseSummary').textContent=c?.title?('현재 편집: '+targetText()+' · '+c.title+(c.institution?' / '+c.institution:'')):'현재 편집: '+targetText()+' · 훈련과정 미선택';}
+   try{const c=course(value('editSlot'));$('gjFinderCourseSummary').textContent=c?.title?('현재 편집: '+targetText()+' · '+c.title+(c.round?' · '+c.round+'회차':'')+(c.startDate?' · '+formatDate(c.startDate):'')+(c.institution?' / '+c.institution:'')):'현재 편집: '+targetText()+' · 훈련과정 미선택';}
    catch{$('gjFinderCourseSummary').textContent='훈련과정을 찾아 선택하세요.';}
  }
  function updateChips(){
@@ -3616,10 +3616,41 @@ body.gj-training-open{overflow:hidden}
        catch(e){setStatus('과정 적용 오류: '+(e?.message||String(e)),true);}
      });
      results.append(el);
+     if(t.trainingId){
+       const rounds=document.createElement('button');rounds.type='button';rounds.className='btn';rounds.textContent='다른 회차 보기';rounds.style.marginBottom='10px';
+       rounds.addEventListener('click',()=>showRounds(t,rounds));results.append(rounds);
+     }
      if(/^https:\/\/www\.work24\.go\.kr\//.test(String(t.url||''))){
        const a=document.createElement('a');a.className='gj-tr-source';a.textContent='고용24 과정 상세 확인 ↗';a.href=t.url;a.target='_blank';a.rel='noopener noreferrer';results.append(a);
      }
    });
+ }
+ async function showRounds(t,button){
+   const seq=++fetchSeq;button.disabled=true;
+   button.nextElementSibling?.classList.contains('gj-round-options')&&button.nextElementSibling.remove();
+   const box=document.createElement('div');box.className='gj-round-options';button.after(box);
+   const now=new Date(),year=now.getFullYear();
+   // Include earlier starts too: an ongoing October class must remain available in November.
+   const from=String(Math.min(year,Number(String(t.startDate||year).slice(0,4))||year))+'0101';
+   const to=String(year+1)+'1231';
+   setStatus('같은 과정의 회차별 개강일을 조회 중입니다…');
+   const all=new Map();let complete=false;
+   try{
+     for(let n=1;n<=20;n++){
+       const r=await fetch('https://bowxlaiyjxknqccoughl.supabase.co/functions/v1/work24-proxy',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'search_training',keyword:t.title,institution:t.institution,regionCode:'',startDate:from,endDate:to,page:n,pageSize:100}),signal:AbortSignal.timeout(28000)});
+       const d=await r.json();if(!r.ok||d.ok===false||!Array.isArray(d.trainings))throw Error(d.error||'회차 조회 실패');
+       if(seq!==fetchSeq)return;
+       for(const x of d.trainings)if(x.trainingId===t.trainingId&&(!t.institutionId||!x.institutionId||x.institutionId===t.institutionId))all.set([x.trainingId,x.round,x.startDate,x.endDate].join('|'),x);
+       if(d.trainings.length<100||(Number(d.total)>0&&n*100>=Number(d.total))){complete=true;break;}
+     }
+     if(seq!==fetchSeq)return;
+     box.replaceChildren();
+     const rows=[...all.values()].sort((a,b)=>String(a.startDate).localeCompare(String(b.startDate))||Number(a.round)-Number(b.round));
+     for(const x of rows){const b=document.createElement('button');b.type='button';b.className='gj-tr-item';b.textContent=(x.round?x.round+'회차 · ':'')+formatDate(x.startDate)+' ~ '+formatDate(x.endDate);b.onclick=()=>{window.GoodJobForms.selectTraining(x);refreshSummary();close();};box.append(b);}
+     if(!rows.length)box.textContent='조회 기간에 등록된 다른 회차가 없습니다. 고용24 원문을 확인하세요.';
+     setStatus('회차 '+rows.length+'건 · '+from.slice(0,4)+'년~'+to.slice(0,4)+'년 개강 기준'+(complete?'':' · 조회 상한 도달: 검색 기간을 좁혀 확인하세요.'));
+   }catch(e){if(seq===fetchSeq){box.textContent='회차를 불러오지 못했습니다. 다시 눌러 주세요.';setStatus(e.message||String(e),true);}}
+   finally{button.disabled=false;$('searchBtn').disabled=false;updatePager();}
  }
  async function search(nextPage=1){
    const keyword=$('query').value.trim(),code=$('ncsFilter').value.trim();
@@ -3642,7 +3673,7 @@ body.gj-training-open{overflow:hidden}
      if(!Array.isArray(d?.trainings))throw Error('검색 API 응답에 훈련과정 목록이 없습니다.');
      if(seq!==fetchSeq)return;
      // Unique training courses within the requested page; preserve one click -> original document autofill.
-     const map=new Map();for(const t of d.trainings){const k=[t.trainingId,t.round,t.institutionId,t.title].join('|');map.set(k,t);}
+     const map=new Map();for(const t of d.trainings){const k=[t.trainingId,t.round,t.institutionId,t.institution,t.title,t.startDate,t.endDate].join('|');map.set(k,t);}
      lastItems=[...map.values()].sort((a,b)=>String(a.startDate||'').localeCompare(String(b.startDate||''))||String(a.title||'').localeCompare(String(b.title||''),'ko'));
      total=Math.max(0,Number(d.total)||0);page=nextPage;haveSearched=true;
      hasMore=total?nextPage*PAGE_SIZE<total:d.trainings.length>=PAGE_SIZE;
