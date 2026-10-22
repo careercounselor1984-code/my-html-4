@@ -5264,6 +5264,11 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
   window.__CLG_IAP_PARENT_BRIDGE_V148__=true;
   const PAGE='CLG_IAP_PAGE_V120', EXT='CLG_IAP_BRIDGE_V120';
   const requests=new Map();
+  // Always require an approved, active journal session before exporting IAP data.
+  const activeIapSession=()=>{
+    try{return typeof window.clgJobArchiveClient==='function' && !!window.clgJobArchiveClient() && !!String(window.__CLG_JOURNAL_EMPLOYEE?.email||'').trim()}
+    catch{return false}
+  };
   const frameFor=(source)=>[...document.querySelectorAll('iframe.clgWorkFrame, iframe#frame')].find(f=>{
     if(f.contentWindow!==source)return false;
     if(f.dataset.pageId)return f.dataset.pageId==='p05';
@@ -5276,6 +5281,10 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
     if(d.marker===PAGE){
       if(d.type==='SAVE_IAP_PENDING'){
         if(!frameFor(e.source))return;
+        if(!activeIapSession()){
+          reply(e.source,'IAP_SAVE_ERROR',{message:'통합본에 승인된 상담사 계정으로 로그인한 뒤 IAP를 전송해 주세요.'});
+          return;
+        }
         const p=d.payload;
         if(!p||typeof p!=='object'||!/^A\d{10,}$/.test(String(p.iapNo||''))||!Array.isArray(p.jobRows)||!Array.isArray(p.actRows)||!p.sentAt){
           reply(e.source,'IAP_SAVE_ERROR',{message:'IAP 전송 자료 형식을 확인해주세요.'});return;
@@ -5296,7 +5305,10 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
     if(e.source!==window||d.marker!==EXT)return;
     if(d.type==='IAP_PENDING_SAVED'){
       const id=d.payload?.sentAt, req=id&&clear(id);
-      if(req)reply(req.source,'IAP_SAVED',d.payload);
+      if(req){
+        if(activeIapSession())reply(req.source,'IAP_SAVED',d.payload);
+        else reply(req.source,'IAP_SAVE_ERROR',{message:'IAP 저장 확인 전 로그인이 해제되어 응답을 취소했습니다.'});
+      }
     }else if(d.type==='IAP_PENDING_ERROR'){
       for(const id of [...requests.keys()]){
         const req=clear(id);if(req)reply(req.source,'IAP_SAVE_ERROR',d.payload);
