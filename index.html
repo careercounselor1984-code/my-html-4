@@ -5265,9 +5265,11 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
   const PAGE='CLG_IAP_PAGE_V120', EXT='CLG_IAP_BRIDGE_V120';
   const requests=new Map();
   // Always require an approved, active journal session before exporting IAP data.
-  const activeIapSession=()=>{
-    try{return typeof window.clgJobArchiveClient==='function' && !!window.clgJobArchiveClient() && !!String(window.__CLG_JOURNAL_EMPLOYEE?.email||'').trim()}
-    catch{return false}
+  const activeIapOwner=()=>{
+    try{
+      if(typeof window.clgJobArchiveClient!=='function'||!window.clgJobArchiveClient())return '';
+      return String(window.__CLG_JOURNAL_EMPLOYEE?.email||'').trim().toLowerCase();
+    }catch{return ''}
   };
   const frameFor=(source)=>[...document.querySelectorAll('iframe.clgWorkFrame, iframe#frame')].find(f=>{
     if(f.contentWindow!==source)return false;
@@ -5281,7 +5283,8 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
     if(d.marker===PAGE){
       if(d.type==='SAVE_IAP_PENDING'){
         if(!frameFor(e.source))return;
-        if(!activeIapSession()){
+        const owner=activeIapOwner();
+        if(!owner){
           reply(e.source,'IAP_SAVE_ERROR',{message:'통합본에 승인된 상담사 계정으로 로그인한 뒤 IAP를 전송해 주세요.'});
           return;
         }
@@ -5295,7 +5298,7 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
           clear(p.sentAt);
           reply(e.source,'IAP_SAVE_ERROR',{message:'확장프로그램의 저장 확인 응답이 없습니다. 확장프로그램 활성화와 연결 주소를 확인해주세요.'});
         },2450);
-        requests.set(p.sentAt,{source:e.source,timer});
+        requests.set(p.sentAt,{source:e.source,timer,owner});
         window.postMessage({marker:EXT,type:'SAVE_IAP_PENDING',payload:p},'*');
       }else if(d.type==='IAP_SEND_CONFIRMED'&&d.payload?.ok&&frameFor(e.source)){
         for(const [id,item] of requests){if(item.source===e.source)clear(id)}
@@ -5306,7 +5309,7 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
     if(d.type==='IAP_PENDING_SAVED'){
       const id=d.payload?.sentAt, req=id&&clear(id);
       if(req){
-        if(activeIapSession())reply(req.source,'IAP_SAVED',d.payload);
+        if(activeIapOwner()===req.owner)reply(req.source,'IAP_SAVED',d.payload);
         else reply(req.source,'IAP_SAVE_ERROR',{message:'IAP 저장 확인 전 로그인이 해제되어 응답을 취소했습니다.'});
       }
     }else if(d.type==='IAP_PENDING_ERROR'){
