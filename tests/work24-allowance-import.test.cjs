@@ -121,3 +121,20 @@ run('v1.4.29 live controls override body text which omits selected values and da
 run('v1.4.29 explicit unresolved results stay pending even if another row was read',()=>{
  const h=harness();h.ctx.applyAllowance(payload({results:[supportRow],resultUnresolved:true,needsSample:true,diagnostics:{source:'bounded-grid-controls-v149'}}));assert.equal(h.sent.length,0);h.close();
 });
+run('exact 1.4.29 report: recover result RAW when coordinate parser discarded a valid program',()=>{
+ const h=harness(),support={results:[],resultCount:0,needsSample:true,resultUnresolved:true,diagnostics:{source:'bounded-grid-controls-v149',resultUnread:2},resultRaw:'취업지원 프로그램 참여 결과 보고 접수내역 등록구분 구분 프로그램명 참여기간 운영기관명 전화번호 연번 상태 인터넷 등록 단기취업특강 마음을 사로잡는 면접전형 준비 2026-10-01 ~ 2026-10-04 한국고용정보원 15777114 1 ※ 인터넷 등록건은 삭제하실 수 없습니다. 행삭제 사이버진로교육센터 조회'};
+ h.ctx.applyAllowance(payload(support));assert.equal(h.sent.length,1);
+ assert.equal(h.d.querySelector('#prog1_list .act-content').value,'단기취업특강');
+ assert.equal(h.d.querySelector('#prog1_list .act-detail').value,'마음을 사로잡는 면접전형 준비 / 한국고용정보원');
+ assert.equal(h.d.querySelector('#prog1_list .act-start').value,'2026-10-01');assert.equal(h.d.querySelector('#prog1_list .act-end').value,'2026-10-04');h.close();
+});
+run('v1.4.30 control-verified result imports when body text omits input values',()=>{
+ const h=harness();h.ctx.applyAllowance(payload({results:[supportRow],resultUnresolved:false,needsSample:false,diagnostics:{source:'bounded-grid-controls-v150'},resultRaw:'인터넷 등록 한국고용정보원 15771114'}));assert.equal(h.sent.length,1);h.close();
+});
+run('a second actual registration with no date is still unresolved despite one valid row',()=>{
+ const h=harness();const parsed=h.ctx.allowanceSupport({supportStart:'2026-09-22',supportEnd:'2026-10-21',employmentSupport:{results:[],resultUnresolved:true,needsSample:true,diagnostics:{source:'bounded-grid-controls-v149'},resultRaw:'인터넷 등록 단기취업특강 면접 2026-10-01 ~ 2026-10-04 한국고용정보원 15777114 1 인터넷 등록 직업훈련 날짜 없는 과정'}});
+ assert.equal(parsed.unread,true);h.close();
+});
+run('conflicting RAW and live control dates are not silently accepted by recovery',()=>{
+ const h=harness();const parsed=h.ctx.allowanceSupport({supportStart:'2026-09-22',supportEnd:'2026-10-21',employmentSupport:{results:[supportRow],resultUnresolved:true,diagnostics:{source:'bounded-grid-controls-v150'},resultRaw:'인터넷 등록 단기집단상담 마음을 사로잡는 면접 2026-10-01 ~ 2026-10-04 한국고용정보원 15771114'}});assert.equal(parsed.unread,true);h.close();
+});
