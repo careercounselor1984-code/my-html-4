@@ -1,0 +1,10 @@
+'use strict';const fs=require('fs'),vm=require('vm'),assert=require('node:assert/strict');const Core=require('../extension/client-context-core.js');
+let listener;const chrome={runtime:{onMessage:{addListener:f=>listener=f}},tabs:{query:async()=>[{id:1}]},scripting:{executeScript:async()=>[{result:{status:'single',regNo:'A12345678901',values:{name:'테스트'}}}]}};
+vm.runInNewContext(fs.readFileSync('extension/client-context-background.js','utf8'),{chrome,ClientContextCore:Core,URL});
+const msg={type:'CLG_CLIENT_CONTEXT_REQUEST'};assert.equal(listener(msg,{url:'https://evil.test/',frameId:0},()=>assert.fail('foreign sender')),undefined);
+assert.equal(listener(msg,{url:'https://careercounselor1984-code.github.io/my-html-4/',frameId:1},()=>assert.fail('child sender')),undefined);
+const sender={url:'https://careercounselor1984-code.github.io/my-html-4/',frameId:0};
+const call=()=>new Promise(resolve=>{assert.equal(listener(msg,sender,resolve),true)});
+(async()=>{assert.equal((await call()).status,'single');chrome.scripting.executeScript=async()=>{throw Error('restricted')};assert.equal((await call()).status,'conflict');chrome.tabs.query=async()=>[];assert.equal((await call()).status,'none');
+assert(!fs.readFileSync('client-link.js','utf8').includes('setInterval('),'no repeated journal scan');assert(fs.readFileSync('extension/manifest.json','utf8').includes('client-context-work24.js'));
+const readiness=fs.readFileSync('extension/readiness.js','utf8');assert(readiness.includes('documentIds:[targets[0].documentId]'));assert(readiness.includes('assertIdentity();if(ds.setColumn'));assert(readiness.includes('assertIdentity();if(!(input.checked'));const manifest=JSON.parse(fs.readFileSync('extension/manifest.json'));assert.equal(manifest.version,'1.4.29');console.log('PASS extension sender boundary, fresh context, inaccessible frame stop, readiness identity guard/document pin');})().catch(e=>{console.error(e);process.exit(1)});

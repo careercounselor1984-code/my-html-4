@@ -31,6 +31,9 @@ jobs:
       - name: Verify initial opinion helper with actual DOM
         run: |
           npm install --prefix /tmp/initial-dom-test jsdom@30.1.2 --no-audit --no-fund
+          NODE_PATH=/tmp/initial-dom-test/node_modules node tests/client-link.test.cjs
+          node tests/extension-context.test.cjs
+          node tests/legacy-client-migration.test.cjs
           NODE_PATH=/tmp/initial-dom-test/node_modules node tests/work24-allowance-import.test.cjs
           NODE_PATH=/tmp/initial-dom-test/node_modules node tests/performance-guide.test.cjs
           NODE_PATH=/tmp/initial-dom-test/node_modules node tests/auth-copy-hardening.test.cjs
@@ -38,6 +41,7 @@ jobs:
           NODE_PATH=/tmp/initial-dom-test/node_modules node tests/iap-opinion-remote-dom.test.cjs
           NODE_PATH=/tmp/initial-dom-test/node_modules node tests/iap-client-switch.test.cjs
           NODE_PATH=/tmp/initial-dom-test/node_modules node tests/iap-registration-guard.test.cjs
+          NODE_PATH=/tmp/initial-dom-test/node_modules node tests/iap-registration-scope.test.cjs
           NODE_PATH=/tmp/initial-dom-test/node_modules node tests/consult-reset.test.cjs
           NODE_PATH=/tmp/initial-dom-test/node_modules node tests/protected-core-dom.test.cjs
           NODE_PATH=/tmp/initial-dom-test/node_modules node tests/schedule-booking-dom.test.cjs
@@ -54,6 +58,7 @@ jobs:
           node tests/card-reason-browser-smoke.cjs
           node tests/protected-core-browser-smoke.cjs
           node tests/full-runtime-browser-smoke.cjs
+          node tests/client-link-browser-smoke.cjs
 
       - name: Headless Chrome initial-screen smoke (unauthenticated)
         shell: bash

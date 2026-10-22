@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>취업종료 정보 읽기</title>
+<style>
+*{box-sizing:border-box}body{margin:0;width:auto;min-width:320px;max-width:100%;font-family:Pretendard,"Noto Sans KR","Malgun Gothic",sans-serif;background:#f6f8fc;color:#172033}
+.wrap{padding:15px}.head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}.title{font-size:17px;font-weight:950}.badge{font-size:9.5px;font-weight:900;color:#1d4ed8;background:#edf4ff;border:1px solid #cfe0fb;border-radius:999px;padding:4px 7px}.desc{font-size:11px;line-height:1.55;color:#718096;margin:5px 0 13px}.primary{width:100%;height:43px;border:0;border-radius:10px;background:#2563eb;color:#fff;font:inherit;font-size:12.5px;font-weight:900;cursor:pointer}.primary:disabled{opacity:.55}
+.status{margin-top:10px;border:1px solid #dbe4ef;background:#fff;border-radius:10px;padding:9px 10px;font-size:11px;line-height:1.5;color:#607089;white-space:pre-wrap}.status.ok{border-color:#b7e4cb;background:#f0fbf5;color:#17613b}.status.err{border-color:#fecaca;background:#fff4f4;color:#b42318}
+.result{display:none;margin-top:10px}.result.show{display:block}.card{border:1px solid #dfe7f1;background:#fff;border-radius:12px;overflow:hidden;margin-bottom:9px}.cardTitle{padding:9px 11px;background:#f5f8fd;border-bottom:1px solid #e5ebf3;font-size:11.5px;font-weight:950;color:#33445d}.row{display:grid;grid-template-columns:150px minmax(0,1fr);border-top:1px solid #edf1f6}.row:first-of-type{border-top:0}.label{padding:7px 9px;background:#fafbfd;font-size:10.5px;font-weight:850;color:#68778d}.value{padding:7px 9px;font-size:11px;font-weight:750;word-break:break-word}.empty{color:#a0aabc}.okv{color:#17613b}.bad{color:#b42318}.item{padding:9px 11px;border-top:1px solid #edf1f6;font-size:10.8px;line-height:1.55}.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.sendCounsel{grid-column:1/-1;height:40px;border:0;border-radius:9px;background:#0f766e;color:#fff;font:inherit;font-size:11.5px;font-weight:900;cursor:pointer}.sendCounsel:disabled{opacity:.5;cursor:default}.sub{height:36px;border:1px solid #ccd8e7;border-radius:9px;background:#fff;color:#526178;font:inherit;font-size:11px;font-weight:850;cursor:pointer}.sub:disabled{opacity:.55}details{margin-top:10px;border:1px dashed #cbd8e8;border-radius:10px;background:#fff}summary{cursor:pointer;padding:9px 10px;font-size:10.5px;font-weight:850;color:#6d7b90}.debug{padding:0 10px 10px;font-size:9.8px;line-height:1.5;color:#7b889c;white-space:pre-wrap;max-height:190px;overflow:auto}.foot{margin-top:9px;font-size:9.7px;line-height:1.5;color:#8794a7}
+</style>
+
+<style id="unified-nav-style">
+.unifiedNav{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 10px;padding:7px 9px;border:1px solid #dbe5f1;border-radius:9px;background:#f8fbff;font-family:Pretendard,"Noto Sans KR","Malgun Gothic",sans-serif}
+.unifiedNav a{color:#2563eb;text-decoration:none;font-size:10.5px;font-weight:900}
+.unifiedNav span{color:#7a8799;font-size:9.5px;font-weight:800}
+</style>
+
+</head>
+<body>
+<div class="unifiedNav"><a href="popup.html">← 전체 메뉴</a><span>통합 v1.4.7 · 취업종료 엔진 v0.1.8</span></div>
+<div class="wrap">
+  <div class="head"><div><div class="title">취업종료 정보 읽기</div><div class="desc">종료신청조회 화면에서 <b>취업(임금근로자)</b> 종료만 읽습니다. 다른 종료사유는 아직 지원하지 않습니다.</div></div><span class="badge">v0.1.8</span></div>
+  <button id="readBtn" class="primary">현재 취업종료 읽기</button>
+  <div id="status" class="status">종료신청조회에서 취업 종료 대상자를 연 뒤 눌러주세요.</div>
+  <div id="result" class="result"></div>
+  <div class="actions"><button id="copyBtn" class="sub" disabled>결과 복사</button><button id="clearBtn" class="sub">비우기</button><button id="sendCounselBtn" class="sendCounsel" disabled>상담일지 통합본으로 보내기</button></div>
+  <details><summary>진단 정보 보기</summary><div id="debug" class="debug">아직 실행하지 않았습니다.</div></details>
+  <div class="foot">주민번호·전화번호·IAP번호·첨부파일명은 결과에 수집하지 않습니다. 읽은 취업종료 정보는 상담일지 통합본으로 전달할 수 있으며 Work24 값은 수정하지 않습니다.</div>
+</div>
+<script src="termination.js"></script>
+</body>
+</html>
