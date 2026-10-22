@@ -11,7 +11,7 @@ function harness(){
  w.scrollTo=()=>{};w.confirm=()=>true;
  for(const script of d.querySelectorAll('script:not([src])'))w.eval(script.textContent);
  const messages=[],sent=[];
- const ctx={Event:w.Event,window:{postMessage:p=>sent.push(p)},MARKER:'test',lastAllowanceSummary:'',
+ const ctx={Event:w.Event,window:{postMessage:p=>sent.push(p),clgParseAllowanceSupport:require('../work24-allowance-support.js')},MARKER:'test',lastAllowanceSummary:'',
   showMessage:(text,kind)=>messages.push({text,kind}),withTargetPage:(id,ready,cb)=>cb(d,w),
   num:v=>{const n=Number(String(v??'').replace(/[^0-9.-]/g,''));return Number.isFinite(n)?n:null;},
   money:v=>String(v),esc:v=>String(v??''),reviewText:()=>''};
@@ -48,7 +48,7 @@ run('unread result text preserves existing input and pending data',()=>{
  original.querySelector('.act-detail').value='상담사 입력';
  h.ctx.applyAllowance(payload({results:[],resultRaw:'인터넷 등록 단기집단상담 마음을 사로잡는 면접 날짜 미인식'}));
  assert.equal(h.sent.length,0);assert.equal(h.d.querySelector('#prog1_list .activity-row'),original);
- assert.equal(original.querySelector('.act-detail').value,'상담사 입력');assert.match(h.messages.at(-1).text,/보존/);h.close();
+ assert.equal(original.querySelector('.act-detail').value,'상담사 입력');assert.match(h.messages.at(-1).text,/보존/);assert.equal(h.d.getElementById('startDate').value,'2026-09-22');assert.equal(h.d.querySelectorAll('#prog2_list .activity-row').length,1);h.close();
 });
 run('failed row import restores original nodes and handlers and does not acknowledge',()=>{
  const h=harness();h.w.addActivityRow('prog1_list');const original=h.d.querySelector('#prog1_list .activity-row');
@@ -88,4 +88,29 @@ run('completion summary remains visible after the extension clears the pending p
  Object.assign(h.ctx,{isReadinessPage:()=>false,isIapPage:()=>false,panel:{hidden:true},setCompactMode:()=>{},setTitle:(title,sub)=>subtitle=sub,setDetails:rows=>details=rows,$:()=>({textContent:''})});
  vm.runInContext(bridge.slice(bridge.indexOf('  function showConnectedEmpty('),bridge.indexOf('  function renderBasic(')),h.ctx);
  h.ctx.showConnectedEmpty();assert.match(subtitle,/최근 반영 완료/);assert.equal(details[0][0],'최근 반영');h.close();
+});
+run('registration omitted: category, program and compact dates still recover',()=>{
+ const h=harness();const p=payload({results:[],resultRaw:'취업지원 프로그램 참여 결과 보고 사이버진로교육센터 조회 행삭제 연번 상태 등록구분 구분 프로그램명 참여기간 운영기관명 전화번호 1 단기집단상담 마음을 사로잡는 면접 20261014 ~ 20261014 한국고용정보원 15771114 사이버진로교육센터 조회 행삭제'});
+ h.ctx.applyAllowance(p);assert.equal(h.sent.length,1);
+ assert.equal(h.d.querySelector('#prog1_list .act-content').value,'집단상담');
+ assert.equal(h.d.querySelector('#prog1_list .act-detail').value,'마음을 사로잡는 면접 / 한국고용정보원');h.close();
+});
+run('joined registration labels and trailing toolbar do not suppress programs',()=>{
+ const h=harness();h.ctx.applyAllowance(payload({results:[],resultRaw:'1 인터넷등록 단기취업특강 마음을 사로잡는 면접 2026.10.14 ~ 2026.10.14 한국고용정보원 1577-1114 1 사이버진로교육센터 조회 행삭제'}));
+ assert.equal(h.sent.length,1);assert.equal(h.d.querySelector('#prog1_list .act-content').value,'단기취업특강');h.close();
+});
+run('unrecognized source text is displayed literally while confirmed data is applied without acknowledgment',()=>{
+ const h=harness();const p=payload({results:[],resultRaw:'인터넷 등록 <img src=x onerror=alert(1)> 2026-10-14 ~ 2026-10-14'});
+ h.ctx.applyAllowance(p);assert.equal(h.sent.length,0);assert.equal(h.d.getElementById('startDate').value,'2026-09-22');
+ const details=h.d.getElementById('clgWork24SupportUnread');assert.ok(details);assert.equal(details.querySelector('img'),null);assert.match(details.textContent,/<img/);
+ assert.match(h.messages.at(-1).text,/일부 반영/);h.close();
+});
+run('program names containing header words remain unchanged',()=>{
+ const h=harness();h.ctx.applyAllowance(payload({results:[],resultRaw:'인터넷등록 단기집단상담 취업상태와 진로 구분 2026-10-14 ~ 2026-10-14 고용정보원 15771114'}));
+ assert.equal(h.d.querySelector('#prog1_list .act-detail').value,'취업상태와 진로 구분 / 고용정보원');h.close();
+});
+run('support parser loads as a browser script and the main page loads it before the bridge',()=>{
+ const sandbox={window:{}};vm.runInNewContext(fs.readFileSync('work24-allowance-support.js','utf8'),sandbox);
+ assert.equal(typeof sandbox.window.clgParseAllowanceSupport,'function');
+ assert.ok(html.indexOf('src="./work24-allowance-support.js?')<html.indexOf('<script id="clg-work24-counsel-bridge-v113-script">'));
 });

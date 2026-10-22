@@ -4729,6 +4729,7 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
 </div>
 <button id="clgBridgeLauncher" type="button" title="Work24 연결창 열기" hidden>전</button>
 
+<script src="./work24-allowance-support.js?v=20261022-2"></script>
 <script id="clg-work24-counsel-bridge-v113-script">
 (function(){
   'use strict';
@@ -4985,33 +4986,9 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
     };
     return [iso(ds[0]),iso(ds[1]||ds[0])];
   }
-  // Older helpers retain the scoped result text even when their category whitelist drops a row.
   function allowanceSupport(d){
-    const support=d.employmentSupport||{}, rows=Array.isArray(support.results)?support.results:[];
-    const raw=String(support.resultRaw||'').replace(/\s+/g,' ').trim();
-    const datePattern=/(?:19|20)\d{2}[-./]\s*\d{1,2}[-./]\s*\d{1,2}\.?\s*[~～–—]\s*(?:19|20)\d{2}[-./]\s*\d{1,2}[-./]\s*\d{1,2}\.?/;
-    const recovered=[];
-    const chunks=raw.split(/(?:인터넷|워크넷|전산|직접)\s*등록\s+/).slice(1);
-    let invalid=false;
-    for(const chunk of chunks){
-      const range=chunk.match(datePattern);
-      if(!range){invalid=true;continue;}
-      const [start,end]=parseRange(range[0]);
-      const heading=chunk.slice(0,range.index).replace(/^(?:\d+\s+)?(?:선택\s+)?/,'').trim();
-      const split=heading.indexOf(' '), type=split<0?'':heading.slice(0,split), program=split<0?'':heading.slice(split+1).trim();
-      if(!start||!end||start>end||!type||!program||program.length>180){invalid=true;continue;}
-      // Do not import another round's rows found in the retained text.
-      if((d.supportStart&&end<d.supportStart)||(d.supportEnd&&start>d.supportEnd))continue;
-      const tail=chunk.slice(range.index+range[0].length).trim(), phone=tail.match(/0\d{1,2}-\d{3,4}-\d{4}/)?.[0]||'';
-      const institution=(phone?tail.slice(0,tail.indexOf(phone)):tail.replace(/\s+\d{1,3}(?:\s+선택)?$/,'')).trim();
-      if(institution.length>160||/구직활동지원|고용보험|행삭제|사이버진로/.test(institution)){invalid=true;continue;}
-      const row={type,program,period:start+' ~ '+end,institution,phone};
-      if(!recovered.some(x=>JSON.stringify(x)===JSON.stringify(row)))recovered.push(row);
-    }
-    const combined=rows.slice(),key=row=>[String(row.type||'').replace(/\s/g,''),String(row.program||'').replace(/\s/g,''),parseRange(row.period||'').join('|')].join('|');
-    recovered.forEach(row=>{if(!combined.some(x=>key(x)===key(row)))combined.push(row);});
-    const expected=Number(support.resultCount||0);
-    return {rows:combined,unread:invalid||raw.length>=5000||expected>combined.length||(!combined.length&&datePattern.test(raw))||support.needsSample===true};
+    if(typeof window.clgParseAllowanceSupport==='function')return window.clgParseAllowanceSupport(d);
+    return {rows:Array.isArray(d.employmentSupport?.results)?d.employmentSupport.results:[],unread:true,reasons:['자료 확인 기능을 불러오지 못했습니다. 새로고침해 주세요.'],raw:''};
   }
   function setActivityRow(doc,win,target,item,mode){
     const [s,e]=parseRange(item.period||item.activityPeriod||'');
@@ -5042,6 +5019,15 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
     const h=Number(String(emp.weeklyHours||'').replace(/[^0-9.]/g,'')); const emp30=emp.reported==='있음'&&Number.isFinite(h)&&h>=30;
     const empDetail=[emp.reported||'-',emp.company,emp.employmentType,emp.plannedDate,emp.weeklyHours?`주 ${emp.weeklyHours}시간`:'' ].filter(Boolean).join(' / ');
     box.innerHTML=`<b style="color:#1d4ed8">Work24 전산 확인값</b><br>처리상태: ${esc(d.processStatus||'-')}<br>취업여부: ${esc(empDetail)}${emp30?`<br><b style="display:inline-block;margin-top:5px;padding:4px 7px;border-radius:7px;background:#fff3cd;color:#8a5200">중요 · 주 ${esc(emp.weeklyHours)}시간 취업(30시간 이상) — 해당 회차 구직활동 미이행 예외 적용 여부 확인</b>`:''}<br>검토결과: ${esc(reviewText(p))} · 지급요청액: ${esc(money(p.totalRequest||d.payment?.totalRequest||''))}<br><span style="color:#64748b">※ 위 값은 비교·확인용이며 상담사 의견에는 자동 입력하지 않습니다.</span>`;
+    const support=allowanceSupport(d);
+    if(support.unread){
+      const detail=doc.createElement('details');detail.id='clgWork24SupportUnread';
+      const summary=doc.createElement('summary');summary.textContent='취업지원 미인식 원문 확인';detail.appendChild(summary);
+      const note=doc.createElement('p');note.textContent=(support.reasons||[]).join(' · ')+' — 이 항목은 자동 입력하지 않았으며 전달자료를 보존했습니다.';detail.appendChild(note);
+      const pre=doc.createElement('pre');pre.style.cssText='white-space:pre-wrap;max-height:220px;overflow:auto';pre.textContent=support.raw||'전달된 취업지원 원문이 없습니다.';detail.appendChild(pre);
+      box.appendChild(detail);
+    }
+
   }
   function applyAllowance(p){
     withTargetPage('p06','sudang-form',(doc,win)=>{
@@ -5053,19 +5039,19 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
       const support=allowanceSupport(d), activities=Array.isArray(d.activities)?d.activities:[];
       const validPeriod=[d.supportStart||p.supportStart,d.supportEnd||p.supportEnd,d.designatedDate||p.designatedDate].every(value=>!!parseRange(value)[0]);
       const required=['round','startDate','endDate','designationDate','prog1_list','prog2_list'];
-      if(!validPeriod||!d.income||!d.employmentSupport||!Array.isArray(d.activities)||support.unread||required.some(id=>!doc.getElementById(id))||typeof win.addActivityRow!=='function'){
+      if(!validPeriod||!d.income||!d.employmentSupport||!Array.isArray(d.activities)||required.some(id=>!doc.getElementById(id))||typeof win.addActivityRow!=='function'){
         showMessage('취업지원 프로그램에 읽지 못한 항목이 있거나 상담 화면이 준비되지 않았습니다. 전달자료를 보존했습니다. Work24에서 현재 회차를 다시 읽어 주세요.','warn');return;
       }
       const programLists=['prog1_list','prog2_list'].map(id=>doc.getElementById(id));
       // Keep original nodes (including their handlers) until every imported row is verified.
       const originals=programLists.map(list=>Array.from(list.childNodes));
-      programLists.forEach(list=>list.replaceChildren());
+      programLists.forEach((list,i)=>{if(i!==0||!support.unread)list.replaceChildren();});
       let supportApplied=0,activityApplied=0;
       try{
-        support.rows.forEach(x=>{if(setActivityRow(doc,win,'prog1_list',x,'support'))supportApplied++;});
+        if(!support.unread)support.rows.forEach(x=>{if(setActivityRow(doc,win,'prog1_list',x,'support'))supportApplied++;});
         activities.forEach(x=>{if(setActivityRow(doc,win,'prog2_list',x,'activity'))activityApplied++;});
       }catch(e){}
-      if(supportApplied!==support.rows.length||activityApplied!==activities.length){
+      if((!support.unread&&supportApplied!==support.rows.length)||activityApplied!==activities.length){
         programLists.forEach((list,i)=>list.replaceChildren(...originals[i]));
         showMessage(`반영 중단 · 취업지원 ${supportApplied}/${support.rows.length}건, 구직활동 ${activityApplied}/${activities.length}건. 기존 입력과 전달자료를 보존했습니다. 날짜와 항목을 확인해 주세요.`,'warn');return;
       }
@@ -5101,7 +5087,11 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
       const work24Total=num(p.totalRequest||d.payment?.totalRequest), calcTotal=num(doc.getElementById('finalPayment')?.textContent||'');
       const periodOk=[['startDate',d.supportStart||p.supportStart],['endDate',d.supportEnd||p.supportEnd],['designationDate',d.designatedDate||p.designatedDate]].every(([id,value])=>!value||doc.getElementById(id)?.value===parseRange(value)[0]);
       const roundOk=!!rv&&doc.getElementById('round')?.value===rv;
-      if(count>0&&periodOk&&roundOk){
+      if(count>0&&periodOk&&roundOk&&support.unread){
+        lastAllowanceSummary='';
+        showMessage(`일부 반영 · ${rv}회차 날짜와 구직활동 ${activityApplied}건 반영. 취업지원 프로그램은 확인이 필요해 기존 입력과 전달자료를 보존했습니다. 상담일지 상단의 ‘취업지원 미인식 원문 확인’을 열어 주세요.`,'warn');
+      }
+      else if(count>0&&periodOk&&roundOk){
         lastAllowanceSummary=`최근 반영 완료 · ${rv}회차 / 취업지원 ${supportApplied}건 / 구직활동 ${activityApplied}건`+(work24Total!==null&&calcTotal!==null&&work24Total!==calcTotal?` · 지급액 확인 필요: 통합본 ${money(calcTotal)} / Work24 ${money(work24Total)}`:'');
         showMessage(lastAllowanceSummary+' · 상담사 의견은 자동 작성하지 않았습니다.',work24Total!==null&&calcTotal!==null&&work24Total!==calcTotal?'warn':'ok');
         window.postMessage({marker:MARKER,type:'CLEAR_PENDING_ALLOWANCE'},'*');
