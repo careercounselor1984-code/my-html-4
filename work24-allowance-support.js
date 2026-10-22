@@ -13,7 +13,7 @@
   function heading(raw){
     let s=text(raw);
     // Registration labels may be joined (인터넷등록), omitted, or surrounded by grid buttons.
-    const markers=[...s.matchAll(/(?:인터넷|워크넷|전산|직접)\s*등록/g)];
+    const markers=[...s.matchAll(/(?:인터넷|워크넷|전산|직접)\s*등록(?=\s|$)/g)];
     const marker=markers.at(-1);
     if(marker)s=s.slice(marker.index+marker[0].length).trim();
     else{const end=s.lastIndexOf('전화번호');if(end>=0)s=s.slice(end+4).trim();}
@@ -30,18 +30,18 @@
     const support=d?.employmentSupport||{},provided=Array.isArray(support.results)?support.results:[];
     const raw=text(support.resultRaw||'');
     // v1.4.29 verifies the actual select/input controls; body text can legitimately omit them.
-    if(support.diagnostics?.source==='bounded-grid-controls-v149'&&typeof support.resultUnresolved==='boolean'){
+    if(/^bounded-grid-controls-v1(?:49|50)$/.test(support.diagnostics?.source||'')&&support.resultUnresolved===false){
       const valid=provided.every(row=>{
         const range=text(row.period).match(new RegExp(rangeSource));
         return text(row.type)&&text(row.program)&&range&&iso(range[1])&&iso(range[2])&&iso(range[1])<=iso(range[2]);
       });
-      const unread=support.resultUnresolved||!valid;
+      const unread=!valid;
       return {rows:provided.slice(),unread,reasons:unread?['전산의 취업지원 결과 행 확인 필요']:[],raw};
     }
     const matches=[...raw.matchAll(new RegExp(rangeSource,'g'))];
     const rows=provided.slice(),reasons=[];
     const key=r=>[text(r.type).replace(/\s/g,''),text(r.program).replace(/\s/g,''),text(r.period).match(new RegExp(rangeSource))?.slice(1).map(iso).join('|')||text(r.period)].join('|');
-    let previousEnd=0,currentRanges=0;
+    let previousEnd=0,currentRanges=0,recoveredRanges=0;
     for(let i=0;i<matches.length;i++){
       const range=matches[i],start=iso(range[1]),end=iso(range[2]);
       const prefix=raw.slice(previousEnd,range.index);previousEnd=range.index+range[0].length;
@@ -60,15 +60,18 @@
       const nextType=types.map(t=>institution.indexOf(t)).filter(n=>n>=0).sort((a,b)=>a-b)[0];
       if(nextType!==undefined)institution=institution.slice(0,nextType).replace(/\s+\d{1,3}\s*$/,'').trim();
       if(institution.length>160||/고용보험|산재보험|사업자조회/.test(institution)){reasons.push('운영기관 확인 필요');continue;}
-      const row={...h,period:start+' ~ '+end,institution,phone};
-      if(!rows.some(x=>key(x)===key(row)))rows.push(row);
+      const row={...h,period:start+' ~ '+end,institution,phone};recoveredRanges++;
+      const conflict=rows.some(x=>text(x.type)===text(row.type)&&text(x.program)===text(row.program)&&key(x)!==key(row));
+      if(conflict)reasons.push('표와 원문의 참여기간 충돌');
+      else if(!rows.some(x=>key(x)===key(row)))rows.push(row);
     }
     const expected=Number(support.resultCount||0);
     if(expected>rows.length||currentRanges>rows.length)reasons.push('원문과 추출 건수 불일치');
     if(raw.length>=5000)reasons.push('전달 원문이 잘렸을 수 있음');
-    const registrations=[...raw.matchAll(/(?:인터넷|워크넷|전산|직접)\s*등록/g)].length;
+    const registrations=[...raw.matchAll(/(?:인터넷|워크넷|전산|직접)\s*등록(?=\s|$)/g)].length;
     if(registrations>matches.length)reasons.push('참여기간 미인식');
-    if(support.needsSample===true&&!rows.length)reasons.push('전산 추출 확인 필요');
+    if(support.resultUnresolved===true&&!(currentRanges>0&&recoveredRanges===currentRanges&&reasons.length===0))reasons.push('전산 추출 확인 필요');
+    if((support.needsSample===true||support.resultUnresolved===true)&&!rows.length)reasons.push('전산 추출 확인 필요');
     // A valid structured row already verifies its matching text, including phone/control differences.
     return {rows,unread:reasons.length>0,reasons:[...new Set(reasons)],raw};
   }
