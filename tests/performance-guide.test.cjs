@@ -49,7 +49,7 @@ const shell=fs.readFileSync('index.html','utf8');const registration=shell.match(
 assert(shell.indexOf('id="clgEvaluationGuideBtn"')<shell.indexOf('id="boardOpenBtn"'),'evaluation is left of board');
 assert(/class="topBtn evaluationTopBtn" id="clgEvaluationGuideBtn"/.test(shell),'guide is in top toolbar');
 const ctx={PAGES:[],MENU:[],renderMenu:()=>{}};vm.createContext(ctx);vm.runInContext(registration,ctx);vm.runInContext(registration,ctx);
-assert.equal(ctx.PAGES.length,11);assert.equal(ctx.MENU.length,1);assert.equal(ctx.MENU[0].items.length,11);
+assert.equal(ctx.PAGES.length,11);assert.equal(ctx.MENU.length,0);assert(ctx.PAGES.every(p=>p.menuHidden));
 for(const p of ctx.PAGES)assert(fs.existsSync(p.url.split('?')[0]),p.url);
 assert(shell.indexOf('id="clg-evaluation-guide-registration"')<shell.indexOf('id="clg-multi-work-tabs-v1-script"'));
 console.log('PASS: 11 independent pages, 29 source-backed cards, local/global search, links/fragments, print, transient checklist and idempotent work-tab registration');

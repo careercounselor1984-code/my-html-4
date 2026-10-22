@@ -476,6 +476,7 @@ body.clg-fixed-scroll .viewer iframe{height:100%!important}
         <p class="pageSubtitle" id="pageSubtitle">좌측 메뉴를 선택하면 해당 상담 화면이 열립니다.</p>
       </div>
       <div class="topActions" aria-label="자주 사용하는 업무 기능">
+<a class="topBtn clgGptTopBtn" href="https://chatgpt.com/g/g-6a55dedf9ba48191aa01e9eb86faac1e-joheuniljari-gugcwi-eobmu-siljeog-doumi" target="_blank" rel="noopener noreferrer" title="국취 매뉴얼·실적 도우미 열기">🤖 <span class="label">국취 도우미</span></a>
 <button class="topBtn evaluationTopBtn" id="clgEvaluationGuideBtn" type="button" title="2026 성과평가 길잡이 · 매뉴얼·법령·평가기준 확인" onclick="loadPage('p_evaluation_2026')">📊 <span class="label">성과평가</span></button>
 <button class="topBtn boardTopBtn" id="boardOpenBtn" type="button" title="공용 게시판 열기">📋 <span class="label">게시판</span><span class="boardUnread" id="boardUnread">0</span></button>
 <button class="topBtn captureTopBtn" id="captureOpenBtn" type="button" title="화면·창을 선택해 캡처하고 출력하거나 저장">📸 <span class="label">캡처·출력</span></button>
@@ -484,7 +485,7 @@ body.clg-fixed-scroll .viewer iframe{height:100%!important}
 <details class="clgTopMore" id="clgTopMore">
   <summary class="topBtn clgTopMoreTrigger" aria-label="추가 업무 및 설정 메뉴"><span class="clgMoreIcon" aria-hidden="true">⋯</span><span class="label">더보기</span></summary>
   <div class="clgTopMorePanel">
-    <section class="clgTopMoreGroup"><h3>업무 도구</h3><div class="clgTopMoreItems"><button type="button" class="topBtn" id="clgWorkAlertMenuBtn">🔔 <span class="label">업무 알림</span><span id="clgWorkAlertMenuCount" class="clgAlertCount" hidden>0</span></button><a class="topBtn clgGptTopBtn" href="https://chatgpt.com/g/g-6a55dedf9ba48191aa01e9eb86faac1e-joheuniljari-gugcwi-eobmu-siljeog-doumi" target="_blank" rel="noopener noreferrer" title="국취 매뉴얼·실적 도우미 열기">🤖 <span class="label">국취도우미</span></a>
+    <section class="clgTopMoreGroup"><h3>업무 도구</h3><div class="clgTopMoreItems"><button type="button" class="topBtn" id="clgWorkAlertMenuBtn">🔔 <span class="label">업무 알림</span><span id="clgWorkAlertMenuCount" class="clgAlertCount" hidden>0</span></button>
 <a class="topBtn clgGptTopBtn" href="https://chatgpt.com/g/g-6948c05fff9c8191acd52e93ad66b437-joheuniljari-gugcwi-jidojeomgeom-sajeongeomsu" target="_blank" rel="noopener noreferrer" title="좋은일자리 | 국취 지도점검 사전검수 열기">🛡 <span class="label">지도점검 사전검수</span></a>
 <button class="topBtn" id="lawCheckBtn" type="button" title="국가법령정보센터 API 최신성 확인 및 내일배움카드 지원 판정">⚖ <span class="label">규정·내배카</span></button></div></section>
     <section class="clgTopMoreGroup"><h3>설정 · 데이터 관리</h3><div class="clgTopMoreItems"><button class="topBtn" id="userSettingsBtn" type="button" title="개인 설정">⚙ <span class="label">설정</span></button>
@@ -966,7 +967,7 @@ function safeParse(jsonStr){
 function normalizeMenu(menu){
   // 1) 기본 형태 보정
   if(!Array.isArray(menu)) menu = getDefaultMenu();
-  menu = menu.map(g=>({
+  menu = menu.filter(g=>g.id!=='g_evaluation').map(g=>({
     id: String(g.id || crypto.randomUUID?.() || Math.random()),
     title: String(g.title || '그룹'),
     open: g.open !== false, // 기본 열림
@@ -978,12 +979,12 @@ function normalizeMenu(menu){
   }));
 
   // 2) 존재하지 않는 pageId 제거
-  const pageIds = new Set(PAGES.map(p=>p.id).filter(Boolean));
+  const pageIds = new Set(PAGES.filter(p=>!p.menuHidden).map(p=>p.id).filter(Boolean));
   menu.forEach(g=> g.items = g.items.filter(it=> pageIds.has(it.pageId)));
 
   // 3) 누락된 페이지는 지정 그룹에 우선 추가
   const used = new Set(menu.flatMap(g=>g.items.map(it=>it.pageId)));
-  const missing = PAGES.map(p=>p.id).filter(Boolean).filter(id=>!used.has(id));
+  const missing = PAGES.filter(p=>!p.menuHidden).map(p=>p.id).filter(Boolean).filter(id=>!used.has(id));
   const preferredGroups = {
     p16: 'g_plan',
     p17: 'g_init',
@@ -5282,10 +5283,8 @@ body.clg-tabs-enabled .appFooter{display:none!important}
 // Read-only reference pages; register before work tabs restore saved page IDs.
 (()=>{
   const pages=[{"id": "p_evaluation_2026", "title": "2026 성과평가 · 종합안내", "url": "./performance-guide-2026.html?v=20261021-2"}, {"id": "p_eval_employment", "title": "2026 성과평가 · 취업·종료", "url": "./performance-2026/employment.html?v=20261021-2"}, {"id": "p_eval_referral", "title": "2026 성과평가 · 알선취업", "url": "./performance-2026/referral.html?v=20261021-2"}, {"id": "p_eval_early", "title": "2026 성과평가 · 조기취업", "url": "./performance-2026/early.html?v=20261021-2"}, {"id": "p_eval_wages", "title": "2026 성과평가 · 임금수준", "url": "./performance-2026/wages.html?v=20261021-2"}, {"id": "p_eval_retention", "title": "2026 성과평가 · 고용유지", "url": "./performance-2026/retention.html?v=20261021-2"}, {"id": "p_eval_experience", "title": "2026 성과평가 · 일경험", "url": "./performance-2026/experience.html?v=20261021-2"}, {"id": "p_eval_linkage", "title": "2026 성과평가 · 연계 가점", "url": "./performance-2026/linkage.html?v=20261021-2"}, {"id": "p_eval_satisfaction", "title": "2026 성과평가 · 만족도·우수사례", "url": "./performance-2026/satisfaction.html?v=20261021-2"}, {"id": "p_eval_review", "title": "2026 성과평가 · 점검·증빙", "url": "./performance-2026/review.html?v=20261021-2"}, {"id": "p_eval_sources", "title": "2026 성과평가 · 근거·확인사항", "url": "./performance-2026/sources.html?v=20261021-2"}];
-  pages.forEach(p=>{const existing=PAGES.find(x=>x.id===p.id);if(existing)Object.assign(existing,p);else PAGES.push(p)});
-  let group=MENU.find(g=>g.id==='g_evaluation');
-  if(!group){group={id:'g_evaluation',title:'성과평가 · 업무기준',open:true,items:[]};MENU.unshift(group)}
-  pages.forEach(p=>{if(!group.items.some(i=>i.pageId===p.id))group.items.push({pageId:p.id,label:p.title.replace('2026 성과평가 · ','')})});
+  pages.forEach(p=>{p.menuHidden=true;const existing=PAGES.find(x=>x.id===p.id);if(existing)Object.assign(existing,p);else PAGES.push(p)});
+  // Reference pages remain available through the top toolbar and restored work tabs.
   renderMenu();
 })();
 </script>
