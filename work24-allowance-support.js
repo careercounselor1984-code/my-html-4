@@ -28,7 +28,17 @@
   }
   function parse(d){
     const support=d?.employmentSupport||{},provided=Array.isArray(support.results)?support.results:[];
-    const raw=text(support.resultRaw||''),matches=[...raw.matchAll(new RegExp(rangeSource,'g'))];
+    const raw=text(support.resultRaw||'');
+    // v1.4.29 verifies the actual select/input controls; body text can legitimately omit them.
+    if(support.diagnostics?.source==='bounded-grid-controls-v149'&&typeof support.resultUnresolved==='boolean'){
+      const valid=provided.every(row=>{
+        const range=text(row.period).match(new RegExp(rangeSource));
+        return text(row.type)&&text(row.program)&&range&&iso(range[1])&&iso(range[2])&&iso(range[1])<=iso(range[2]);
+      });
+      const unread=support.resultUnresolved||!valid;
+      return {rows:provided.slice(),unread,reasons:unread?['전산의 취업지원 결과 행 확인 필요']:[],raw};
+    }
+    const matches=[...raw.matchAll(new RegExp(rangeSource,'g'))];
     const rows=provided.slice(),reasons=[];
     const key=r=>[text(r.type).replace(/\s/g,''),text(r.program).replace(/\s/g,''),text(r.period).match(new RegExp(rangeSource))?.slice(1).map(iso).join('|')||text(r.period)].join('|');
     let previousEnd=0,currentRanges=0;
