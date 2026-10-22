@@ -1,6 +1,6 @@
 /* Optional Work24 connection. All authoring remains available without an extension. */
 (()=>{'use strict';
- const M=window.ClientLinkModel,KEY='clg_iap_common_profiles_v1',states=new Map();let owner='',epoch=0,pending=null,detected=null,requestTimer=null,lastContextSignature='',dbRaw=null,dbOwner='',dbCache={},dbVersion=0;
+ const M=window.ClientLinkModel,KEY='clg_iap_common_profiles_v1',states=new Map();let owner='',lastOwner='',epoch=0,pending=null,detected=null,requestTimer=null,lastContextSignature='',dbRaw=null,dbOwner='',dbCache={},dbVersion=0;
  const pages=new Set(['p01','p02','p03','p04','p05','p06','p07','p10','p11','p13','p16','p17','p21','p23','p30','p34']);
  const required=new Set(['p01','p02','p03','p04','p05','p21','p23']);
  const selector='#iapRegNo,#clgIapRegNo,#clgSudangIapRegNo';
@@ -33,7 +33,7 @@
   let commonMap={};for(const script of doc.scripts){const m=script.textContent.match(/const MAP=(\{[^;\n]+\});/);if(m)try{commonMap=JSON.parse(m[1]);break}catch{}}
   const s={commonMap,nativeEdits:new Set(),tab,doc,win,box,input,picker,status,dirty:false,edits:new Set(),mismatch:false,boundReg:M.validReg(input.value)?M.reg(input.value):''};states.set(doc,s);
   input.addEventListener('input',()=>{s.mismatch=!!(s.boundReg&&M.reg(input.value)!==s.boundReg);sync(s)});doc.addEventListener('input',e=>{if(e.target.dataset.field)s.edits.add(e.target.dataset.field);if(!box.contains(e.target)){s.dirty=true;if(e.target.id)s.nativeEdits.add(e.target.id)}});
-  input.addEventListener('change',()=>{if(M.validReg(input.value)&&!s.mismatch)try{connect(s,'manual',{regNo:input.value,values:record(M.reg(input.value))?{}:values(s)})}catch(e){note(s,e.message)}});
+  input.addEventListener('change',()=>{if(M.validReg(input.value)&&!s.mismatch)try{connect(s,'manual',{regNo:input.value,values:record(M.reg(input.value))?{}:values(s)});queueRequest()}catch(e){note(s,e.message)}});
   picker.onchange=()=>{const p=record(picker.value);if(!p)return;if(input.value&&M.reg(input.value)!==p.regNo){note(s,'다른 내담자는 새 상담 탭에서 선택해 주세요.');return}input.value=p.regNo;s.boundReg=p.regNo;fill(s,p);doc.getElementById('clgIapCommonLoadBtn')?.click()};
   box.querySelector('[data-save]').onclick=()=>{try{connect(s,'manual',{regNo:input.value,values:values(s),persistNative:true})}catch(e){note(s,e.message)}};
   box.querySelector('[data-legacy]').onclick=async()=>{try{const result=await window.GoodJobLegacyIdentity.migrate(M.reg(input.value));sync(s);if(!result.cancelled)note(s,'이전 저장자료 연결 완료 · 기존 검색으로 불러올 수 있습니다.')}catch(e){note(s,e.message)}};
@@ -43,7 +43,7 @@
  }
  function visible(s){let f=s.tab.frame;for(let depth=0;f&&depth<5;depth++){for(let e=f;e;e=e.parentElement)if(e.hidden||e.ownerDocument.defaultView.getComputedStyle(e).display==='none')return false;f=f.ownerDocument.defaultView.frameElement;}return true}
  function currentState(){const f=active();return [...states.values()].find(s=>(s.tab.rootFrame||s.tab.frame)===f&&visible(s))}
- function scan(){function walk(tab,depth=0){try{const doc=tab.frame.contentDocument;if(!doc)return;tab.frame.contentWindow.GoodJobPrivacy=window.GoodJobPrivacy;const children=[...doc.querySelectorAll('iframe')];if(!children.length||doc.querySelector(selector))mount(tab);if(depth<3)for(const frame of children)walk({...tab,frame,rootFrame:tab.rootFrame||tab.frame},depth+1)}catch{}}for(const tab of tabs())walk(tab)}
+ function scan(){function walk(tab,depth=0){try{const doc=tab.frame.contentDocument;if(!doc)return;if(!doc.__clgLinkLoadBound){doc.__clgLinkLoadBound=true;doc.addEventListener('load',e=>{if(e.target?.tagName==='IFRAME')queueRequest()},true)}tab.frame.contentWindow.GoodJobPrivacy=window.GoodJobPrivacy;const children=[...doc.querySelectorAll('iframe')];if(!children.length||doc.querySelector(selector))mount(tab);if(depth<3)for(const frame of children)walk({...tab,frame,rootFrame:tab.rootFrame||tab.frame},depth+1)}catch{}}for(const tab of tabs())walk(tab)}
  let scheduleTask=null;
  function sendSchedule(s,p){if(scheduleTask){note(s,'일정표 저장을 처리 중입니다.');return}const frame=document.createElement('iframe');frame.hidden=true;frame.src='https://careercounselor1984-code.github.io/my-html-9/clients.html';document.body.append(frame);const requestId=crypto.randomUUID();const task={frame,requestId,s,p,epoch,owner};scheduleTask=task;task.timer=setTimeout(()=>finishSchedule('일정표 저장 응답을 확인하지 못했습니다. 일정표에서 확인해 주세요.'),20000);frame.onload=()=>{if(scheduleTask!==task)return;frame.contentWindow.postMessage({type:'goodjob:client-link:v1',requestId,expectedEmail:owner,profile:p},new URL(frame.src).origin)};note(s,'일정표 저장 중…');}
  function finishSchedule(message){const task=scheduleTask;if(!task)return;clearTimeout(task.timer);task.frame.remove();scheduleTask=null;note(task.s,message)}
@@ -58,8 +58,8 @@
  function queueRequest(){clearTimeout(requestTimer);requestTimer=setTimeout(request,250)}
  function request(){scan();if(!owner||document.visibilityState==='hidden')return;if(pending&&Date.now()-pending.at<5000)return;pending={id:crypto.randomUUID(),epoch,at:Date.now()};window.postMessage({marker:'CLG_CLIENT_LINK_V1',type:'REQUEST_CONTEXT',requestId:pending.id},location.origin)}
  for(const event of ['clg-tab-frame-load','clg-tab-switch'])window.addEventListener(event,()=>{scan();request()});
- window.addEventListener('clg-auth-ready',()=>{epoch++;owner=window.__CLG_JOURNAL_EMPLOYEE?.email||'';detected=null;scan();for(const s of states.values())sync(s);request()});
- window.addEventListener('clg-auth-logout',()=>{epoch++;owner='';pending=null;detected=null;finishSchedule('로그아웃되어 중단했습니다.');for(const s of states.values()){s.picker.replaceChildren();note(s,'등록번호 확인 필요')}});
+ window.addEventListener('clg-auth-ready',()=>{epoch++;const next=window.__CLG_JOURNAL_EMPLOYEE?.email||'';if(lastOwner&&next&&lastOwner!==next){for(const tab of tabs()){if(tab.frame.dataset.external==='1')continue;const frame=tab.frame;frame.style.visibility='hidden';frame.addEventListener('load',()=>{frame.style.visibility='';queueRequest()},{once:true});frame.srcdoc=frame.srcdoc;window.clgSetWorkTabClient?.(tab.id,{reg:'',name:'',key:tab.draftId});}states.clear();}owner=next;if(next)lastOwner=next;detected=null;lastContextSignature='';scan();for(const s of states.values())sync(s);request()});
+ window.addEventListener('clg-auth-logout',()=>{epoch++;owner='';pending=null;detected=null;finishSchedule('로그아웃되어 중단했습니다.');for(const s of states.values()){s.picker.replaceChildren();for(const input of s.box.querySelectorAll('input'))input.value='';s.boundReg='';s.mismatch=false;note(s,'등록번호 확인 필요')}});
  window.addEventListener('focus',request);document.addEventListener('visibilitychange',request);document.addEventListener('load',e=>{if(e.target?.tagName==='IFRAME')queueRequest()},true);scan();
  window.clgClientLink={record,request};
 })();

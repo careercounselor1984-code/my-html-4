@@ -31,7 +31,8 @@ testTab(false); // fresh tab: load event follows navigation
 assert(bridge.includes("withTargetPage('p06','sudang-form'"),'allowance uses reusable tab');
 assert(bridge.includes("withTargetPage('p11','company'"),'termination uses reusable tab');
 assert(bridge.includes("withTargetPage(pageId,'counselingDate'"),'basic info uses reusable tab');
-assert(bridge.includes("if(count>0)window.postMessage({marker:MARKER,type:'CLEAR_PENDING_ALLOWANCE'}"),'pending data preserved on no-op');
+assert(bridge.includes('if(count>0&&periodOk&&roundOk)'),'pending data cleared only after verified round and dates');
+assert(bridge.includes('!support.unread&&supportApplied!==support.rows.length'),'program row counts are verified before acknowledging');
 const pages=JSON.parse(html.match(/const PAGES = (\[.*?\]);/s)[1]);
 const p06=Buffer.from(pages.find(p=>p.id==='p06').b64,'base64').toString();
 for(const id of ['sudang-form','round','startDate','endDate','designationDate'])assert(p06.includes('id="'+id+'"'),'p06 field '+id);

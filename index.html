@@ -342,6 +342,8 @@ body.clg-fixed-scroll .viewer iframe{height:100%!important}
 .clgTopMoreItems>.topBtn.primary{background:#eef4ff;color:#255fb7;border-color:#bdd3f1}
 .clgTopMoreItems input[hidden]{display:none!important}
 .topbar .boardUnread{flex:0 0 auto}
+.topActions>.evaluationTopBtn{background:#e7f5ed!important;border:1px solid #64a88b!important;color:#145c45!important;font-weight:900;box-shadow:0 0 0 2px #227b5210}
+.topActions>.evaluationTopBtn:hover{background:#d5eddf!important;border-color:#287b59!important}
 @media(max-width:1380px){
  .topTitle .breadcrumbs,.topTitle .pageSubtitle{display:none}
  .topTitle{max-width:290px}
@@ -357,7 +359,7 @@ body.clg-fixed-scroll .viewer iframe{height:100%!important}
  .topTitle{grid-column:2;grid-row:1;max-width:none;min-width:0}
  .topTitle .titleLine h1{font-size:14px!important}
  .topTitle .pageBadge,.topTitle .breadcrumbs,.topTitle .pageSubtitle{display:none!important}
- .topActions{grid-column:1/-1;grid-row:2;display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr));width:100%;margin:0!important;gap:5px!important}
+ .topActions{grid-column:1/-1;grid-row:2;display:grid!important;grid-template-columns:repeat(6,minmax(0,1fr));width:100%;margin:0!important;gap:5px!important}
  .topActions>.topBtn,.clgTopMore>summary{display:flex!important;flex-direction:column;align-items:center;justify-content:center;min-width:0;width:100%;height:53px!important;gap:3px!important;padding:4px 2px!important;font-size:14px!important;border-radius:10px;white-space:normal}
  .topbar .topActions>.topBtn .label,.clgTopMoreTrigger .label{display:block!important;font-size:10px!important;line-height:1.15;white-space:nowrap;letter-spacing:-.25px}
  .topActions>.boardTopBtn{position:relative}
@@ -368,6 +370,7 @@ body.clg-fixed-scroll .viewer iframe{height:100%!important}
  .clgTopMoreItems>.topBtn .label{font-size:12px!important;white-space:normal!important}
  body.clg-unified-scroll .frameToolbar{top:113px!important}
 }
+@media(max-width:430px){.topActions{grid-template-columns:repeat(3,minmax(0,1fr))!important}body.clg-unified-scroll .frameToolbar{top:171px!important}}
 @media(max-width:360px){.topbar .topActions>.topBtn .label,.clgTopMoreTrigger .label{font-size:9px!important}}
 </style>
 <style id="clg-work-alerts-v1">
@@ -473,6 +476,8 @@ body.clg-fixed-scroll .viewer iframe{height:100%!important}
         <p class="pageSubtitle" id="pageSubtitle">좌측 메뉴를 선택하면 해당 상담 화면이 열립니다.</p>
       </div>
       <div class="topActions" aria-label="자주 사용하는 업무 기능">
+<a class="topBtn clgGptTopBtn" href="https://chatgpt.com/g/g-6a55dedf9ba48191aa01e9eb86faac1e-joheuniljari-gugcwi-eobmu-siljeog-doumi" target="_blank" rel="noopener noreferrer" title="국취 매뉴얼·실적 도우미 열기">🤖 <span class="label">국취 도우미</span></a>
+<button class="topBtn evaluationTopBtn" id="clgEvaluationGuideBtn" type="button" title="2026 성과평가 길잡이 · 매뉴얼·법령·평가기준 확인" onclick="loadPage('p_evaluation_2026')">📊 <span class="label">성과평가</span></button>
 <button class="topBtn boardTopBtn" id="boardOpenBtn" type="button" title="공용 게시판 열기">📋 <span class="label">게시판</span><span class="boardUnread" id="boardUnread">0</span></button>
 <button class="topBtn captureTopBtn" id="captureOpenBtn" type="button" title="화면·창을 선택해 캡처하고 출력하거나 저장">📸 <span class="label">캡처·출력</span></button>
 <button class="topBtn" id="clgOpenNextApptBtn" type="button">📅 <span class="label">다음 상담 예약</span></button>
@@ -480,7 +485,7 @@ body.clg-fixed-scroll .viewer iframe{height:100%!important}
 <details class="clgTopMore" id="clgTopMore">
   <summary class="topBtn clgTopMoreTrigger" aria-label="추가 업무 및 설정 메뉴"><span class="clgMoreIcon" aria-hidden="true">⋯</span><span class="label">더보기</span></summary>
   <div class="clgTopMorePanel">
-    <section class="clgTopMoreGroup"><h3>업무 도구</h3><div class="clgTopMoreItems"><button type="button" class="topBtn" id="clgWorkAlertMenuBtn">🔔 <span class="label">업무 알림</span><span id="clgWorkAlertMenuCount" class="clgAlertCount" hidden>0</span></button><a class="topBtn clgGptTopBtn" href="https://chatgpt.com/g/g-6a55dedf9ba48191aa01e9eb86faac1e-joheuniljari-gugcwi-eobmu-siljeog-doumi" target="_blank" rel="noopener noreferrer" title="국취 매뉴얼·실적 도우미 열기">🤖 <span class="label">국취도우미</span></a>
+    <section class="clgTopMoreGroup"><h3>업무 도구</h3><div class="clgTopMoreItems"><button type="button" class="topBtn" id="clgWorkAlertMenuBtn">🔔 <span class="label">업무 알림</span><span id="clgWorkAlertMenuCount" class="clgAlertCount" hidden>0</span></button>
 <a class="topBtn clgGptTopBtn" href="https://chatgpt.com/g/g-6948c05fff9c8191acd52e93ad66b437-joheuniljari-gugcwi-jidojeomgeom-sajeongeomsu" target="_blank" rel="noopener noreferrer" title="좋은일자리 | 국취 지도점검 사전검수 열기">🛡 <span class="label">지도점검 사전검수</span></a>
 <button class="topBtn" id="lawCheckBtn" type="button" title="국가법령정보센터 API 최신성 확인 및 내일배움카드 지원 판정">⚖ <span class="label">규정·내배카</span></button></div></section>
     <section class="clgTopMoreGroup"><h3>설정 · 데이터 관리</h3><div class="clgTopMoreItems"><button class="topBtn" id="userSettingsBtn" type="button" title="개인 설정">⚙ <span class="label">설정</span></button>
@@ -962,7 +967,7 @@ function safeParse(jsonStr){
 function normalizeMenu(menu){
   // 1) 기본 형태 보정
   if(!Array.isArray(menu)) menu = getDefaultMenu();
-  menu = menu.map(g=>({
+  menu = menu.filter(g=>g.id!=='g_evaluation').map(g=>({
     id: String(g.id || crypto.randomUUID?.() || Math.random()),
     title: String(g.title || '그룹'),
     open: g.open !== false, // 기본 열림
@@ -974,12 +979,12 @@ function normalizeMenu(menu){
   }));
 
   // 2) 존재하지 않는 pageId 제거
-  const pageIds = new Set(PAGES.map(p=>p.id).filter(Boolean));
+  const pageIds = new Set(PAGES.filter(p=>!p.menuHidden).map(p=>p.id).filter(Boolean));
   menu.forEach(g=> g.items = g.items.filter(it=> pageIds.has(it.pageId)));
 
   // 3) 누락된 페이지는 지정 그룹에 우선 추가
   const used = new Set(menu.flatMap(g=>g.items.map(it=>it.pageId)));
-  const missing = PAGES.map(p=>p.id).filter(Boolean).filter(id=>!used.has(id));
+  const missing = PAGES.filter(p=>!p.menuHidden).map(p=>p.id).filter(Boolean).filter(id=>!used.has(id));
   const preferredGroups = {
     p16: 'g_plan',
     p17: 'g_init',
@@ -4724,6 +4729,7 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
 </div>
 <button id="clgBridgeLauncher" type="button" title="Work24 연결창 열기" hidden>전</button>
 
+<script src="./work24-allowance-support.js?v=20261022-2"></script>
 <script id="clg-work24-counsel-bridge-v113-script">
 (function(){
   'use strict';
@@ -4733,6 +4739,7 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
   let iapUiTimer=null;
   let state={basic:null,allowance:null,termination:null};
   let currentKind='';
+  let lastAllowanceSummary='';
   let bridgeReady=false;
   let checkTimer=null;
   const $=id=>document.getElementById(id);
@@ -4853,9 +4860,9 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
     if(isIapPage()){showIapConnected();return;}
     if(panel)panel.hidden=false; currentKind='';
     setCompactMode('connected');
-    setTitle('Work24 연결됨','확장프로그램 브리지 정상 · 전달 대기자료가 없습니다.','연결 정상');
-    setDetails([['다음 단계','Work24에서 기본정보·구촉수당·취업종료를 읽고 상담일지로 보내주세요.']]); $('clgBridgeApplyBtn').textContent='반영';
-    showMessage('Work24 확장프로그램에서 “상담일지 통합본으로 보내기”를 누른 뒤 연결 다시 확인을 눌러주세요.','ok');
+    setTitle('Work24 연결됨',lastAllowanceSummary||'확장프로그램 브리지 정상 · 전달 대기자료가 없습니다.','연결 정상');
+    setDetails(lastAllowanceSummary?[['최근 반영',lastAllowanceSummary]]:[['다음 단계','Work24에서 기본정보·구촉수당·취업종료를 읽고 상담일지로 보내주세요.']]); $('clgBridgeApplyBtn').textContent='반영';
+    showMessage(lastAllowanceSummary||'Work24 확장프로그램에서 “상담일지 통합본으로 보내기”를 누른 뒤 연결 다시 확인을 눌러주세요.',lastAllowanceSummary.includes('지급액 확인 필요')?'warn':'ok');
   }
   function renderBasic(p){
     currentKind='basic';
@@ -4874,7 +4881,7 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
     setTitle('Work24 구촉수당 도착','현재 회차의 확정 화면값을 구촉수당 상담일지에 반영합니다.',`${p.round||d.round||'?'}회차 · ${d.processStatus||p.processStatus||'처리상태 미인식'}`);
     setDetails([
       ['지원대상기간',[p.supportStart||d.supportStart,p.supportEnd||d.supportEnd].filter(Boolean).join(' ~ ')],
-      ['지정일',p.designatedDate||d.designatedDate||'-'],['이행결과',`${(d.activities||[]).length}건 / 취업지원 결과 ${(d.employmentSupport?.results||[]).length}건`],
+      ['지정일',p.designatedDate||d.designatedDate||'-'],['이행결과',`${(d.activities||[]).length}건 / 취업지원 결과 ${allowanceSupport(d).rows.length}건${allowanceSupport(d).unread?' · 미인식 항목 확인 필요':''}`],
       ['소득',incText],['취업신고',empText],['검토결과',reviewText(p)],['지급요청액',money(p.totalRequest||d.payment?.totalRequest||'')]
     ]);
     $('clgBridgeApplyBtn').textContent='구촉수당에 반영';
@@ -4966,25 +4973,38 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
     });
   }
   function parseRange(s){
-    const ds=String(s||'').match(/(?:19|20)\d{2}[-./]\d{1,2}[-./]\d{1,2}|(?:19|20)\d{6}/g)||[];
-    const iso=v=>{const d=String(v||'').replace(/\D/g,'');return d.length===8?d.slice(0,4)+'-'+d.slice(4,6)+'-'+d.slice(6,8):'';};
+    const ds=[...String(s||'').matchAll(/((?:19|20)\d{2})[-./]\s*(\d{1,2})[-./]\s*(\d{1,2})|((?:19|20)\d{6})/g)];
+    const iso=m=>{
+      if(!m)return ''; const v=m[4] ? m[4].slice(0,4)+'-'+m[4].slice(4,6)+'-'+m[4].slice(6,8) : m[1]+'-'+m[2].padStart(2,'0')+'-'+m[3].padStart(2,'0');
+      const date=new Date(v+'T00:00:00Z');return !isNaN(date)&&date.toISOString().slice(0,10)===v?v:'';
+    };
     return [iso(ds[0]),iso(ds[1]||ds[0])];
   }
+  function allowanceSupport(d){
+    if(typeof window.clgParseAllowanceSupport==='function')return window.clgParseAllowanceSupport(d);
+    return {rows:Array.isArray(d.employmentSupport?.results)?d.employmentSupport.results:[],unread:true,reasons:['자료 확인 기능을 불러오지 못했습니다. 새로고침해 주세요.'],raw:''};
+  }
   function setActivityRow(doc,win,target,item,mode){
-    if(typeof win.addActivityRow!=='function')return false; win.addActivityRow(target);
-    const list=doc.getElementById(target), row=list?.lastElementChild; if(!row)return false;
     const [s,e]=parseRange(item.period||item.activityPeriod||'');
-    const start=row.querySelector('.act-start'), end=row.querySelector('.act-end'), sel=row.querySelector('.act-content'), detail=row.querySelector('.act-detail'), status=row.querySelector('.act-status');
-    if(start&&s)start.value=s;if(end&&e)end.value=e;
+    if(!s||!e||s>e||typeof win.addActivityRow!=='function')return false;
+    const list=doc.getElementById(target);if(!list)return false;
+    const before=list.children.length;win.addActivityRow(target);
+    const row=list.lastElementChild;if(!row||list.children.length!==before+1)return false;
+    const start=row.querySelector('.act-start'),end=row.querySelector('.act-end'),sel=row.querySelector('.act-content'),detail=row.querySelector('.act-detail'),status=row.querySelector('.act-status');
+    if(!start||!end||!sel||!detail||!status){row.remove();return false;}
+    start.value=s;end.value=e;
+    let choice,text;
     if(mode==='support'){
-      const t=String(item.type||''); let choice='기타';
-      if(t.includes('직업훈련'))choice='직업훈련'; else if(t.includes('취업특강'))choice='단기취업특강'; else if(t.includes('일경험'))choice='일경험'; else if(t.includes('창업'))choice='창업지원';
-      if(sel)sel.value=choice; if(detail)detail.value=[item.program,item.institution].filter(Boolean).join(' / ') || t;
+      const t=String(item.type||'');choice='기타';
+      if(t.includes('직업훈련'))choice='직업훈련';else if(t.includes('집단상담'))choice='집단상담';else if(t.includes('취업특강'))choice='단기취업특강';else if(t.includes('일경험'))choice='일경험';else if(t.includes('창업'))choice='창업지원';else if(t.includes('심리안정'))choice='심리안정';else if(t.includes('심리검사'))choice='심리검사';else if(t.includes('자격증'))choice='자격증시험응시';
+      text=[choice==='기타'?t:'',item.program,item.institution].filter(Boolean).join(' / ');
     }else{
-      const t=String(item.activityType||''); const allowed=['입사지원서(취업알선상담 포함)제출','입사 면접 참여','입사지원에 필요한 컨설팅 참여','상담사가 부과한 과제 이행 후 상담 참여'];
-      const choice=allowed.includes(t)?t:'기타 구직 활동'; if(sel)sel.value=choice; if(detail)detail.value=[allowed.includes(t)?'':t,item.activityName,item.activityContent].filter(Boolean).join(' / ');
+      const t=String(item.activityType||''),allowed=['입사지원서(취업알선상담 포함)제출','입사 면접 참여','입사지원에 필요한 컨설팅 참여','상담사가 부과한 과제 이행 후 상담 참여'];
+      choice=allowed.includes(t)?t:'기타 구직 활동';text=[allowed.includes(t)?'':t,item.activityName,item.activityContent].filter(Boolean).join(' / ');
     }
-    if(status)status.value='이행'; return true;
+    sel.value=choice;detail.value=text;status.value='이행';
+    const ok=start.value===s&&end.value===e&&sel.value===choice&&detail.value===text&&status.value==='이행';
+    if(!ok)row.remove();return ok;
   }
   function addAllowanceReferenceBox(doc,p){
     const d=p.data||{}; let box=doc.getElementById('clgWork24AllowanceRef'); if(!box){box=doc.createElement('div');box.id='clgWork24AllowanceRef';const form=doc.getElementById('sudang-form');form?.insertBefore(box,form.firstElementChild);}
@@ -4993,6 +5013,15 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
     const h=Number(String(emp.weeklyHours||'').replace(/[^0-9.]/g,'')); const emp30=emp.reported==='있음'&&Number.isFinite(h)&&h>=30;
     const empDetail=[emp.reported||'-',emp.company,emp.employmentType,emp.plannedDate,emp.weeklyHours?`주 ${emp.weeklyHours}시간`:'' ].filter(Boolean).join(' / ');
     box.innerHTML=`<b style="color:#1d4ed8">Work24 전산 확인값</b><br>처리상태: ${esc(d.processStatus||'-')}<br>취업여부: ${esc(empDetail)}${emp30?`<br><b style="display:inline-block;margin-top:5px;padding:4px 7px;border-radius:7px;background:#fff3cd;color:#8a5200">중요 · 주 ${esc(emp.weeklyHours)}시간 취업(30시간 이상) — 해당 회차 구직활동 미이행 예외 적용 여부 확인</b>`:''}<br>검토결과: ${esc(reviewText(p))} · 지급요청액: ${esc(money(p.totalRequest||d.payment?.totalRequest||''))}<br><span style="color:#64748b">※ 위 값은 비교·확인용이며 상담사 의견에는 자동 입력하지 않습니다.</span>`;
+    const support=allowanceSupport(d);
+    if(support.unread){
+      const detail=doc.createElement('details');detail.id='clgWork24SupportUnread';
+      const summary=doc.createElement('summary');summary.textContent='취업지원 미인식 원문 확인';detail.appendChild(summary);
+      const note=doc.createElement('p');note.textContent=(support.reasons||[]).join(' · ')+' — 이 항목은 자동 입력하지 않았으며 전달자료를 보존했습니다.';detail.appendChild(note);
+      const pre=doc.createElement('pre');pre.style.cssText='white-space:pre-wrap;max-height:220px;overflow:auto';pre.textContent=support.raw||'전달된 취업지원 원문이 없습니다.';detail.appendChild(pre);
+      box.appendChild(detail);
+    }
+
   }
   function applyAllowance(p){
     withTargetPage('p06','sudang-form',(doc,win)=>{
@@ -5001,26 +5030,67 @@ if(PAGES.length) loadPage(activePageId || PAGES[0].id);
         showMessage('회차와 지원대상기간이 없어 반영하지 않았습니다. Work24에서 현재 회차를 다시 읽어주세요.','warn');
         return;
       }
-      let count=0;
+      const support=allowanceSupport(d), activities=Array.isArray(d.activities)?d.activities:[];
+      const validPeriod=[d.supportStart||p.supportStart,d.supportEnd||p.supportEnd,d.designatedDate||p.designatedDate].every(value=>!!parseRange(value)[0]);
+      const required=['round','startDate','endDate','designationDate','prog1_list','prog2_list'];
+      if(!validPeriod||!d.income||!d.employmentSupport||!Array.isArray(d.activities)||required.some(id=>!doc.getElementById(id))||typeof win.addActivityRow!=='function'){
+        showMessage('취업지원 프로그램에 읽지 못한 항목이 있거나 상담 화면이 준비되지 않았습니다. 전달자료를 보존했습니다. Work24에서 현재 회차를 다시 읽어 주세요.','warn');return;
+      }
+      const programLists=['prog1_list','prog2_list'].map(id=>doc.getElementById(id));
+      // Keep original nodes (including their handlers) until every imported row is verified.
+      const originals=programLists.map(list=>Array.from(list.childNodes));
+      programLists.forEach((list,i)=>{if(i!==0||!support.unread)list.replaceChildren();});
+      let supportApplied=0,activityApplied=0;
+      try{
+        if(!support.unread)support.rows.forEach(x=>{if(setActivityRow(doc,win,'prog1_list',x,'support'))supportApplied++;});
+        activities.forEach(x=>{if(setActivityRow(doc,win,'prog2_list',x,'activity'))activityApplied++;});
+      }catch(e){}
+      if((!support.unread&&supportApplied!==support.rows.length)||activityApplied!==activities.length){
+        programLists.forEach((list,i)=>list.replaceChildren(...originals[i]));
+        showMessage(`반영 중단 · 취업지원 ${supportApplied}/${support.rows.length}건, 구직활동 ${activityApplied}/${activities.length}건. 기존 입력과 전달자료를 보존했습니다. 날짜와 항목을 확인해 주세요.`,'warn');return;
+      }
+      let count=supportApplied+activityApplied;
       const rv=String(d.round||p.round||'').match(/\d+/)?.[0]||''; if(rv&&setInput(doc,'round',rv))count++;
       if(setInput(doc,'startDate',d.supportStart||p.supportStart||''))count++; if(setInput(doc,'endDate',d.supportEnd||p.supportEnd||''))count++; if(setInput(doc,'designationDate',d.designatedDate||p.designatedDate||''))count++;
-      const p1=doc.getElementById('prog1_list'), p2=doc.getElementById('prog2_list'); if(p1)p1.innerHTML=''; if(p2)p2.innerHTML='';
-      (d.employmentSupport?.results||[]).forEach(x=>{if(setActivityRow(doc,win,'prog1_list',x,'support'))count++;}); (d.activities||[]).forEach(x=>{if(setActivityRow(doc,win,'prog2_list',x,'activity'))count++;});
       const income=d.income||{}; const hasIncome=Number(income.count||0)>0 || (income.items||[]).length>0; const none=doc.getElementById('incomeNone'), exist=doc.getElementById('incomeExist');
       if(none&&exist){none.checked=!hasIncome;exist.checked=hasIncome; if(typeof win.toggleIncome==='function')win.toggleIncome(); count++;}
+      let incomeVerified=!hasIncome;
+      const incomeOriginals=['deductibleList','programIncomeList','nonDeductibleList'].map(id=>({list:doc.getElementById(id),nodes:Array.from(doc.getElementById(id)?.childNodes||[])}));
       ['deductibleList','programIncomeList','nonDeductibleList'].forEach(id=>{const el=doc.getElementById(id);if(el)el.innerHTML='';});
       if(hasIncome && typeof win.addIncomeRow==='function'){
-        (income.items||[]).forEach(x=>{const target=String(x.type||'').includes('취업지원프로그램')?'programIncomeList':'deductibleList'; win.addIncomeRow(target); const row=doc.getElementById(target)?.lastElementChild;if(!row)return; const date=row.querySelector('.inc-date'),desc=row.querySelector('.inc-desc'),amt=row.querySelector('.inc-amt'); if(date)date.value=x.date||'';if(desc)desc.value=[x.type,x.content].filter(Boolean).join(' / ');if(amt)amt.value=num(x.amount??x.applicationAmount)??0; count++;});
+        let applied=0;
+        try{(income.items||[]).forEach(x=>{
+          const target=String(x.type||'').includes('취업지원프로그램')?'programIncomeList':'deductibleList';
+          win.addIncomeRow(target);const row=doc.getElementById(target)?.lastElementChild;if(!row)return;
+          const date=row.querySelector('.inc-date'),desc=row.querySelector('.inc-desc'),amt=row.querySelector('.inc-amt');
+          const text=[x.type,x.content].filter(Boolean).join(' / '),amount=num(x.amount??x.applicationAmount)??0;
+          if(!date||!desc||!amt)return;
+          date.value=x.date||'';desc.value=text;amt.value=amount;
+          if(date.value===(x.date||'')&&desc.value===text&&Number(amt.value)===amount)applied++;
+        });}catch(e){}
+        incomeVerified=applied===(income.items||[]).length&&applied>=Number(income.count||0);count+=applied;
+      }
+      if(!incomeVerified){
+        incomeOriginals.forEach(({list,nodes})=>list?.replaceChildren(...nodes));
+        showMessage('소득 항목을 모두 반영하지 못했습니다. 기존 소득 입력과 Work24 전달자료를 보존했습니다.','warn');return;
       }
       const base=num(d.payment?.basicAmount), fam=num(d.payment?.familyAmount); const rateEl=doc.getElementById('paymentRate'), famEl=doc.getElementById('familyCount'); let rate=null;
       if(base===600000)rate=100;else if(base===300000)rate=50;else if(base===0)rate=0; if(rate!==null&&rateEl){rateEl.value=String(rate);count++;}
       if(rate&&fam!==null&&famEl){const unit=100000*(rate/100);const fc=Math.round(fam/unit);if(fc>=0&&fc<=4&&Math.abs(fc*unit-fam)<1){famEl.value=String(fc);count++;}}
       if(typeof win.calculate==='function')win.calculate(); addAllowanceReferenceBox(doc,p);
       const work24Total=num(p.totalRequest||d.payment?.totalRequest), calcTotal=num(doc.getElementById('finalPayment')?.textContent||'');
-      if(work24Total!==null&&calcTotal!==null&&work24Total!==calcTotal) showMessage(`✓ ${count}개 항목 반영 완료. 다만 통합본 계산액 ${money(calcTotal)} / Work24 지급요청액 ${money(work24Total)}가 달라 최종 확인이 필요합니다.`,'warn');
-      else showMessage(`✓ ${count}개 항목 반영 완료. 상담사 의견은 자동 작성하지 않았습니다.`,'ok');
-      if(count>0)window.postMessage({marker:MARKER,type:'CLEAR_PENDING_ALLOWANCE'},'*');
-      else showMessage('반영된 항목이 없습니다. Work24 전달자료를 보존했습니다.','warn');
+      const periodOk=[['startDate',d.supportStart||p.supportStart],['endDate',d.supportEnd||p.supportEnd],['designationDate',d.designatedDate||p.designatedDate]].every(([id,value])=>!value||doc.getElementById(id)?.value===parseRange(value)[0]);
+      const roundOk=!!rv&&doc.getElementById('round')?.value===rv;
+      if(count>0&&periodOk&&roundOk&&support.unread){
+        lastAllowanceSummary='';
+        showMessage(`일부 반영 · ${rv}회차 날짜와 구직활동 ${activityApplied}건 반영. 취업지원 프로그램은 확인이 필요해 기존 입력과 전달자료를 보존했습니다. 상담일지 상단의 ‘취업지원 미인식 원문 확인’을 열어 주세요.`,'warn');
+      }
+      else if(count>0&&periodOk&&roundOk){
+        lastAllowanceSummary=`최근 반영 완료 · ${rv}회차 / 취업지원 ${supportApplied}건 / 구직활동 ${activityApplied}건`+(work24Total!==null&&calcTotal!==null&&work24Total!==calcTotal?` · 지급액 확인 필요: 통합본 ${money(calcTotal)} / Work24 ${money(work24Total)}`:'');
+        showMessage(lastAllowanceSummary+' · 상담사 의견은 자동 작성하지 않았습니다.',work24Total!==null&&calcTotal!==null&&work24Total!==calcTotal?'warn':'ok');
+        window.postMessage({marker:MARKER,type:'CLEAR_PENDING_ALLOWANCE'},'*');
+      }
+      else showMessage('회차 또는 날짜 반영을 확인하지 못했습니다. Work24 전달자료를 보존했습니다.','warn');
     });
   }
   function normalizeSuccess(v){
@@ -5270,6 +5340,15 @@ body.clg-tabs-enabled .appFooter{display:none!important}
 }
 </style>
 
+<script id="clg-evaluation-guide-registration">
+// Read-only reference pages; register before work tabs restore saved page IDs.
+(()=>{
+  const pages=[{"id": "p_evaluation_2026", "title": "2026 성과평가 · 종합안내", "url": "./performance-guide-2026.html?v=20261021-2"}, {"id": "p_eval_employment", "title": "2026 성과평가 · 취업·종료", "url": "./performance-2026/employment.html?v=20261021-2"}, {"id": "p_eval_referral", "title": "2026 성과평가 · 알선취업", "url": "./performance-2026/referral.html?v=20261021-2"}, {"id": "p_eval_early", "title": "2026 성과평가 · 조기취업", "url": "./performance-2026/early.html?v=20261021-2"}, {"id": "p_eval_wages", "title": "2026 성과평가 · 임금수준", "url": "./performance-2026/wages.html?v=20261021-2"}, {"id": "p_eval_retention", "title": "2026 성과평가 · 고용유지", "url": "./performance-2026/retention.html?v=20261021-2"}, {"id": "p_eval_experience", "title": "2026 성과평가 · 일경험", "url": "./performance-2026/experience.html?v=20261021-2"}, {"id": "p_eval_linkage", "title": "2026 성과평가 · 연계 가점", "url": "./performance-2026/linkage.html?v=20261021-2"}, {"id": "p_eval_satisfaction", "title": "2026 성과평가 · 만족도·우수사례", "url": "./performance-2026/satisfaction.html?v=20261021-2"}, {"id": "p_eval_review", "title": "2026 성과평가 · 점검·증빙", "url": "./performance-2026/review.html?v=20261021-2"}, {"id": "p_eval_sources", "title": "2026 성과평가 · 근거·확인사항", "url": "./performance-2026/sources.html?v=20261021-2"}];
+  pages.forEach(p=>{p.menuHidden=true;const existing=PAGES.find(x=>x.id===p.id);if(existing)Object.assign(existing,p);else PAGES.push(p)});
+  // Reference pages remain available through the top toolbar and restored work tabs.
+  renderMenu();
+})();
+</script>
 <script id="clg-multi-work-tabs-v1-script">
 (function(){
   'use strict';
@@ -6668,4 +6747,3 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 </html>
 
 <script src="./job-archive.js?v=20261018-1"></script>
-
