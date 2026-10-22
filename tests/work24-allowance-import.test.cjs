@@ -114,3 +114,10 @@ run('support parser loads as a browser script and the main page loads it before 
  assert.equal(typeof sandbox.window.clgParseAllowanceSupport,'function');
  assert.ok(html.indexOf('src="./work24-allowance-support.js?')<html.indexOf('<script id="clg-work24-counsel-bridge-v113-script">'));
 });
+run('v1.4.29 live controls override body text which omits selected values and dates',()=>{
+ const h=harness();const p=payload({results:[supportRow],resultUnresolved:false,needsSample:false,diagnostics:{source:'bounded-grid-controls-v149'},resultRaw:'인터넷 등록 한국고용정보원 15771114'});
+ h.ctx.applyAllowance(p);assert.equal(h.sent.length,1);assert.equal(h.d.querySelectorAll('#prog1_list .activity-row').length,1);h.close();
+});
+run('v1.4.29 explicit unresolved results stay pending even if another row was read',()=>{
+ const h=harness();h.ctx.applyAllowance(payload({results:[supportRow],resultUnresolved:true,needsSample:true,diagnostics:{source:'bounded-grid-controls-v149'}}));assert.equal(h.sent.length,0);h.close();
+});
