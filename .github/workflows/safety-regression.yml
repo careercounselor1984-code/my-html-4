@@ -51,6 +51,7 @@ jobs:
           NODE_PATH=/tmp/initial-dom-test/node_modules node tests/card-reason.test.cjs
           NODE_PATH=/tmp/initial-dom-test/node_modules node tests/training-rounds-dom.test.cjs
           NODE_PATH=/tmp/initial-dom-test/node_modules node tests/activity-rules-dom.test.cjs
+          NODE_PATH=/tmp/initial-dom-test/node_modules node tests/recommendation-layout.test.cjs
           NODE_PATH=/tmp/initial-dom-test/node_modules node tests/activity-recommendation.test.cjs
           NODE_PATH=/tmp/initial-dom-test/node_modules node tests/journal-content-corrections.test.cjs
           NODE_PATH=/tmp/initial-dom-test/node_modules node tests/client-guidance.test.cjs
