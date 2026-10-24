@@ -27,6 +27,7 @@ jobs:
           node tests/tab-f5-shortcut.test.cjs
           node tests/alert-tab-clearance.test.cjs
           node tests/work24-tab-transfer.test.cjs
+          node tests/notification-policy.test.cjs
           node tests/training-days.test.cjs
           node tests/training-schedule-parser.test.cjs
 
@@ -49,6 +50,8 @@ jobs:
           NODE_PATH=/tmp/initial-dom-test/node_modules node tests/initial-dropdowns-dom.test.cjs
           NODE_PATH=/tmp/initial-dom-test/node_modules node tests/card-reason.test.cjs
           NODE_PATH=/tmp/initial-dom-test/node_modules node tests/training-rounds-dom.test.cjs
+          NODE_PATH=/tmp/initial-dom-test/node_modules node tests/activity-rules-dom.test.cjs
+          NODE_PATH=/tmp/initial-dom-test/node_modules node tests/activity-recommendation.test.cjs
           NODE_PATH=/tmp/initial-dom-test/node_modules node tests/journal-content-corrections.test.cjs
           NODE_PATH=/tmp/initial-dom-test/node_modules node tests/client-guidance.test.cjs
 

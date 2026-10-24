@@ -28,8 +28,8 @@
     bar.style.cssText='display:flex;justify-content:flex-end;padding:5px 10px;max-width:1200px;margin:0 auto';
     const button=doc.createElement('button');button.type='button';button.id='clgConsultResetBtn';button.textContent='↺ 현재 상담 초기화';
     button.title='현재 탭의 입력과 결과만 초기화합니다. 저장된 상담자료는 유지됩니다.';
-    button.style.cssText='width:auto;margin:0;padding:6px 11px;border:1px solid #e6a4a4;border-radius:7px;background:#fff;color:#a32929;font-size:12px;cursor:pointer';
-    button.onclick=()=>window.clgResetWorkTab?.(tab.id);bar.appendChild(button);doc.body.prepend(bar);
+    button.style.cssText='width:auto;margin:0;padding:6px 11px;border:1px solid #e6a4a4;border-radius:7px;background:#fff;color:#a32929;font-size:12px;white-space:nowrap;align-self:center;cursor:pointer';
+    button.onclick=()=>window.clgResetWorkTab?.(tab.id);bar.appendChild(button);const host=tab.pageId==='p20'?doc.querySelector('.header'):null;if(host)host.append(bar);else doc.body.prepend(bar);
     const style=doc.createElement('style');style.textContent='@media print{#clgConsultResetBar{display:none!important}}';doc.head.appendChild(style);
   }
   if(!supported.has(tab.pageId))return;if(installed.has(doc)){hydrate(installed.get(doc));return}for(const old of states){if(old.tab.id===tab.id&&old.doc!==doc){old.closed=true;clearTimeout(old.timer);states.delete(old)}}
