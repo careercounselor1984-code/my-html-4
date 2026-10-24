@@ -27,6 +27,8 @@ jobs:
           node tests/tab-f5-shortcut.test.cjs
           node tests/alert-tab-clearance.test.cjs
           node tests/work24-tab-transfer.test.cjs
+          node tests/training-days.test.cjs
+          node tests/training-schedule-parser.test.cjs
 
       - name: Verify initial opinion helper with actual DOM
         run: |
@@ -46,6 +48,8 @@ jobs:
           NODE_PATH=/tmp/initial-dom-test/node_modules node tests/experience-days-dom.test.cjs
           NODE_PATH=/tmp/initial-dom-test/node_modules node tests/initial-dropdowns-dom.test.cjs
           NODE_PATH=/tmp/initial-dom-test/node_modules node tests/card-reason.test.cjs
+          NODE_PATH=/tmp/initial-dom-test/node_modules node tests/training-rounds-dom.test.cjs
+          NODE_PATH=/tmp/initial-dom-test/node_modules node tests/journal-content-corrections.test.cjs
           NODE_PATH=/tmp/initial-dom-test/node_modules node tests/client-guidance.test.cjs
 
       - name: Headless Chrome initial-counseling focused-form smoke
@@ -54,6 +58,7 @@ jobs:
           node tests/card-reason-browser-smoke.cjs
           node tests/protected-core-browser-smoke.cjs
           node tests/full-runtime-browser-smoke.cjs
+          node tests/training-browser-smoke.cjs
 
       - name: Headless Chrome initial-screen smoke (unauthenticated)
         shell: bash
