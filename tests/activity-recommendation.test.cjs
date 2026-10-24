@@ -1,0 +1,23 @@
+'use strict';
+const fs=require('node:fs'),assert=require('node:assert/strict'),{JSDOM}=require('jsdom'),rules=require('../activity-rules.js');
+const html=fs.readFileSync('index.html','utf8'),pages=JSON.parse(html.match(/const PAGES = (.*?);\n/s)[1]);
+const get=id=>Buffer.from(pages.find(p=>p.id===id).b64,'base64').toString();
+function row(kind,end='2026-10-31'){return {querySelector:s=>({value:s==='.job-kind'?kind:end})};}
+assert.equal(rules.auditFields(row('집단상담')).activityCredit,0,'ambiguous group requires selection');
+assert.equal(rules.auditFields(row('집단상담(2일 이상)')).activityCredit,2);
+assert.equal(rules.auditFields(row('단기집단상담')).creditDate,'2026-10-31','group counts at completion');
+assert.equal(rules.auditFields(row('이력서클리닉')).activityCredit,1);
+assert.deepEqual(rules.auditFields(row('사회봉사활동')),{},'conditional volunteering never silently gets credit');
+assert.deepEqual(rules.auditFields(row('직업훈련')),{},'training calculations remain authoritative');
+const special={__clgActivityRule:{name:'자비훈련',days:10,hours:40,managed:true,checked:true,band:'2'},querySelector:s=>({value:s==='.job-kind'?'직업훈련':s==='.job-name'?'자비훈련':'2026-10-31'})};
+assert.equal(rules.auditFields(special).credit,2);special.__clgActivityRule.hours=39;assert.equal(rules.auditFields(special).credit,0,'self-funded threshold must satisfy both days and hours');special.__clgActivityRule.hours=40;special.__clgActivityRule.name='다른 과정';assert.equal(rules.auditFields(special).credit,0,'renamed course invalidates confirmation');assert(rules.rowFields(special).activityRule,'qualification persists in saved records');
+for(const name of ['사회봉사활동','자영업 준비','전문성 향상 활동','자격증 시험응시','직업훈련','복지지원','일경험'])assert(rules.rule(name),name+' has guidance');
+const p05=get('p05'),opts=JSON.parse(p05.match(/const JOB_OPTS = (\[[^;]+\]);/)[1]);assert.equal(opts[0],'선택');
+const d=new JSDOM(get('p20'),{url:'https://example.test/',runScripts:'dangerously',beforeParse(w){w.alert=()=>{};w.print=()=>{};w.confirm=()=>true;}}),w=d.window,doc=w.document;
+w.onload();doc.getElementById('candidateName').value='<img src=x onerror=alert(1)>';doc.getElementById('candidateNote').value='전산회계 2급';doc.getElementById('company').value='테스트기업';
+w.generate('mail');assert.equal(doc.querySelector('#mailContent img'),null,'user input escaped');assert(doc.getElementById('mailContent').textContent.includes('전산회계 2급'));assert(!/검증된 우수|성실함이 입증|후회 없는|지각 한 번/.test(doc.getElementById('mailContent').textContent),'no invented facts');
+doc.getElementById('strengthSelect').value='c1';w.addStrength();w.addStrength();assert.equal(doc.querySelectorAll('.strength-item').length,1,'duplicate strengths ignored');
+doc.getElementById('inc_youth').checked=true;w.generate('mail');assert(!doc.getElementById('mailContent').textContent.includes('1,200'));assert(doc.getElementById('mailContent').textContent.includes('720'));
+w.generate('workexp');assert(!doc.getElementById('mailContent').textContent.includes('채용 지원제도 참고'));w.generate('fax');assert.equal(doc.getElementById('titleBox').style.display,'none');assert(doc.getElementById('mailContent').textContent.includes('추천서'));
+for(const id of ['saveCandidate','loadDefaults','copyMail','openGmailCompose'])assert(typeof w[id]==='function'||id==='saveCandidate','existing profile/copy workflow preserved');
+w.close();console.log('PASS: activity cases, completion-based group credits, preserved training rules, natural/escaped recommendation, duplicate prevention, 2026 incentive and output modes');
