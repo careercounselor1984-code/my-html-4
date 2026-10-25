@@ -1,7 +1,7 @@
 /* Read-only public catalog from the official Youth Work24 portal. */
 export const ROOT='https://yw.work24.go.kr';
 export const TYPES={I:'인턴형',P:'프로젝트형',E:'ESG지원형',C:'기업탐방형',Z:'타기관 사업'};
-export const REGIONS={'':'전국','31000':'울산','26000':'부산','27000':'대구','48000':'경남','47000':'경북','11000':'서울','41000':'경기','28000':'인천','30000':'대전','36000':'세종','44000':'충남','43000':'충북','29000':'광주','46000':'전남','52000':'전북','51000':'강원','50000':'제주','99999':'지역무관'};
+export const REGIONS={'':'전국','31000':'울산','26000':'부산','27000':'대구','48000':'경남','47000':'경북','11000':'서울','41000':'경기','28000':'인천','30000':'대전','36110':'세종','44000':'충남','43000':'충북','12000':'전남광주','52000':'전북','51000':'강원','50000':'제주','99999':'지역무관'};
 export function query(input={}){
  const keyword=String(input.keyword??'').trim(),field=input.field??'program',region=String(input.region??''),type=String(input.type??''),page=Number(input.page??1);
  if(keyword.length>100||/[\x00-\x1f]/.test(keyword)||!['program','company','agency'].includes(field)||!Object.hasOwn(REGIONS,region)||(type&&!Object.hasOwn(TYPES,type))||!Number.isInteger(page)||page<1||page>1000)throw Error('검색어·검색조건을 확인해 주세요.');
