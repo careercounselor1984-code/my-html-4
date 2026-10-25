@@ -57,6 +57,7 @@ jobs:
           NODE_PATH=/tmp/initial-dom-test/node_modules node tests/activity-recommendation.test.cjs
           NODE_PATH=/tmp/initial-dom-test/node_modules node tests/journal-content-corrections.test.cjs
           NODE_PATH=/tmp/initial-dom-test/node_modules node tests/client-guidance.test.cjs
+          NODE_PATH=/tmp/initial-dom-test/node_modules node tests/client-date-source.test.cjs
 
       - name: Headless Chrome initial-counseling focused-form smoke
         run: |
