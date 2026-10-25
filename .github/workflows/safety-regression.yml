@@ -30,6 +30,7 @@ jobs:
           node tests/notification-policy.test.cjs
           node tests/training-days.test.cjs
           node tests/training-schedule-parser.test.cjs
+          node tests/workexperience-catalog.test.cjs
 
       - name: Verify initial opinion helper with actual DOM
         run: |
@@ -52,6 +53,7 @@ jobs:
           NODE_PATH=/tmp/initial-dom-test/node_modules node tests/training-rounds-dom.test.cjs
           NODE_PATH=/tmp/initial-dom-test/node_modules node tests/activity-rules-dom.test.cjs
           NODE_PATH=/tmp/initial-dom-test/node_modules node tests/recommendation-layout.test.cjs
+          NODE_PATH=/tmp/initial-dom-test/node_modules node tests/workexperience-search-dom.test.cjs
           NODE_PATH=/tmp/initial-dom-test/node_modules node tests/activity-recommendation.test.cjs
           NODE_PATH=/tmp/initial-dom-test/node_modules node tests/journal-content-corrections.test.cjs
           NODE_PATH=/tmp/initial-dom-test/node_modules node tests/client-guidance.test.cjs
