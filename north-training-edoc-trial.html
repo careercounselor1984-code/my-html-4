@@ -3735,9 +3735,9 @@ body.gj-training-open{overflow:hidden}
 
 
 <style id="v22SealRealSizeFix">
-/* v22.27: enforce seal relative to glyph height in final paper rendering.
-   The older #paperHost selector set width:100%, which clipped the stamp
-   to the width of the two characters 센터. These higher-specificity rules win. */
+/* Use a consistent 24mm square on screen and paper, independent of issuer font size.
+   Keep the enlarged official seal above the footer band while retaining its overlap
+   with the final characters of the issuer name. */
 #paperHost .gj-official .train-standard-issuer > span {
   padding:0!important;margin:0!important;letter-spacing:0!important;
   position:relative!important;display:inline-block!important;white-space:nowrap!important;
@@ -3747,24 +3747,24 @@ body.gj-training-open{overflow:hidden}
   position:relative!important;display:inline-block!important;white-space:nowrap!important;
 }
 #paperHost .gj-official .train-standard-issuer .gj-seal-target > img.gj-issuer-stamp {
-  position:absolute!important;left:70%!important;right:auto!important;top:50%!important;bottom:auto!important;
-  width:3em!important;height:3em!important;min-width:3em!important;max-width:none!important;
+  position:absolute!important;left:70%!important;right:auto!important;top:calc(50% - 3mm)!important;bottom:auto!important;
+  width:24mm!important;height:24mm!important;min-width:24mm!important;max-width:none!important;
   aspect-ratio:1!important;transform:translate(-50%,-50%)!important;
   margin:0!important;object-fit:contain!important;opacity:.84!important;mix-blend-mode:multiply!important;
   pointer-events:none!important;z-index:2!important;
 }
-/* Same ratio for the recommendation's signature, without enlarging the name's text spacing. */
+/* Same physical size for the recommendation, preserving the name's text spacing. */
 #paperHost .gj-recommend .gj-rec-sign b {padding:0!important;margin-left:0!important;margin-right:0!important;letter-spacing:0!important;}
 #paperHost .gj-recommend .gj-rec-sign .gj-seal-target > img.gj-issuer-stamp {
-  position:absolute!important;left:70%!important;right:auto!important;top:50%!important;bottom:auto!important;
-  width:3em!important;height:3em!important;min-width:3em!important;max-width:none!important;
+  position:absolute!important;left:70%!important;right:auto!important;top:calc(50% + 4mm)!important;bottom:auto!important;
+  width:24mm!important;height:24mm!important;min-width:24mm!important;max-width:none!important;
   aspect-ratio:1!important;transform:translate(-50%,-50%)!important;
   margin:0!important;object-fit:contain!important;opacity:.84!important;mix-blend-mode:multiply!important;
   pointer-events:none!important;z-index:2!important;
 }
 /* Other training formats use independent stamp elements. */
-.doc-page.letter .seal.train-seal img{width:19mm!important;height:19mm!important;max-width:none!important;opacity:.84!important;}
-.template-doc.tpl-change .train-template-stamp{width:19mm!important;height:19mm!important;opacity:.84!important;}
+.doc-page.letter .seal.train-seal img{width:24mm!important;height:24mm!important;max-width:none!important;opacity:.84!important;}
+.template-doc.tpl-change .train-template-stamp{width:24mm!important;height:24mm!important;opacity:.84!important;}
 </style>
 <div id="gjNorthAccessGate"><div><h3>북부센터 공문 시험 기능</h3><p>통합본 로그인과 센터 권한을 확인하고 있습니다.</p><small>직접 주소로 접근할 수 없습니다. 통합본의 공문 메뉴에서 열어주세요.</small></div></div>
 <script id="gjNorthEdocGateRuntime">(()=>{'use strict';
