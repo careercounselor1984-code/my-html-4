@@ -19,6 +19,7 @@ jobs:
         run: |
           node --check client-guidance.js
           node tests/journal-safety.test.cjs
+          node tests/iap-audit-normal-plans.test.cjs
           node tests/kakao-compact.test.cjs
           node tests/initial-easy-mode.test.cjs
           node tests/initial-opinion-summary.test.cjs
