@@ -36,6 +36,7 @@ jobs:
       - name: Verify initial opinion helper with actual DOM
         run: |
           npm install --prefix /tmp/initial-dom-test jsdom@30.1.2 --no-audit --no-fund
+          NODE_PATH=/tmp/initial-dom-test/node_modules node tests/job-archive-dom.test.cjs
           NODE_PATH=/tmp/initial-dom-test/node_modules node tests/work24-allowance-import.test.cjs
           NODE_PATH=/tmp/initial-dom-test/node_modules node tests/performance-guide.test.cjs
           NODE_PATH=/tmp/initial-dom-test/node_modules node tests/auth-copy-hardening.test.cjs
