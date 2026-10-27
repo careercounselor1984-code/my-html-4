@@ -50,9 +50,10 @@ window.addEventListener('message',async e=>{
 function getFormJob(d){
  const val=id=>str(d.getElementById(id)?.value||'',id==='c_task'?3000:1000);
  const free=val('c_free_text'),title=val('c_title')||free.split('\n')[0].trim()||[val('c_name'),val('c_task')].filter(Boolean).join(' · ');
+ const extra=val('c_etc'),deadline=(extra.match(/(?:마감일|접수마감|마감)\s*[:：]\s*([^/|\n]+)/)||[])[1]||'';
  return {title,company:val('c_name'),duties:val('c_task')||free,location:val('c_address'),
   employment:val('c_type'),education:val('c_edu'),experience:val('c_exp'),salary:val('c_salary'),
-  workHours:val('c_work_hours'),deadline:'',url:val('c_link'),source:'통합본 채용정보&알선'};
+  workHours:val('c_work_hours'),deadline:deadline.trim(),url:val('c_link'),source:'통합본 채용정보&알선'};
 }
 function styles(d){
  if(d.getElementById('gjArchiveStyleV2'))return;
@@ -177,7 +178,7 @@ function mount(frame){
  }
  function switchTab(name){
   box.querySelectorAll('[data-tab]').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.tab===name)));
-  q('[data-query]').value='';refresh();
+  q('[data-query]').value='';return refresh();
  }
  box.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));
  q('[data-period]').onchange=()=>{q('[data-datebar]').hidden=q('[data-period]').value!=='date';refresh()};
@@ -205,9 +206,9 @@ function mount(frame){
    const job=getFormJob(d),result=previous.apply(this,args);
    if(job.title||job.company){
     message('PC 목록 저장됨 · 보관함에도 저장하는 중…');
-    save(job).then(()=>{
+    save(job).then(async()=>{
      q('[data-period]').value='all';q('[data-datebar]').hidden=true;
-     if(scope()!=='mine')switchTab('mine');else refresh();
+     if(scope()!=='mine')await switchTab('mine');else await refresh();
      message('내 보관함에도 저장했습니다.');
     }).catch(e=>message('PC에는 저장됐지만 보관함 연동 실패: '+e.message));
    }
