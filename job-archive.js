@@ -217,7 +217,8 @@ function mount(frame){
   wrapped.__gjArchiveV2=true;w.saveAndGenerate=wrapped;
  }
  connectSave();
- panels.set(d,{refresh,connectSave});
+ function clear(){epoch++;busy=false;rows=[];checked.clear();uid='';q('[data-list]').replaceChildren();q('[data-count]').textContent='로그인 필요';message('로그인이 필요합니다.')}
+ panels.set(d,{refresh,connectSave,clear});
  refresh();
  return panels.get(d);
 }
@@ -228,6 +229,7 @@ function scan(reload=false){
  });
 }
 window.addEventListener('clg-auth-ready',()=>{ready();scan(true)});
+window.addEventListener('clg-auth-logout',()=>document.querySelectorAll('iframe').forEach(f=>{try{panels.get(f.contentDocument)?.clear()}catch{}}));
 for(const evt of ['clg-tab-frame-load','clg-tab-switch','clg-page-change'])window.addEventListener(evt,()=>setTimeout(()=>scan(),120));
 window.addEventListener('focus',()=>{ready();scan(true)});
 if(document.body)new MutationObserver(()=>scan()).observe(document.body,{childList:true,subtree:true});
