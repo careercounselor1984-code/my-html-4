@@ -67,7 +67,7 @@ for(const [start,months,want] of examples){
 function iapFunction(name){
   const start=iap.indexOf('  function '+name+'(');
   assert(start>=0,'IAP function '+name+' exists');
-  const end=iap.indexOf('\\n  }\\n',start);
+  const end=iap.indexOf('\n  }\n',start);
   assert(end>start,'IAP function '+name+' complete');
   return iap.slice(start,end+5);
 }
@@ -81,7 +81,7 @@ const controls={
 const {activityCyclePeriod,trainingPeriodDefinitions,getReassessRoundPeriod,refreshVisitPeriod,fmtDate}=new Function('byId',`
  const pad2=v=>String(v).padStart(2,'0');
  const isValidDateStr=s=>/^\\d{4}-\\d{2}-\\d{2}$/.test(s||'');
- ${['parseDate','fmtDate','addDays','periodEnd','iapCyclePeriodFromDate','activityCyclePeriod','trainingPeriodDefinitions','getReassessRoundPeriod','refreshVisitPeriod'].map(iapFunction).join('\\n')}
+ ${['parseDate','fmtDate','addDays','periodEnd','iapCyclePeriodFromDate','activityCyclePeriod','trainingPeriodDefinitions','getReassessRoundPeriod','refreshVisitPeriod'].map(iapFunction).join('\n')}
  return {activityCyclePeriod,trainingPeriodDefinitions,getReassessRoundPeriod,refreshVisitPeriod,fmtDate};
 `)(id=>controls[id]);
 const period=c=>{const p=activityCyclePeriod(c);return [fmtDate(p.start),fmtDate(p.end)];};
