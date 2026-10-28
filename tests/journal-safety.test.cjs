@@ -63,7 +63,44 @@ for(const [start,months,want] of examples){
  assert.equal(fmt(p05End(date(start),months)),want,'regular IAP '+start);
  assert.equal(fmt(p23End(date(start),months)),want,'special-school IAP '+start);
 }
-assert(/const sixthDesignated = addMonths\(iap,5\);/.test(iap),'regular IAP 6th-cycle endpoint derived from IAP date');
+// Regression: a February end must not pin the next month's end to the 28th.
+function iapFunction(name){
+  const start=iap.indexOf('  function '+name+'(');
+  assert(start>=0,'IAP function '+name+' exists');
+  const end=iap.indexOf('\\n  }\\n',start);
+  assert(end>start,'IAP function '+name+' complete');
+  return iap.slice(start,end+5);
+}
+const controls={
+  recognitionDate:{value:'2026-10-01'},
+  iapDate:{value:'2026-10-28'},
+  svcEnd:{value:'2027-10-07'},
+  visitStart:{value:'',dataset:{}},
+  visitEnd:{value:'',dataset:{}}
+};
+const {activityCyclePeriod,trainingPeriodDefinitions,getReassessRoundPeriod,refreshVisitPeriod,fmtDate}=new Function('byId',`
+ const pad2=v=>String(v).padStart(2,'0');
+ const isValidDateStr=s=>/^\\d{4}-\\d{2}-\\d{2}$/.test(s||'');
+ ${['parseDate','fmtDate','addDays','periodEnd','iapCyclePeriodFromDate','activityCyclePeriod','trainingPeriodDefinitions','getReassessRoundPeriod','refreshVisitPeriod'].map(iapFunction).join('\\n')}
+ return {activityCyclePeriod,trainingPeriodDefinitions,getReassessRoundPeriod,refreshVisitPeriod,fmtDate};
+`)(id=>controls[id]);
+const period=c=>{const p=activityCyclePeriod(c);return [fmtDate(p.start),fmtDate(p.end)];};
+assert.deepEqual(period(5),['2027-01-29','2027-02-28']);
+assert.deepEqual(period(6),['2027-03-01','2027-03-31']);
+assert.deepEqual(period('after6'),['2027-04-01','2027-10-07']);
+assert.equal(fmtDate(trainingPeriodDefinitions().find(p=>p.label==='6회차').end),'2027-03-31');
+assert.equal(fmtDate(getReassessRoundPeriod(6).end),'2027-03-31');
+refreshVisitPeriod();
+assert.equal(controls.visitEnd.value,'2027-03-31');
+controls.visitEnd.value='2027-03-20'; controls.visitEnd.dataset.touched='1';
+refreshVisitPeriod();
+assert.equal(controls.visitEnd.value,'2027-03-20','manual reassessment override is retained');
+controls.iapDate.value='2027-10-30';
+assert.deepEqual(period(5),['2028-02-01','2028-02-29'],'leap February has 29 days');
+assert.deepEqual(period(6),['2028-03-01','2028-03-31'],'March follows leap February');
+controls.iapDate.value='2026-06-24';
+assert.deepEqual(period(4),['2026-08-25','2026-09-24'],'ordinary mid-month cycle unchanged');
+assert.deepEqual(period(6),['2026-10-25','2026-11-24'],'ordinary 6th cycle unchanged');
 assert(/\$\('visitEnd'\)\.value = fmtDate\(addMonths\(iap,5\)\);/.test(school),'school IAP 6th-cycle endpoint derived from IAP date');
 assert(/function oneMonthPeriodEnd\(startValue\)/.test(stipend),'stipend month-end calculation exists');
 assert(!/const endDt = addDays\(addMonths\(startDt, 1\), -1\)/.test(iap),'month-end off-by-one copy removed');
