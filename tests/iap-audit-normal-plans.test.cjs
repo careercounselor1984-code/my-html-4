@@ -14,7 +14,7 @@ function audit({type='2',iap='2026-10-26',jobs=[],acts=[row('2026-10-27','2027-0
  nodes.iapAuditList={innerHTML:''};nodes.iapAuditSummary={innerHTML:''};
  const context={Date,Map,Set,Number,byId:id=>nodes[id],document:{querySelector:()=>({value:type})},parseDate:date,fmtDate,addDays,addMonths,periodEnd:(s,n)=>addDays(addMonths(s,n),-1),iapAuditRows:id=>id==='job_tbody'?jobs:acts,trainingPeriodDefinitions:()=>[],trainingIntersect:(s,e,a,b)=>s<=b&&e>=a,trainingUnitCountForRange:()=>1,iapRequiredCount:()=>2,iapAuditDays:(a,b)=>(b-a)/86400000,iapAuditWithin:(s,e,a,b)=>s>=a&&e<=b,iapAuditOneMonth:(s,e)=>fmtDate(addDays(addMonths(s,1),-1))===fmtDate(e)};
  vm.createContext(context);
- vm.runInContext(['iapAuditStatusLabel','iapAuditEsc','iapAuditType2Segments','iapRunAudit'].map(source).join('\n')+'\niapRunAudit();',context);
+ vm.runInContext(['iapCyclePeriodFromDate','iapAuditStatusLabel','iapAuditEsc','iapAuditType2Segments','iapRunAudit'].map(source).join('\n')+'\niapRunAudit();',context);
  return nodes.iapAuditList.innerHTML;
 }
 for(const type of ['1','2']){
