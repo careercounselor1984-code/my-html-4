@@ -29,6 +29,7 @@ jobs:
           node tests/alert-tab-clearance.test.cjs
           node tests/work24-tab-transfer.test.cjs
           node tests/notification-policy.test.cjs
+          node tests/center-board-push.test.cjs
           node tests/training-days.test.cjs
           node tests/training-schedule-parser.test.cjs
           node tests/workexperience-catalog.test.cjs
