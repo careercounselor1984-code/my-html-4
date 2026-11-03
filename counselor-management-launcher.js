@@ -1,6 +1,6 @@
 /* North-center integration. Authorization comes from active server employee records. */
 (()=>{'use strict';
-const PAGE='p_counselor_management',VERSION='20261103-1';
+const PAGE='p_counselor_management',VERSION='20261103-2';
 let generation=0,busy=false,entry=null,current=null;
 async function access(){
  const client=window.clgJobArchiveClient?.();
@@ -29,7 +29,8 @@ async function refresh(){
   button.dataset.pageId=PAGE;button.textContent='상담사 관리';button.title='북부센터 · 관리엑셀 연동';
   button.addEventListener('click',async()=>{button.disabled=true;try{
    const verified=await access();if(verified.userId!==current?.userId)throw Error('로그인을 다시 확인하세요.');
-   window.clgOpenClientWorkTab(PAGE,{});
+   const tab=window.clgOpenClientWorkTab(PAGE,{});
+   if(tab?.frame&&tab.frame.src==='about:blank')tab.frame.src='./counselor-management/index.html?v='+VERSION;
   }catch(e){invalidate();alert(e.message);}finally{button.disabled=false;}});
   entry.append(button);menu.after(entry);
  }catch{if(token===generation)invalidate();}finally{busy=false;}
