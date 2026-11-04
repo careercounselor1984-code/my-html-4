@@ -1,6 +1,35 @@
 /* Per-tab session drafts. Use the journal's existing identity fields and menus. */
 (()=>{'use strict';
  if(window.__CLG_CLIENT_WORKSPACE__)return;window.__CLG_CLIENT_WORKSPACE__=true;
+
+ // The schedule tab is a workspace-first surface. Keep its controls, but do not spend
+ // the first viewport on duplicate shell chrome or the optional bulletin feed.
+ const compactScheduleStyle=document.createElement('style');
+ compactScheduleStyle.id='clg-calendar-focus-style';
+ compactScheduleStyle.textContent=`
+ @media screen and (min-width:901px){
+  body.clg-tabs-enabled:has(iframe.clgWorkFrame.is-active[data-page-id="p_calendar"]) .topbar{
+   height:56px!important;min-height:56px!important;padding:5px 12px!important;gap:10px!important;
+  }
+  body.clg-tabs-enabled:has(iframe.clgWorkFrame.is-active[data-page-id="p_calendar"]) .breadcrumbs,
+  body.clg-tabs-enabled:has(iframe.clgWorkFrame.is-active[data-page-id="p_calendar"]) .pageSubtitle,
+  body.clg-tabs-enabled:has(iframe.clgWorkFrame.is-active[data-page-id="p_calendar"]) .center-board-bar{display:none!important}
+  body.clg-tabs-enabled:has(iframe.clgWorkFrame.is-active[data-page-id="p_calendar"]) .titleLine h1{font-size:17px!important}
+  body.clg-tabs-enabled:has(iframe.clgWorkFrame.is-active[data-page-id="p_calendar"]) .topActions>.topBtn{height:34px!important}
+  body.clg-tabs-enabled:has(iframe.clgWorkFrame.is-active[data-page-id="p_calendar"]) .workspace{
+   padding:5px 9px 6px!important;
+  }
+  body.clg-tabs-enabled:has(iframe.clgWorkFrame.is-active[data-page-id="p_calendar"]) .frameToolbar{
+   height:30px!important;flex:0 0 30px!important;padding:0 10px!important;
+  }
+  body.clg-tabs-enabled:has(iframe.clgWorkFrame.is-active[data-page-id="p_calendar"]) .workspaceCard{
+   border-radius:12px!important;
+  }
+ }
+ @media print{#clg-calendar-focus-style{display:none}}
+ `;
+ document.head.appendChild(compactScheduleStyle);
+
  const supported=new Set(['p00','p01','p02','p03','p04','p05','p06','p07','p10','p11','p13','p16','p17','p30','p34']);
  const resetPages=new Set(['p00','p01','p02','p03','p04','p05','p06','p07','p10','p11','p13','p16','p17','p20','p21','p23','p30','p34']);
  const regSelector='#iapRegNo,#clgIapRegNo,#clgSudangIapRegNo';
