@@ -7,7 +7,7 @@ assert.equal(rules.auditFields(row('집단상담')).activityCredit,0,'ambiguous 
 assert.equal(rules.auditFields(row('집단상담(2일 이상)')).activityCredit,2);
 assert.equal(rules.auditFields(row('단기집단상담')).creditDate,'2026-10-31','group counts at completion');
 assert.equal(rules.auditFields(row('이력서클리닉')).activityCredit,1);
-assert.deepEqual(rules.auditFields(row('사회봉사활동')),{},'conditional volunteering never silently gets credit');
+assert.equal(rules.auditFields(row('사회봉사활동')).activityCredit,0,'conditional volunteering never silently gets credit');
 assert.deepEqual(rules.auditFields(row('직업훈련')),{},'training calculations remain authoritative');
 const special={__clgActivityRule:{name:'자비훈련',days:10,hours:40,managed:true,checked:true,band:'2'},querySelector:s=>({value:s==='.job-kind'?'직업훈련':s==='.job-name'?'자비훈련':'2026-10-31'})};
 assert.equal(rules.auditFields(special).credit,2);special.__clgActivityRule.hours=39;assert.equal(rules.auditFields(special).credit,0,'self-funded threshold must satisfy both days and hours');special.__clgActivityRule.hours=40;special.__clgActivityRule.name='다른 과정';assert.equal(rules.auditFields(special).credit,0,'renamed course invalidates confirmation');assert(rules.rowFields(special).activityRule,'qualification persists in saved records');

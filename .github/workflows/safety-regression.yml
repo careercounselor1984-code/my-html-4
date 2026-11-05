@@ -57,6 +57,7 @@ jobs:
           NODE_PATH=/tmp/initial-dom-test/node_modules node tests/training-rounds-dom.test.cjs
           NODE_PATH=/tmp/initial-dom-test/node_modules node tests/activity-rules-dom.test.cjs
           NODE_PATH=/tmp/initial-dom-test/node_modules node tests/iap-program-credit.test.cjs
+          NODE_PATH=/tmp/initial-dom-test/node_modules node tests/iap-all-activities.test.cjs
           NODE_PATH=/tmp/initial-dom-test/node_modules node tests/recommendation-layout.test.cjs
           NODE_PATH=/tmp/initial-dom-test/node_modules node tests/workexperience-search-dom.test.cjs
           NODE_PATH=/tmp/initial-dom-test/node_modules node tests/activity-recommendation.test.cjs
