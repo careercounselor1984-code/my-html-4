@@ -19,6 +19,7 @@ jobs:
         run: |
           node --check client-guidance.js
           node tests/journal-safety.test.cjs
+          node tests/iap-audit-normal-plans.test.cjs
           node tests/kakao-compact.test.cjs
           node tests/initial-easy-mode.test.cjs
           node tests/initial-opinion-summary.test.cjs
@@ -28,6 +29,7 @@ jobs:
           node tests/alert-tab-clearance.test.cjs
           node tests/work24-tab-transfer.test.cjs
           node tests/notification-policy.test.cjs
+          node tests/center-board-push.test.cjs
           node tests/training-days.test.cjs
           node tests/training-schedule-parser.test.cjs
           node tests/workexperience-catalog.test.cjs
@@ -35,7 +37,9 @@ jobs:
       - name: Verify initial opinion helper with actual DOM
         run: |
           npm install --prefix /tmp/initial-dom-test jsdom@30.1.2 --no-audit --no-fund
+          NODE_PATH=/tmp/initial-dom-test/node_modules node tests/job-archive-dom.test.cjs
           NODE_PATH=/tmp/initial-dom-test/node_modules node tests/work24-allowance-import.test.cjs
+          NODE_PATH=/tmp/initial-dom-test/node_modules node --test tests/allowance-selected-delete.test.cjs
           NODE_PATH=/tmp/initial-dom-test/node_modules node tests/performance-guide.test.cjs
           NODE_PATH=/tmp/initial-dom-test/node_modules node tests/auth-copy-hardening.test.cjs
           NODE_PATH=/tmp/initial-dom-test/node_modules node tests/stipend-remote-dom.test.cjs

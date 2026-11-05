@@ -1,6 +1,35 @@
 /* Per-tab session drafts. Use the journal's existing identity fields and menus. */
 (()=>{'use strict';
  if(window.__CLG_CLIENT_WORKSPACE__)return;window.__CLG_CLIENT_WORKSPACE__=true;
+
+ // The schedule tab is a workspace-first surface. Keep its controls, but do not spend
+ // the first viewport on duplicate shell chrome or the optional bulletin feed.
+ const compactScheduleStyle=document.createElement('style');
+ compactScheduleStyle.id='clg-calendar-focus-style';
+ compactScheduleStyle.textContent=`
+ @media screen and (min-width:901px){
+  body.clg-tabs-enabled:has(iframe.clgWorkFrame.is-active[data-page-id="p_calendar"]) .topbar{
+   height:56px!important;min-height:56px!important;padding:5px 12px!important;gap:10px!important;
+  }
+  body.clg-tabs-enabled:has(iframe.clgWorkFrame.is-active[data-page-id="p_calendar"]) .breadcrumbs,
+  body.clg-tabs-enabled:has(iframe.clgWorkFrame.is-active[data-page-id="p_calendar"]) .pageSubtitle,
+  body.clg-tabs-enabled:has(iframe.clgWorkFrame.is-active[data-page-id="p_calendar"]) .center-board-bar{display:none!important}
+  body.clg-tabs-enabled:has(iframe.clgWorkFrame.is-active[data-page-id="p_calendar"]) .titleLine h1{font-size:17px!important}
+  body.clg-tabs-enabled:has(iframe.clgWorkFrame.is-active[data-page-id="p_calendar"]) .topActions>.topBtn{height:34px!important}
+  body.clg-tabs-enabled:has(iframe.clgWorkFrame.is-active[data-page-id="p_calendar"]) .workspace{
+   padding:5px 9px 6px!important;
+  }
+  body.clg-tabs-enabled:has(iframe.clgWorkFrame.is-active[data-page-id="p_calendar"]) .frameToolbar{
+   height:30px!important;flex:0 0 30px!important;padding:0 10px!important;
+  }
+  body.clg-tabs-enabled:has(iframe.clgWorkFrame.is-active[data-page-id="p_calendar"]) .workspaceCard{
+   border-radius:12px!important;
+  }
+ }
+ @media print{#clg-calendar-focus-style{display:none}}
+ `;
+ document.head.appendChild(compactScheduleStyle);
+
  const supported=new Set(['p00','p01','p02','p03','p04','p05','p06','p07','p10','p11','p13','p16','p17','p30','p34']);
  const resetPages=new Set(['p00','p01','p02','p03','p04','p05','p06','p07','p10','p11','p13','p16','p17','p20','p21','p23','p30','p34']);
  const regSelector='#iapRegNo,#clgIapRegNo,#clgSudangIapRegNo';
@@ -10,7 +39,7 @@
  const tabs=()=>window.clgGetWorkTabs?.()||[];
  function read(){try{const all=JSON.parse(sessionStorage.getItem(prefix+owner)||'{}');let changed=false;for(const [key,row] of Object.entries(all)){if(row&&Number.isFinite(row.at)&&(Date.now()-row.at>24*3600000||row.at>Date.now()+60000)){delete all[key];changed=true}}if(changed)write(all);return all}catch{return {}}}
  function write(all){sessionStorage.setItem(prefix+owner,JSON.stringify(all))}
- function fields(doc){return [...doc.querySelectorAll('input,select,textarea')].filter(el=>!el.closest('.clg-client-workspace')&&!el.closest('#iapLoadConfirmDialog')&&!(el.tagName==='INPUT'&&['file','password','button','submit','reset','hidden'].includes(el.type)))}
+ function fields(doc){return [...doc.querySelectorAll('input,select,textarea')].filter(el=>!el.matches('[data-transient]')&&!el.closest('.clg-client-workspace')&&!el.closest('#iapLoadConfirmDialog')&&!(el.tagName==='INPUT'&&['file','password','button','submit','reset','hidden'].includes(el.type)))}
  function take(doc){const counts={};return fields(doc).map((el,index)=>{const key=el.id?'id:'+el.id:el.name?'name:'+el.name:'index:'+index;const n=counts[key]||0;counts[key]=n+1;return {key,n,value:el.type==='checkbox'||el.type==='radio'?el.checked:el.value}})}
  function restoreFields(doc,values){const counts={},map=new Map();fields(doc).forEach((el,index)=>{const key=el.id?'id:'+el.id:el.name?'name:'+el.name:'index:'+index;const n=counts[key]||0;counts[key]=n+1;map.set(key+':'+n,el)});
   const apply=dispatch=>{for(const item of values||[]){const el=map.get(item.key+':'+item.n);if(!el)continue;if(el.type==='checkbox'||el.type==='radio')el.checked=!!item.value;else{if(el.tagName==='SELECT'&&item.value&&!Array.from(el.options).some(o=>o.value===item.value))el.add(new doc.defaultView.Option(item.value,item.value));el.value=String(item.value??'')}if(dispatch){el.dispatchEvent(new doc.defaultView.Event('input',{bubbles:true}));el.dispatchEvent(new doc.defaultView.Event('change',{bubbles:true}))}}};apply(true);apply(false);

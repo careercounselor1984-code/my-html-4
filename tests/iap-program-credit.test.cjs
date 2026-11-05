@@ -43,6 +43,6 @@ ai.querySelector('.job-name').value='AI 면접';result=check();assert.equal(resu
 // Exercise the actual transfer gate without sending anything outside the test window.
 const messages=[];w.postMessage=message=>messages.push(message);w.clgIapTransferIdentity=()=>({ok:true,iapNo:'A12345678901'});
 $('iapSendWork24Btn').click();const saved=messages.find(m=>m.type==='SAVE_IAP_PENDING');assert(saved,'valid plan passes transfer gate');assert(saved.payload.audit.ok);assert(saved.payload.jobRows.some(r=>r.kind==='기타'&&r.name==='AI 면접'),'original transfer category preserved');
-w.dispatchEvent(new w.MessageEvent('message',{data:{marker:'CLG_IAP_PAGE_V120',type:'IAP_SAVED',payload:{jobCount:4,actCount:5}}}));
+w.dispatchEvent(new w.MessageEvent('message',{source:w,data:{marker:'CLG_IAP_PAGE_V120',type:'IAP_SAVED',payload:{sentAt:saved.payload.sentAt,jobCount:4,actCount:5}}}));
 messages.length=0;ai.querySelector('.job-name').value='미확인';$('iapSendWork24Btn').click();assert(messages.some(m=>m.type==='IAP_SEND_BLOCKED'));assert(!messages.some(m=>m.type==='SAVE_IAP_PENDING'),'actual shortages still block transfer');
 w.close();console.log('PASS: screenshot CAP/AI plan, progress/audit agreement, completion cycle, short/unknown groups, unknown miscellaneous activities, and transfer gate');

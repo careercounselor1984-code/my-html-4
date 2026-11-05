@@ -12,17 +12,18 @@ self.addEventListener('push',event=>{
   const body='새 업무 알림이 도착했습니다. 상담일지 통합본에서 확인해 주세요.';
   event.waitUntil(self.registration.showNotification(title,{
     body,tag,icon:'./journal-push-icon.svg',badge:'./journal-push-icon.svg',
-    data:{journal:true},renotify:false
+    data:{journal:true,cardId:typeof data.cardId==='string'&&/^[0-9a-f-]{36}$/i.test(data.cardId)?data.cardId:''},renotify:false
   }));
 });
 self.addEventListener('notificationclick',event=>{
   event.notification.close();
-  const target=new URL('./?workAlerts=1',self.registration.scope).href;
+  const cardId=event.notification.data?.cardId;
+  const target=new URL(cardId?'./?centerCard='+encodeURIComponent(cardId):'./?workAlerts=1',self.registration.scope).href;
   event.waitUntil(self.clients.matchAll({type:'window',includeUncontrolled:true}).then(async clients=>{
     for(const client of clients){
       if(client.url.startsWith(self.registration.scope)){
         await client.focus();
-        client.postMessage({type:'clg:open-alert-center'});
+        client.postMessage(cardId?{type:'goodjob:open-center-card',cardId}:{type:'clg:open-alert-center'});
         return;
       }
     }
