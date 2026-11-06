@@ -5753,13 +5753,22 @@ function nextDay(){
  while(d.getDay()===0||d.getDay()===6)d.setDate(d.getDate()+1);
  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 }
-function times(sel){
- if(sel.options.length)return;
+function bookingTimes(date){
+ const day=new Date(date+'T12:00:00').getDay();
+ if(!Number.isInteger(day)||day===0||day===6)return [];
+ const choices=[];
  for(let n=540;n<=1050;n+=30){
+  if(day===5&&n>=720)break;
   if(n>=720&&n<780)continue;
   const value=String(Math.floor(n/60)).padStart(2,'0')+':'+String(n%60).padStart(2,'0');
-  sel.add(new Option(value,value));
+  choices.push(value);
  }
+ return choices;
+}
+function times(sel,date,wanted=sel.value){
+ const choices=bookingTimes(date);
+ sel.replaceChildren(new Option(choices.length?'시간 선택':'예약 가능한 시간 없음',''),...choices.map(value=>new Option(value,value)));
+ sel.value=choices.includes(wanted)?wanted:'';
 }
 function normalize(raw){
  const value=String(raw||'').trim().replace(/\s+/g,' ');
@@ -5790,11 +5799,21 @@ function report(task,message,state='working'){
  }catch{}
 }
 function show(p={}){
- times($('clgScheduleNextTime'));
+ if(pending?.waitingForLogin&&pending.owner===journalOwner()){
+  const {name,date,time,consultType}=pending.payload;
+  $('clgScheduleNextName').value=name;
+  $('clgScheduleNextDate').value=date;
+  times($('clgScheduleNextTime'),date,time);
+  $('clgScheduleNextType').value=consultType;
+  viewer.classList.add('is-open');
+  setStatus('일정관리 로그인 후 대기 중인 예약을 저장합니다.');
+  if(!dlg.open)dlg.showModal();
+  return;
+ }
  const source=selectedFrame();
  $('clgScheduleNextName').value=p.name||guessName(source?.contentDocument)||'';
  $('clgScheduleNextDate').value=p.date||nextDay();
- $('clgScheduleNextTime').value=p.time||'09:00';
+ times($('clgScheduleNextTime'),$('clgScheduleNextDate').value,p.time||'09:00');
  $('clgScheduleNextType').value=types.includes(p.consultType)?p.consultType:(defaults[source?.dataset.pageId]||'초기');
  viewer.classList.remove('is-open');
  setStatus('이름·날짜·시간을 확인하고 자동 예약을 누르면 일정표에 저장됩니다.');
@@ -5805,7 +5824,7 @@ function read(){
  return {name:n.name,date:$('clgScheduleNextDate').value,time:$('clgScheduleNextTime').value,consultType:n.type||$('clgScheduleNextType').value};
 }
 function valid(d){
- return d&&d.name.length>=2&&d.name.length<=70&&/^\d{4}-\d{2}-\d{2}$/.test(d.date)&&/^([01]\d|2[0-3]):(00|30)$/.test(d.time)&&types.includes(d.consultType);
+ return d&&d.name.length>=2&&d.name.length<=70&&/^\d{4}-\d{2}-\d{2}$/.test(d.date)&&bookingTimes(d.date).includes(d.time)&&types.includes(d.consultType);
 }
 function send(){
  if(pending&&frame.contentWindow){
@@ -5816,10 +5835,13 @@ function send(){
 }
 function booking(raw,source){
  const owner=journalOwner();if(!owner){report({source},'직원 로그인 후 예약해주세요.','error');return;}
- if(pending){report({source},'다른 예약을 처리 중입니다. 잠시 후 다시 시도해 주세요.','error');return}
+ if(pending){
+  if(pending.waitingForLogin&&pending.owner===owner){show();return;}
+  report({source},'다른 예약을 처리 중입니다. 잠시 후 다시 시도해 주세요.','error');return;
+ }
  const n=normalize(raw.name);
  const data={name:n.name,date:raw.date,time:raw.time,consultType:n.type||raw.consultType};
- if(!valid(data)){report({source},'내담자 이름·날짜·시간·상담구분을 확인해 주세요.','error');return}
+ if(!valid(data)){report({source},'내담자 이름·상담구분과 예약 가능한 날짜·시간을 확인해 주세요.','error');return}
  const same=uncertain&&uncertain.owner===owner&&['name','date','time','consultType'].every(key=>uncertain.payload[key]===data[key]);
  pending={payload:{...data,expectedName:String(window.__CLG_JOURNAL_EMPLOYEE?.name||''),requestId:same?uncertain.payload.requestId:id()},source,owner};
  watchPending();
@@ -5856,8 +5878,9 @@ function inject(iframe){
  '<button id="clgNextApptSubmit" type="submit">다음 상담 자동 예약 →</button><output id="clgNextApptStatus" aria-live="polite"></output></form></div></details>';
  doc.body.appendChild(section);
  const pick=id=>doc.getElementById(id);
- times(pick('clgNextApptTime'));
  pick('clgNextApptDate').value=nextDay();
+ times(pick('clgNextApptTime'),pick('clgNextApptDate').value,'09:00');
+ pick('clgNextApptDate').addEventListener('change',()=>times(pick('clgNextApptTime'),pick('clgNextApptDate').value));
  pick('clgNextApptType').value=defaults[iframe.dataset.pageId]||'초기';
  const fillName=()=>{if(!pick('clgNextApptName').value.trim())pick('clgNextApptName').value=guessName(doc)};
  section.querySelector('details').addEventListener('toggle',e=>{if(e.target.open)fillName()});
@@ -5875,6 +5898,7 @@ setTimeout(()=>document.querySelectorAll('iframe.clgWorkFrame,iframe#frame').for
 dlg.addEventListener('close',()=>{if(!pending)recruitRequest=null});
 $('clgOpenNextApptBtn').addEventListener('click',()=>{if(!pending)recruitRequest=null});
 form.addEventListener('submit',e=>{e.preventDefault();const req=recruitRequest;booking(read(),req?.source||null);if(pending&&req)pending.recruitId=req.recruitId});
+$('clgScheduleNextDate').addEventListener('change',()=>times($('clgScheduleNextTime'),$('clgScheduleNextDate').value));
 window.addEventListener('message',e=>{
  const msg=e.data;if(msg?.type!=='goodjob:recruit-schedule-request:v1')return;
  const source=[...document.querySelectorAll('iframe#frame,iframe.clgWorkFrame')].find(f=>f.contentWindow===e.source&&f.dataset.pageId==='p35');
@@ -5900,6 +5924,7 @@ window.addEventListener('message',e=>{
  if(msg?.type!=='goodjob:schedule-create-result:v2'||!pending||msg.requestId!==pending.payload.requestId)return;
  if(pending.owner!==journalOwner()){stopPendingTimer();report(pending,'로그인 상태가 변경되었습니다. 일정표에서 예약 여부를 확인해주세요.','error');pending=null;return;}
  if(msg.status==='login_required'){
+  pending.waitingForLogin=true;
   stopPendingTimer();
   report(pending,'일정관리 로그인이 필요해요. 아래에서 로그인하면 예약을 자동 저장합니다.','working');
   viewer.classList.add('is-open');
