@@ -13,6 +13,11 @@
 
   const personalityIds = ['extroversion', 'agreeableness', 'conscientiousness', 'neuroticism', 'openness'];
   const lifeIds = ['life_independence', 'life_ambition', 'life_challenge', 'life_responsibility', 'life_achievement', 'life_flexibility', 'life_relationship', 'life_money', 'life_satisfaction'];
+  const followUpChecks = {
+    deferred: '검사·해석 미완료. IAP 수립 전에 결과 확인 및 해석 상담 일정을 잡습니다.',
+    reuse: '기존 검사 활용. 검사일과 현재 희망직무에 맞는 결과인지 확인합니다. 초기상담일 기준 최근 6개월 이내 검사 활용이 가능합니다.',
+    missed: '부여 과제 미완료. 미이행 사유를 확인하고 다시 할 과제와 확인일을 정합니다.',
+  };
 
   function interpretation(doc, packet, longForm) {
     const value = id => String(doc.getElementById(id)?.value || '').trim();
@@ -53,12 +58,22 @@
     };
     const strongest = area('strongestAreas', data.strongestAreas);
     const weakest = area('weakestAreas', data.weakestAreas);
+    const selected = id => value(id) ? doc.getElementById(id).selectedOptions[0]?.textContent.trim() : '';
+    const strength = selected('psychStrengthPreset') || (distinguishAreas && strongest !== '확인 필요' ? strongest : '');
+    const need = selected('psychNeedPreset') || (distinguishAreas && weakest !== '확인 필요' ? weakest : '');
+    const direction = selected('psychDirectionPreset');
     const opinion = [];
-    if (distinguishAreas && strongest !== '확인 필요') opinion.push(`구직준비도에서 상대적으로 높은 영역(${strongest})을 실제 구직 경험과 대조해 활용할 방법을 확인할 예정임.`);
-    if (distinguishAreas && weakest !== '확인 필요') opinion.push(`상대적으로 낮은 영역(${weakest})은 실제로 어려움이 있는 단계인지 상담에서 확인하고 필요한 지원을 협의할 예정임.`);
-    if (interestConfirmed) opinion.push(`흥미코드 ${code}는 선호하는 과업을 탐색하는 자료로 활용하고, ${target ? `${target}의` : '관심 직무의'} 업무·근무조건과 참여자 경험을 함께 확인할 예정임.`);
-    if (missing.length) opinion.push(`${missing.join('·')}의 미확인 자료를 확인한 뒤 종합 해석을 보완할 예정임.`);
-    if (distinguishAreas && interestConfirmed && profileConfirmed && ['psychStrengthPreset','psychNeedPreset','psychDirectionPreset'].some(value) && packet.opinion) opinion.push(packet.opinion);
+    if (strength || need) opinion.push([strength && `강점은 ${strength}`, need && `보완은 ${need}`].filter(Boolean).join(', ') + '.');
+    if (target) opinion.push(`희망직무 ${target}${interestConfirmed ? `, 흥미코드 ${code}` : ''}.`);
+    if (direction) opinion.push(`${direction} 중심으로 지원.`);
+    if (!opinion.length) opinion.push(chosen ? `${focus} 중심으로 상담.` : '검사 결과와 희망직무를 다음 상담에서 확인.');
+
+    const check = followUpChecks[value('psychFollowUpCheck')] || (!readinessConfirmed && !interestConfirmed
+      ? 'IAP 수립 전 검사 실시 여부와 해석 상담 일정을 확인합니다.' : '');
+    const followUpDetail = value('psychFollowUpDetail').replace(/\s+/g, ' ');
+    const guidance = readinessConfirmed || interestConfirmed
+      ? '검사 결과의 의미와 활용을 설명하고, 구직 준비·과제에 대한 피드백 및 IAP 준비사항 안내.'
+      : '검사 결과 활용과 다음 상담·IAP 준비사항 안내.';
 
     return {
       overallType: distinguishAreas ? data.overallType || value('overallOpinionType') || '확인 필요' : strongest,
@@ -68,7 +83,14 @@
       interest: interestConfirmed ? [code, value('riasecStrong')].filter(Boolean).join(' · ') : '확인 필요',
       career: interestConfirmed ? '검사에서 관심을 보인 과업을 실제 업무, 근무조건, 경험과 대조합니다.' : '흥미코드를 확인한 뒤 실제 업무와 비교합니다.',
       style: profileConfirmed ? data.style || '검사 결과와 상담에서 확인한 경험을 함께 검토합니다.' : `성격 ${personalityCount}/${personalityIds.length}개, 생활사 ${lifeCount}/${lifeIds.length}개 확인. 미확인 요인은 종합 해석을 보류합니다.`,
-      followUp: `- 상담 초점: ${focus}${target ? ` (${target})` : ''}\n- 다음 상담 제안: ${action}`,
+      followUp: [
+        `- 안내: ${guidance}`,
+        `- 상담 초점: ${focus}${target ? ` (${target})` : ''}`,
+        `- 다음 상담 제안: ${action}`,
+        check && `- 중요 확인: ${check}`,
+        followUpDetail && `- 후속 조치: ${followUpDetail}`,
+      ].filter(Boolean).join('\n'),
+      check,
       opinion: opinion.join('\n'),
     };
   }
@@ -77,16 +99,24 @@
     const box = doc.getElementById('counselorRecommendation');
     if (!box) return;
     const analysis = interpretation(doc, {}, longForm);
+    const alert = doc.getElementById('psychFollowUpAlert');
+    if (alert) {
+      alert.hidden = !analysis.check;
+      alert.textContent = analysis.check ? `중요 확인 · ${analysis.check}` : '';
+    }
     box.style.whiteSpace = 'pre-line';
     box.textContent = ['상담사 참고 요약', analysis.followUp, analysis.opinion].filter(Boolean).join('\n');
   }
 
   root.ClgPsychCounseling = { interpretation, renderPreview };
   const refresh = event => {
-    if (event.target.matches?.('#psychConsultScenario, #psychTargetJob, #riasecCode, #gujikInputs .score-input, select')) {
+    if (event.target.matches?.('#psychConsultScenario, #psychTargetJob, #psychFollowUpDetail, #riasecCode, #gujikInputs .score-input, select')) {
       renderPreview(root.document, Boolean(root.document.getElementById('life_independence')));
     }
   };
   root.document.addEventListener('input', refresh);
   root.document.addEventListener('change', refresh);
+  root.document.addEventListener('DOMContentLoaded', () => queueMicrotask(() => {
+    renderPreview(root.document, Boolean(root.document.getElementById('life_independence')));
+  }));
 })(window);

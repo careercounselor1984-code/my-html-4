@@ -15,7 +15,12 @@ async function load(html,bridge){const dom=new JSDOM(html,{url:'https://example.
   [...d.querySelectorAll('#gujikInputs .score-input')].forEach((field,i)=>{field.value=String(40+i*5);});
   d.getElementById('riasecCode').value='RI';
   const complete=await w.generateRecord();assert(complete.includes('서버 해석'));assert(complete.includes('희망직무와 검사 흥미가 다름 (생산 품질검사)'));assert(complete.includes('인접 직무도 비교'));
+  assert(complete.includes('과제에 대한 피드백 및 IAP 준비사항 안내'));assert(!complete.includes('중요 확인:'));assert(!complete.includes('예정임'));
   assert(w.ClgProtectedCore.isCurrent(d.getElementById('reportContent')));
+  const followUp=d.getElementById('psychFollowUpCheck');followUp.value='missed';followUp.dispatchEvent(new w.Event('change',{bubbles:true}));
+  assert(!d.getElementById('psychFollowUpAlert').hidden);
+  d.getElementById('psychFollowUpDetail').value='다음 상담 때 결과지 지참';
+  const flagged=await w.generateRecord();assert(flagged.includes('중요 확인: 부여 과제 미완료'));assert(flagged.includes('후속 조치: 다음 상담 때 결과지 지참'));
   const scenario=d.getElementById('psychConsultScenario');
   for(const [key,action] of [['explore','관심 직무 두 가지'],['ready','공고 한 건'],['entry','수행한 역할과 결과'],['returning','이전 경험에서'],['support','구직활동이 멈추는지'],['conditions','반드시 필요한 조건']]){
    scenario.value=key;scenario.dispatchEvent(new w.Event('change',{bubbles:true}));
