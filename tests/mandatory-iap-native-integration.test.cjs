@@ -22,31 +22,37 @@ function attach(){
  const tab={pageId:'p05',id:'tab'+tabList.length,frame:iframe,draftId:'draft'+tabList.length,dirty:false,client:null};
  tabList.push(tab);return {iframe,doc,cw,tab};
 }
-const first=attach();
-w.eval(workspace);
+
+const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+const db=()=>JSON.parse(w.localStorage.getItem('iap_participant_records_v1')||'{}');
 function lookup(ctx){
  const id=x=>ctx.doc.getElementById(x);
  assert(id('clgRequiredFlowGate'),'mandatory screen');
  id('clgFlowRegister').value=A;id('clgFlowLookup').click();
  assert(!id('clgRequiredFlowGate'),'unlocked by search');
 }
-function field(ctx,id,value){const el=ctx.doc.getElementById(id);assert(el,id);el.value=value;el.dispatchEvent(new ctx.cw.Event('input',{bubbles:true}));el.dispatchEvent(new ctx.cw.Event('change',{bubbles:true}));}
-lookup(first);
-field(first,'wishJob','기계 설계 업무');
-field(first,'counselNote','역량 향상 훈련 신청 및 입사지원 계획');
-first.doc.getElementById('clgFlowSave').click();
-const db=()=>JSON.parse(w.localStorage.getItem('iap_participant_records_v1')||'{}');
-assert(db().records?.[A],'IAP saved via mandatory toolbar');
-assert.equal(db().records[A].state.fields['#wishJob'],'기계 설계 업무');
-assert.match(first.doc.getElementById('clgFlowStatus').textContent,/저장 확인 완료/);
-const second=attach();
-w.dispatchEvent(new w.CustomEvent('clg-tab-frame-load',{detail:{tabId:second.tab.id,pageId:'p05',frame:second.iframe}}));
-lookup(second);
-const dialog=second.doc.getElementById('iapLoadConfirmDialog');
-if(dialog?.open){const confirm=second.doc.getElementById('iapLoadContinue');assert(confirm,'load confirmation');confirm.click();}
-setTimeout(()=>{
- try{
- assert.equal(second.doc.getElementById('wishJob').value,'기계 설계 업무','IAP old record loaded');
+function field(ctx,id,value){
+ const el=ctx.doc.getElementById(id);assert(el,id);el.value=value;
+ el.dispatchEvent(new ctx.cw.Event('input',{bubbles:true}));
+ el.dispatchEvent(new ctx.cw.Event('change',{bubbles:true}));
+}
+(async()=>{
+ const first=attach();w.eval(workspace);await wait(30);
+ lookup(first);await wait(15);
+ field(first,'wishJob','기계 설계 업무');
+ field(first,'counselNote','역량 향상 훈련 신청 및 입사지원 계획');
+ first.doc.getElementById('clgFlowSave').click();
+ assert(db().records?.[A],'IAP saved via mandatory toolbar');
+ assert.equal(db().records[A].state.fields['#wishJob'],'기계 설계 업무');
+ assert.match(first.doc.getElementById('clgFlowStatus').textContent,/저장 확인 완료/);
+ const second=attach();await wait(30);
+ w.dispatchEvent(new w.CustomEvent('clg-tab-frame-load',{detail:{tabId:second.tab.id,pageId:'p05',frame:second.iframe}}));
+ await wait(15);lookup(second);await wait(10);
+ const dialog=second.doc.getElementById('iapLoadConfirmDialog');
+ if(dialog?.open){const confirm=second.doc.getElementById('iapLoadContinue');assert(confirm,'load confirmation');confirm.click();}
+ await wait(35);
+ const status=second.doc.getElementById('iapParticipantStatus').textContent;
+ assert.equal(second.doc.getElementById('wishJob').value,'기계 설계 업무','IAP old record loaded; status='+status+', modal='+!!dialog?.open);
  field(second,'wishJob','전기 설계 업무');
  second.doc.getElementById('clgFlowSave').click();
  assert.equal(db().records[A].state.fields['#wishJob'],'전기 설계 업무','native IAP edit persisted');
@@ -57,5 +63,4 @@ setTimeout(()=>{
  assert(!db().records['A98765432109'],'different IAP not created');
  console.log('PASS: actual embedded IAP search, first save, reopen, native confirmation, modify, verified re-save and number mismatch protection');
  parent.window.close();
- }catch(e){console.error(e);process.exitCode=1;parent.window.close();}
-},50);
+})().catch(e=>{console.error(e);process.exitCode=1;parent.window.close();});
