@@ -119,7 +119,7 @@ for(const [id,childId] of [['p21','frameType1'],['p23','frameL'],['p23','frameIa
  w.dispatchEvent(new w.CustomEvent('clg-tab-frame-load',{detail:{tabId:reopen.tab.id,pageId:'p23',frame:reopen.frame}}));
  search(reopen,B);
  fr.dispatchEvent(new reopen.win.Event('load'));
- assert.deepEqual(restoredNative,savedState,'native IAP rows restored after late frame load');
+ assert.equal(JSON.stringify(restoredNative),JSON.stringify(savedState),'native IAP rows restored after late frame load');
 }
 
 console.log('PASS: mandatory input/search/edit/full save/reopen/isolate on '+ids.length+' actual embedded counseling screens: '+ids.join(', '));
