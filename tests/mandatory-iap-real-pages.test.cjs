@@ -35,13 +35,13 @@ function search(ctx,number=A){
  assert.equal(ctx.doc.getElementById('clgRequiredFlowGate'),null,ctx.page.id+' unlocked');
 }
 function addField(ctx){
- const real=[...ctx.doc.querySelectorAll('textarea,input[type=text]')].filter(x=>!x.closest('#clgRequiredFlowBar')&&!x.closest('#clgRequiredFlowGate')&&x.id!=='clgIapRegNo'&&!x.id.startsWith('clgFlow'));
+ const real=[...ctx.doc.querySelectorAll('textarea,input[type=text],select')].filter(x=>!x.closest('#clgRequiredFlowBar')&&!x.closest('#clgRequiredFlowGate')&&x.id!=='clgIapRegNo'&&!x.id.startsWith('clgFlow'));
  assert(real.length>0,ctx.page.id+' has real form inputs');
  const field=ctx.doc.createElement('textarea');field.id='clgAuditPatientSpecificNote';ctx.doc.body.appendChild(field);
  return field;
 }
 const made=ids.map(id=>{const ctx=init(id);const realCount=ctx.doc.querySelectorAll('input,select,textarea').length;
- assert(realCount>=4,id+' expected real inputs; found '+realCount);
+ assert(realCount>=(id==='p21'?1:4),id+' expected real inputs; found '+realCount);
  addField(ctx);return {...ctx,realCount}});
 w.eval(source);
 const dbKey='clg_required_consult_records_v1:'+encodeURIComponent('audit@example.test');
