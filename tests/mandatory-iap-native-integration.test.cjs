@@ -11,14 +11,17 @@ w.__CLG_JOURNAL_EMPLOYEE={email:'native-iap-audit@example.test'};
 w.clgGetWorkTabs=()=>tabList;
 w.clgSetWorkTabClient=()=>{};
 w.confirm=()=>true;w.alert=()=>{};w.prompt=()=> '상담내용 수정';
-function attach(){
+async function attach(){
  const iframe=d.createElement('iframe');iframe.className='clgWorkFrame is-active';iframe.dataset.pageId='p05';iframe.dataset.external='0';
  d.body.append(iframe);const doc=iframe.contentDocument;doc.open();doc.write(html);doc.close();const cw=iframe.contentWindow;
+ // Let jsdom's automatic DOMContentLoaded finish before registering the actual page scripts.
+ await new Promise(resolve=>setTimeout(resolve,45));
  cw.alert=()=>{};cw.confirm=()=>true;cw.prompt=()=> '상담내용 수정';
  cw.scrollTo=()=>{};cw.HTMLElement.prototype.scrollIntoView=()=>{};cw.TextEncoder=TextEncoder;
  cw.HTMLDialogElement.prototype.showModal=function(){this.open=true};cw.HTMLDialogElement.prototype.close=function(){this.open=false};
  for(const m of html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/g))if(!m[1].includes('src='))cw.eval(m[2]);
- // The srcdoc iframe dispatches DOMContentLoaded itself; a manual duplicate would reset its IAP fields.
+ // Native main() is installed after jsdom's auto event, so dispatch exactly once here.
+ doc.dispatchEvent(new cw.Event('DOMContentLoaded'));
  const tab={pageId:'p05',id:'tab'+tabList.length,frame:iframe,draftId:'draft'+tabList.length,dirty:false,client:null};
  tabList.push(tab);return {iframe,doc,cw,tab};
 }
@@ -37,7 +40,7 @@ function field(ctx,id,value){
  el.dispatchEvent(new ctx.cw.Event('change',{bubbles:true}));
 }
 (async()=>{
- const first=attach();w.eval(workspace);await wait(70);
+ const first=await attach();w.eval(workspace);await wait(25);
  lookup(first);await wait(15);
  field(first,'wishJob','기계 설계 업무');
  field(first,'counselNote','역량 향상 훈련 신청 및 입사지원 계획');
@@ -45,7 +48,7 @@ function field(ctx,id,value){
  assert(db().records?.[A],'IAP saved via mandatory toolbar');
  assert.equal(db().records[A].state.fields['#wishJob'],'기계 설계 업무');
  assert.match(first.doc.getElementById('clgFlowStatus').textContent,/저장 확인 완료/);
- const second=attach();await wait(70);
+ const second=await attach();await wait(25);
  w.dispatchEvent(new w.CustomEvent('clg-tab-frame-load',{detail:{tabId:second.tab.id,pageId:'p05',frame:second.iframe}}));
  await wait(15);lookup(second);await wait(10);
  const dialog=second.doc.getElementById('iapLoadConfirmDialog');
