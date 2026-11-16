@@ -50,7 +50,22 @@ function field(ctx,id,value){
  assert.match(first.doc.getElementById('clgFlowStatus').textContent,/저장 확인 완료/);
  const second=await attach();await wait(25);
  w.dispatchEvent(new w.CustomEvent('clg-tab-frame-load',{detail:{tabId:second.tab.id,pageId:'p05',frame:second.iframe}}));
- await wait(15);lookup(second);await wait(10);
+ await wait(15);
+ console.log('IAP_DIAG_BEFORE',JSON.stringify({
+   nativeReg:second.doc.getElementById('iapRegNo')?.value,
+   loadDisabled:second.doc.getElementById('iapParticipantLoadBtn')?.disabled,
+   nativeStatus:second.doc.getElementById('iapParticipantStatus')?.textContent,
+   sameStorage:!!second.cw.localStorage.getItem('iap_participant_records_v1'),
+   parentStorage:!!w.localStorage.getItem('iap_participant_records_v1')
+ }));
+ lookup(second);await wait(10);
+ console.log('IAP_DIAG_AFTER',JSON.stringify({
+   nativeReg:second.doc.getElementById('iapRegNo')?.value,
+   loadDisabled:second.doc.getElementById('iapParticipantLoadBtn')?.disabled,
+   nativeStatus:second.doc.getElementById('iapParticipantStatus')?.textContent,
+   gate:!!second.doc.getElementById('clgRequiredFlowGate'),
+   dlg:!!second.doc.getElementById('iapLoadConfirmDialog')?.open
+ }));
  const dialog=second.doc.getElementById('iapLoadConfirmDialog');
  if(dialog?.open){const confirm=second.doc.getElementById('iapLoadContinue');assert(confirm,'load confirmation');confirm.click();}
  await wait(35);
