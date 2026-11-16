@@ -40,14 +40,14 @@ function search(y,number=A){
  y.doc.getElementById('clgFlowLookup').click();
  return gate;
 }
-assert.equal(x.doc.getElementById('memo').closest('body').inert,true,'editing blocked before search');
+assert.equal(x.doc.getElementById('memo').inert,true,'editing blocked before search');
 search(x,'WRONG');
 assert.match(x.doc.getElementById('clgFlowError').textContent,/등록번호/,'invalid IAP rejected');
 assert(x.doc.getElementById('clgRequiredFlowGate'),'invalid search stays locked');
 search(x);
 assert.equal(nativeLoads,1,'native shared-profile search invoked');
 assert.equal(x.doc.getElementById('clgRequiredFlowGate'),null,'editor unlocked by explicit lookup');
-assert.equal(x.doc.body.inert,false);
+assert.notEqual(x.doc.getElementById('memo').inert,true);
 assert.equal(x.doc.getElementById('memo').value,'','no stale state');
 x.doc.getElementById('clgFlowSave').click();
 assert.match(x.doc.getElementById('clgFlowStatus').textContent,/먼저 작성/,'empty new form cannot be marked complete');
