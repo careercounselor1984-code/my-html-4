@@ -237,6 +237,10 @@
    try{
     unlockEditor();
     if(originalReg){originalReg.value=reg;originalReg.dispatchEvent(new win.Event('input',{bubbles:true}));}
+    // Native IAP snapshots every input when checking whether the form changed.
+    // Remove our temporary registration field BEFORE that asynchronous lookup
+    // begins, otherwise the form fingerprint changes while its modal is open.
+    gate.remove();
     if(nativeLoad)nativeLoad.click();
     if(previous&&s.tab.pageId!=='p05'){
      s.restoring=true;
@@ -247,7 +251,7 @@
      }finally{s.restoring=false}
      if(originalReg)originalReg.value=reg;
     }
-   }catch(e){lockEditor();return alertGate('기존 기록을 불러오지 못했습니다. 검색을 다시 실행해 주세요.')}
+   }catch(e){if(!gate.isConnected)doc.body.appendChild(gate);lockEditor();return alertGate('기존 기록을 불러오지 못했습니다. 검색을 다시 실행해 주세요.')}
    flow.reg=reg;flow.searched=true;flow.stored=!!previous;flow.pendingPrevious=previous||null;
    flow.revision=previous?.revision||null;
    flow.dirty=false;flow.savedFingerprint=previous?fingerprint():null;flow.initialFingerprint=fingerprint();
