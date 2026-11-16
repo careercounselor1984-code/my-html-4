@@ -71,5 +71,56 @@ for(const ctx of made){
  search(different,B);
  assert.equal(different.doc.getElementById('clgAuditPatientSpecificNote').value,'',page.id+' other participant isolated');
 }
+
+// School forms contain a second iframe layer. Real notes inside that child must be
+// captured, dirty-tracked, and restored even if the child frame loads after search.
+for(const [id,childId] of [['p21','frameType1'],['p23','frameL'],['p23','frameIap']]){
+ const first=init(id);
+ const embedded=first.doc.getElementById(childId);
+ assert(embedded,id+' has child iframe '+childId);
+ const childDoc=embedded.contentDocument;
+ childDoc.body.innerHTML='<input id="studentCaseText" type="text">';
+ w.dispatchEvent(new w.CustomEvent('clg-tab-frame-load',{detail:{tabId:first.tab.id,pageId:id,frame:first.frame}}));
+ embedded.dispatchEvent(new first.win.Event('load'));
+ search(first);
+ const value='내부상담 '+id+'/'+childId;
+ emit(childDoc,embedded.contentWindow,childDoc.getElementById('studentCaseText'),value);
+ assert.match(first.doc.getElementById('clgFlowStatus').textContent,/저장되지/,'nested edit tracked');
+ first.doc.getElementById('clgFlowSave').click();
+ assert.match(first.doc.getElementById('clgFlowStatus').textContent,/저장 완료/,'nested record saved');
+ const stored=JSON.parse(w.localStorage.getItem(dbKey))[(id+'|'+A)];
+ assert(stored.fields.some(x=>x.key.includes(childId)&&x.value===value),'nested field persisted');
+ const reopen=init(id);
+ w.dispatchEvent(new w.CustomEvent('clg-tab-frame-load',{detail:{tabId:reopen.tab.id,pageId:id,frame:reopen.frame}}));
+ search(reopen);
+ const nestedFrame=reopen.doc.getElementById(childId);
+ nestedFrame.contentDocument.body.innerHTML='<input id="studentCaseText" type="text">';
+ nestedFrame.dispatchEvent(new reopen.win.Event('load'));
+ assert.equal(nestedFrame.contentDocument.getElementById('studentCaseText').value,value,'late nested content restored');
+}
+// The school hybrid's native embedded IAP rows have a separate collector.
+{
+ const first=init('p23'),embedded=first.doc.getElementById('frameIap');
+ embedded.contentDocument.body.innerHTML='<input id="studentCaseText" type="text">';
+ let savedState={rows:[{kind:'상담',detail:'현장실습'}]};
+ embedded.contentWindow.clgWorkspaceState={collect:()=>savedState,apply:v=>{savedState=v}};
+ w.dispatchEvent(new w.CustomEvent('clg-tab-frame-load',{detail:{tabId:first.tab.id,pageId:'p23',frame:first.frame}}));
+ embedded.dispatchEvent(new first.win.Event('load'));
+ search(first,B);
+ emit(embedded.contentDocument,embedded.contentWindow,embedded.contentDocument.getElementById('studentCaseText'),'학생IAP');
+ first.doc.getElementById('clgFlowSave').click();
+ assert.match(first.doc.getElementById('clgFlowStatus').textContent,/저장 완료/);
+ const stored=JSON.parse(w.localStorage.getItem(dbKey))['p23|'+B];
+ assert(stored.embedded['frame:frameIap|'],'native embedded IAP rows stored');
+ const reopen=init('p23'),fr=reopen.doc.getElementById('frameIap');
+ fr.contentDocument.body.innerHTML='<input id="studentCaseText" type="text">';
+ let restoredNative=null;
+ fr.contentWindow.clgWorkspaceState={collect:()=>({rows:[]}),apply:v=>{restoredNative=v}};
+ w.dispatchEvent(new w.CustomEvent('clg-tab-frame-load',{detail:{tabId:reopen.tab.id,pageId:'p23',frame:reopen.frame}}));
+ search(reopen,B);
+ fr.dispatchEvent(new reopen.win.Event('load'));
+ assert.deepEqual(restoredNative,savedState,'native IAP rows restored after late frame load');
+}
+
 console.log('PASS: mandatory input/search/edit/full save/reopen/isolate on '+ids.length+' actual embedded counseling screens: '+ids.join(', '));
 w.close();
