@@ -40,16 +40,85 @@
  function read(){try{const all=JSON.parse(sessionStorage.getItem(prefix+owner)||'{}');let changed=false;for(const [key,row] of Object.entries(all)){if(row&&Number.isFinite(row.at)&&(Date.now()-row.at>24*3600000||row.at>Date.now()+60000)){delete all[key];changed=true}}if(changed)write(all);return all}catch{return {}}}
  function write(all){sessionStorage.setItem(prefix+owner,JSON.stringify(all))}
  function fields(doc){return [...doc.querySelectorAll('input,select,textarea')].filter(el=>!el.matches('[data-transient]')&&!el.closest('.clg-client-workspace')&&!el.closest('.clg-required-flow')&&!el.closest('#iapLoadConfirmDialog')&&!(el.tagName==='INPUT'&&['file','password','button','submit','reset','hidden'].includes(el.type)))}
- function take(doc){const counts={};return fields(doc).map((el,index)=>{const key=el.id?'id:'+el.id:el.name?'name:'+el.name:'index:'+index;const n=counts[key]||0;counts[key]=n+1;return {key,n,value:el.type==='checkbox'||el.type==='radio'?el.checked:el.value}})}
- function restoreFields(doc,values){const counts={},map=new Map();fields(doc).forEach((el,index)=>{const key=el.id?'id:'+el.id:el.name?'name:'+el.name:'index:'+index;const n=counts[key]||0;counts[key]=n+1;map.set(key+':'+n,el)});
-  const apply=dispatch=>{for(const item of values||[]){const el=map.get(item.key+':'+item.n);if(!el)continue;if(el.type==='checkbox'||el.type==='radio')el.checked=!!item.value;else{if(el.tagName==='SELECT'&&item.value&&!Array.from(el.options).some(o=>o.value===item.value))el.add(new doc.defaultView.Option(item.value,item.value));el.value=String(item.value??'')}if(dispatch){el.dispatchEvent(new doc.defaultView.Event('input',{bubbles:true}));el.dispatchEvent(new doc.defaultView.Event('change',{bubbles:true}))}}};apply(true);apply(false);
+
+ // Nested high-school counseling screens are srcdoc iframes. Include their real
+ // consultation fields in snapshots rather than saving only the wrapper selector.
+ function childFrameKey(fr,index){return 'frame:'+String(fr.id||'index-'+index)+'|'}
+ function scopedFields(doc){
+  const all=[],seen=new Set();
+  function visit(d,scope,depth){
+   if(!d||seen.has(d)||depth>3)return;seen.add(d);
+   fields(d).forEach((el,index)=>all.push({el,key:scope+(el.id?'id:'+el.id:el.name?'name:'+el.name:'index:'+index)}));
+   [...d.querySelectorAll('iframe')].forEach((fr,index)=>{
+    try{if(fr.contentDocument?.body)visit(fr.contentDocument,scope+childFrameKey(fr,index),depth+1)}catch{}
+   });
+  }
+  visit(doc,'',0);return all;
+ }
+ function collectEmbeddedNative(doc){
+  const result={},seen=new Set();
+  function visit(d,scope,depth){
+   if(!d||seen.has(d)||depth>3)return;seen.add(d);
+   [...d.querySelectorAll('iframe')].forEach((fr,index)=>{
+    const key=scope+childFrameKey(fr,index);
+    try{
+     if(!fr.contentDocument?.body)return;
+     const data=fr.contentWindow?.clgWorkspaceState?.collect?.();
+     if(data)result[key]=data;
+     visit(fr.contentDocument,key,depth+1);
+    }catch{}
+   });
+  }
+  visit(doc,'',0);return result;
+ }
+ function restoreEmbeddedNative(doc,values,onlyPrefix=''){
+  if(!values||typeof values!=='object')return;
+  const seen=new Set();
+  function visit(d,scope,depth){
+   if(!d||seen.has(d)||depth>3)return;seen.add(d);
+   [...d.querySelectorAll('iframe')].forEach((fr,index)=>{
+    const key=scope+childFrameKey(fr,index);
+    try{
+     if(!fr.contentDocument?.body)return;
+     if((!onlyPrefix||key.startsWith(onlyPrefix))&&values[key]&&fr.contentWindow?.clgWorkspaceState?.apply){
+      fr.contentWindow.clgWorkspaceState.apply(values[key]);
+     }
+     visit(fr.contentDocument,key,depth+1);
+    }catch{}
+   });
+  }
+  visit(doc,'',0);
+ }
+ function take(doc){
+  const counts={};
+  return scopedFields(doc).map(({el,key})=>{
+   const n=counts[key]||0;counts[key]=n+1;
+   return {key,n,value:el.type==='checkbox'||el.type==='radio'?el.checked:el.value};
+  });
+ }
+ function restoreFields(doc,values,onlyPrefix=''){
+  const counts={},map=new Map();
+  scopedFields(doc).forEach(({el,key})=>{const n=counts[key]||0;counts[key]=n+1;map.set(key+':'+n,el)});
+  const apply=dispatch=>{
+   for(const item of values||[]){
+    if(onlyPrefix&&!String(item.key||'').startsWith(onlyPrefix))continue;
+    const el=map.get(item.key+':'+item.n);if(!el)continue;
+    if(el.type==='checkbox'||el.type==='radio')el.checked=!!item.value;
+    else{
+     if(el.tagName==='SELECT'&&item.value&&!Array.from(el.options).some(o=>o.value===item.value))el.add(new el.ownerDocument.defaultView.Option(item.value,item.value));
+     el.value=String(item.value??'');
+    }
+    if(dispatch){const W=el.ownerDocument.defaultView;el.dispatchEvent(new W.Event('input',{bubbles:true}));el.dispatchEvent(new W.Event('change',{bubbles:true}));}
+   }
+  };
+  apply(true);apply(false);
  }
  function syncClient(s){const reg=s.doc.querySelector(regSelector)?.value?.trim()||'',name=s.doc.querySelector(nameSelector)?.value?.trim()||'';const client={reg,name,key:reg||s.tab.draftId};if(JSON.stringify(client)!==JSON.stringify(s.client)){s.client=client;window.clgSetWorkTabClient?.(s.tab.id,client)}}
- function save(s){if(!owner||s.closed||s.restoring)return;try{syncClient(s);const snapshot={version:1,page:s.tab.pageId,at:Date.now(),client:s.client,fields:take(s.doc),native:s.win.clgWorkspaceState?.collect?.()||null};if(JSON.stringify(snapshot).length>500000)throw Error('초안 용량 초과');const all=read();all[s.tab.draftId]=snapshot;write(all);s.draftStatus='saved'}catch{s.draftStatus='error'}}
+ function save(s){if(!owner||s.closed||s.restoring)return;try{syncClient(s);const snapshot={version:1,page:s.tab.pageId,at:Date.now(),client:s.client,fields:take(s.doc),native:s.win.clgWorkspaceState?.collect?.()||null,embedded:collectEmbeddedNative(s.doc)};if(JSON.stringify(snapshot).length>500000)throw Error('초안 용량 초과');const all=read();all[s.tab.draftId]=snapshot;write(all);s.draftStatus='saved'}catch{s.draftStatus='error'}}
  function schedule(s){if(s.restoring||s.closed)return;clearTimeout(s.timer);s.timer=setTimeout(()=>save(s),500)}
  function hydrate(s){if(!owner||s.hydrated===owner||s.closed)return;s.hydrated=owner;const saved=read()[s.tab.draftId];
   if(!saved||saved.version!==1||saved.page!==s.tab.pageId||Date.now()-saved.at>24*3600000||saved.at>Date.now()+60000||s.edited)return;
-  try{s.restoring=true;if(saved.native&&s.win.clgWorkspaceState?.apply)s.win.clgWorkspaceState.apply(saved.native);restoreFields(s.doc,saved.fields);syncClient(s);s.draftStatus='restored'}catch{s.draftStatus='error'}finally{s.restoring=false}
+  try{s.restoring=true;if(saved.native&&s.win.clgWorkspaceState?.apply)s.win.clgWorkspaceState.apply(saved.native);restoreEmbeddedNative(s.doc,saved.embedded);restoreFields(s.doc,saved.fields);syncClient(s);s.draftStatus='restored'}catch{s.draftStatus='error'}finally{s.restoring=false}
  }
 
  // Mandatory registration -> local lookup -> edit -> confirmed save workflow.
@@ -81,7 +150,7 @@
    '#clgRequiredFlowGate .clg-flow-steps{font-size:12px!important;color:#244e86!important;font-weight:800!important}',
    '#clgRequiredFlowGate .clg-flow-grid{display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;gap:8px!important;margin-top:17px!important}',
    '#clgRequiredFlowGate .clg-flow-error{color:#b42318!important;min-height:19px!important}',
-   '#clgRequiredFlowBar{position:sticky!important;top:0!important;z-index:214748100!important;display:flex!important;align-items:center!important;gap:10px!important;flex-wrap:wrap!important;min-height:55px!important;padding:10px 14px!important;margin:0 0 12px!important;background:#f1f7ff!important;border:1px solid #bfd5f3!important;border-radius:11px!important;box-shadow:0 5px 15px #19375c10!important}',
+   '#clgRequiredFlowBar[hidden]{display:none!important}#clgRequiredFlowBar{position:sticky!important;top:0!important;z-index:214748100!important;display:flex!important;align-items:center!important;gap:10px!important;flex-wrap:wrap!important;min-height:55px!important;padding:10px 14px!important;margin:0 0 12px!important;background:#f1f7ff!important;border:1px solid #bfd5f3!important;border-radius:11px!important;box-shadow:0 5px 15px #19375c10!important}',
    '#clgRequiredFlowBar .clg-flow-number{font-size:13px!important;font-weight:850!important;color:#163c70!important;word-break:break-all!important}',
    '#clgRequiredFlowBar .clg-flow-status{font-size:12px!important;color:#9f2c22!important;font-weight:800!important}',
    '#clgRequiredFlowBar .clg-flow-status.saved{color:#11633e!important}',
@@ -132,6 +201,7 @@
      s.restoring=true;
      try{
       if(previous.native&&win.clgWorkspaceState?.apply)win.clgWorkspaceState.apply(previous.native);
+      restoreEmbeddedNative(doc,previous.embedded);
       restoreFields(doc,previous.fields||[]);
      }finally{s.restoring=false}
      if(originalReg)originalReg.value=reg;
@@ -183,7 +253,7 @@
    if(latest && latest.revision!==flow.revision){
     show('다른 작업 탭에서 이 상담기록이 수정됐습니다. 새 탭에서 재검색 후 확인해 주세요.');return;
    }
-   const snapshot={version:1,page:s.tab.pageId,reg,updatedAt:new Date().toISOString(),revision:(latest?.revision||0)+1,fields:take(doc),native:win.clgWorkspaceState?.collect?.()||null};
+   const snapshot={version:1,page:s.tab.pageId,reg,updatedAt:new Date().toISOString(),revision:(latest?.revision||0)+1,fields:take(doc),native:win.clgWorkspaceState?.collect?.()||null,embedded:collectEmbeddedNative(doc)};
    if(JSON.stringify(snapshot).length>300000){show('입력 데이터가 너무 커서 저장하지 못했습니다. 대용량 첨부·내용을 확인하세요.');return}
    try{
     // Keep the legacy shared profile mapping, but never mistake it for a full counseling save.
