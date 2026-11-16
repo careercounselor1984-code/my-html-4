@@ -203,13 +203,18 @@
        if(!fr.contentDocument?.body)return;
        watchNested(fr.contentDocument,path,depth+1);
        if(flow.searched&&flow.pendingPrevious){
+        const wasDirty=flow.dirty;
         s.restoring=true;
         try{
          restoreEmbeddedNative(doc,flow.pendingPrevious.embedded,path);
          restoreFields(doc,flow.pendingPrevious.fields||[],path);
         }finally{s.restoring=false}
-        flow.savedFingerprint=fingerprint();flow.dirty=false;
-        show('✓ 이전 상담자료를 내부 화면까지 불러왔습니다.',true);
+        if(!wasDirty){
+         flow.savedFingerprint=fingerprint();flow.dirty=false;
+         show('✓ 이전 상담자료를 내부 화면까지 불러왔습니다.',true);
+        }else{
+         show('● 다른 입력내용에 미저장 변경사항이 남아 있습니다. 저장을 확인하세요.');
+        }
        }else if(flow.searched&&!flow.dirty&&!flow.stored){
         flow.initialFingerprint=fingerprint();
        }
