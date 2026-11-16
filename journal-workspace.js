@@ -113,7 +113,7 @@
   };
   apply(true);apply(false);
  }
- function syncClient(s){const reg=s.doc.querySelector(regSelector)?.value?.trim()||'',name=s.doc.querySelector(nameSelector)?.value?.trim()||'';const client={reg,name,key:reg||s.tab.draftId};if(JSON.stringify(client)!==JSON.stringify(s.client)){s.client=client;window.clgSetWorkTabClient?.(s.tab.id,client)}}
+ function syncClient(s){const reg=s.flow?.reg||s.doc.querySelector(regSelector)?.value?.trim()||'',name=s.doc.querySelector(nameSelector)?.value?.trim()||'';const client={reg,name,key:reg||s.tab.draftId};if(JSON.stringify(client)!==JSON.stringify(s.client)){s.client=client;window.clgSetWorkTabClient?.(s.tab.id,client)}}
  function save(s){if(!owner||s.closed||s.restoring)return;try{syncClient(s);const snapshot={version:1,page:s.tab.pageId,at:Date.now(),client:s.client,fields:take(s.doc),native:s.win.clgWorkspaceState?.collect?.()||null,embedded:collectEmbeddedNative(s.doc)};if(JSON.stringify(snapshot).length>500000)throw Error('초안 용량 초과');const all=read();all[s.tab.draftId]=snapshot;write(all);s.draftStatus='saved'}catch{s.draftStatus='error'}}
  function schedule(s){if(s.restoring||s.closed)return;clearTimeout(s.timer);s.timer=setTimeout(()=>save(s),500)}
  function hydrate(s){if(!owner||s.hydrated===owner||s.closed)return;s.hydrated=owner;const saved=read()[s.tab.draftId];
@@ -184,6 +184,42 @@
    if(!flow.searched||s.restoring||s.closed)return;
    flow.dirty=true;show('● 저장되지 않은 변경사항이 있습니다. [상담내용 저장]을 눌러주세요.');
   }
+  // Embedded school forms load asynchronously after the parent page. Re-apply only
+  // that child's saved fields at its load event, never overwrite the outer form.
+  const watchedFrames=new WeakSet(),watchedChildDocs=new WeakSet();
+  function watchNested(d,scope='',depth=0){
+   if(!d||depth>3)return;
+   if(d!==doc&&!watchedChildDocs.has(d)){
+    watchedChildDocs.add(d);
+    d.addEventListener('input',()=>{markEdited();schedule(s)});
+    d.addEventListener('change',()=>{markEdited();schedule(s)});
+   }
+   [...d.querySelectorAll('iframe')].forEach((fr,index)=>{
+    const path=scope+childFrameKey(fr,index);
+    if(!watchedFrames.has(fr)){
+     watchedFrames.add(fr);
+     fr.addEventListener('load',()=>{
+      try{
+       if(!fr.contentDocument?.body)return;
+       watchNested(fr.contentDocument,path,depth+1);
+       if(flow.searched&&flow.pendingPrevious){
+        s.restoring=true;
+        try{
+         restoreEmbeddedNative(doc,flow.pendingPrevious.embedded,path);
+         restoreFields(doc,flow.pendingPrevious.fields||[],path);
+        }finally{s.restoring=false}
+        flow.savedFingerprint=fingerprint();flow.dirty=false;
+        show('✓ 이전 상담자료를 내부 화면까지 불러왔습니다.',true);
+       }else if(flow.searched&&!flow.dirty&&!flow.stored){
+        flow.initialFingerprint=fingerprint();
+       }
+      }catch{}
+     });
+    }
+    try{if(fr.contentDocument?.body)watchNested(fr.contentDocument,path,depth+1)}catch{}
+   });
+  }
+  watchNested(doc);
   function lookup(){
    const reg=(noInput.value||'').replace(/\s+/g,'').toUpperCase();
    if(!/^A\d{10,}$/.test(reg))return alertGate('A로 시작하는 IAP 등록번호(숫자 10자리 이상)를 확인해 주세요.');
@@ -207,7 +243,7 @@
      if(originalReg)originalReg.value=reg;
     }
    }catch(e){lockEditor();return alertGate('기존 기록을 불러오지 못했습니다. 검색을 다시 실행해 주세요.')}
-   flow.reg=reg;flow.searched=true;flow.stored=!!previous;
+   flow.reg=reg;flow.searched=true;flow.stored=!!previous;flow.pendingPrevious=previous||null;
    flow.revision=previous?.revision||null;
    flow.dirty=false;flow.savedFingerprint=previous?fingerprint():null;flow.initialFingerprint=fingerprint();
    id('clgFlowNumber').textContent='IAP '+reg+' · ① 번호 확인 ② 검색 완료';
