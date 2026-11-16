@@ -98,6 +98,10 @@
   const bar=doc.createElement('div');bar.id='clgRequiredFlowBar';bar.className='clg-required-flow';bar.hidden=true;
   bar.innerHTML='<div class="clg-flow-number" id="clgFlowNumber"></div><div class="clg-flow-status" id="clgFlowStatus" role="status">③ 상담내용 작성 후 저장하세요.</div><button type="button" id="clgFlowSave" class="clg-flow-primary">④ 상담내용 저장</button>';
   doc.body.prepend(bar);doc.body.appendChild(gate);
+  const covered=[...doc.body.children].filter(el=>el!==bar&&el!==gate).map(el=>({el,wasInert:el.inert}));
+  const lockEditor=()=>covered.forEach(({el})=>{el.inert=true});
+  const unlockEditor=()=>covered.forEach(({el,wasInert})=>{el.inert=wasInert});
+  lockEditor();
   const id=x=>doc.getElementById(x);
   const noInput=id('clgFlowRegister'),lookupBtn=id('clgFlowLookup'),saveBtn=id('clgFlowSave');
   const flow={reg:'',searched:false,dirty:false,revision:null,savedFingerprint:null,stored:false,needsSave:null};
@@ -121,6 +125,7 @@
    const previous=s.tab.pageId==='p05'?nativeIapRecord(reg):readRequiredDb()[storageKey(reg)];
    const nativeLoad=doc.getElementById(s.tab.pageId==='p05'?'iapParticipantLoadBtn':'clgIapCommonLoadBtn');
    try{
+    unlockEditor();
     if(originalReg){originalReg.value=reg;originalReg.dispatchEvent(new win.Event('input',{bubbles:true}));}
     if(nativeLoad)nativeLoad.click();
     if(previous&&s.tab.pageId!=='p05'){
@@ -131,10 +136,10 @@
      }finally{s.restoring=false}
      if(originalReg)originalReg.value=reg;
     }
-   }catch(e){return alertGate('기존 기록을 불러오지 못했습니다. 검색을 다시 실행해 주세요.')}
+   }catch(e){lockEditor();return alertGate('기존 기록을 불러오지 못했습니다. 검색을 다시 실행해 주세요.')}
    flow.reg=reg;flow.searched=true;flow.stored=!!previous;
    flow.revision=previous?.revision||null;
-   flow.dirty=false;flow.savedFingerprint=previous?fingerprint():null;
+   flow.dirty=false;flow.savedFingerprint=previous?fingerprint():null;flow.initialFingerprint=fingerprint();
    id('clgFlowNumber').textContent='IAP '+reg+' · ① 번호 확인 ② 검색 완료';
    bar.hidden=false;gate.remove();
    syncClient(s);
@@ -158,6 +163,9 @@
    if(!flow.searched||!flow.reg){show('IAP 등록번호 검색부터 완료해 주세요.');return}
    if(!owner){show('직원 로그인 상태를 확인한 뒤 저장해 주세요.');return}
    if((originalReg?.value||flow.reg).trim().toUpperCase()!==flow.reg){show('입력된 등록번호가 검색한 번호와 다릅니다. 저장을 중단했습니다.');return}
+   if(!flow.stored&&!flow.dirty&&fingerprint()===flow.initialFingerprint){
+    show('상담내용을 먼저 작성한 다음 저장해 주세요.');return;
+   }
    const reg=flow.reg;
    if(s.tab.pageId==='p05'){
     const before=nativeIapRecord(reg);
@@ -179,11 +187,11 @@
    if(JSON.stringify(snapshot).length>300000){show('입력 데이터가 너무 커서 저장하지 못했습니다. 대용량 첨부·내용을 확인하세요.');return}
    try{
     // Keep the legacy shared profile mapping, but never mistake it for a full counseling save.
-    doc.getElementById('clgIapCommonSaveBtn')?.click();
     database[key]=snapshot;
     requiredStorage().setItem(requiredDbKey(),JSON.stringify(database));
     const check=readRequiredDb()[key];
     if(!check||check.revision!==snapshot.revision)throw Error('저장 검증 실패');
+    doc.getElementById('clgIapCommonSaveBtn')?.click();
    }catch(e){show('저장 실패 · 브라우저 저장공간 또는 접속 환경을 확인해 주세요.');return}
    flow.stored=true;flow.revision=snapshot.revision;
    flow.savedFingerprint=fingerprint();flow.dirty=false;
