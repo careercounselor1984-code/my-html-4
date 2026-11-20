@@ -23,6 +23,7 @@ test('strict Content-Security-Policy and external preset SRI match the actual fi
   const position=html.indexOf(marker);
   assert.ok(position>=0,'formula auditor script must be pinned');
   const auditHash=html.slice(position+marker.length).split('"',1)[0];
+  console.log('Expected formula audit SHA256:',digest(auditor));
   assert.equal(auditHash,digest(auditor));
   assert.ok(csp[1].includes("'sha256-"+digest(auditor)+"'"));
 
