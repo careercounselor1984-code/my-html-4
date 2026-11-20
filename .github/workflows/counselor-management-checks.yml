@@ -1,0 +1,32 @@
+name: Counselor management checks
+
+on:
+  pull_request:
+    paths:
+      - 'counselor-management/**'
+      - 'counselor-management-launcher.js'
+      - 'tests/counselor-*.test.cjs'
+      - '.github/workflows/counselor-management-checks.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check formula parser syntax
+        run: |
+          node --check counselor-management/formula-audit.js
+          node --check counselor-management/period-presets.js
+      - name: Test management and formula safety logic
+        run: node --test tests/counselor-*.test.cjs
+      - name: Real Chrome XLSX repair smoke (synthetic only)
+        run: |
+          npm install --prefix /tmp/cm-chrome-test puppeteer-core@24.31.0 --no-audit --no-fund
+          NODE_PATH=/tmp/cm-chrome-test/node_modules node tests/counselor-formula-browser-smoke.cjs
