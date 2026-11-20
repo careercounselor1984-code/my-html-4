@@ -27,4 +27,6 @@ jobs:
       - name: Test management and formula safety logic
         run: node --test tests/counselor-*.test.cjs
       - name: Real Chrome XLSX repair smoke (synthetic only)
-        run: node tests/counselor-formula-browser-smoke.cjs
+        run: |
+          npm install --prefix /tmp/cm-chrome-test puppeteer-core@24.31.0 --no-audit --no-fund
+          NODE_PATH=/tmp/cm-chrome-test/node_modules node tests/counselor-formula-browser-smoke.cjs
