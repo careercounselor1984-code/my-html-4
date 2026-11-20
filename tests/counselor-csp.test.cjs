@@ -8,6 +8,7 @@ const crypto=require('node:crypto');
 const base=path.join(__dirname,'../counselor-management');
 const html=fs.readFileSync(path.join(base,'index.html'),'utf8');
 const preset=fs.readFileSync(path.join(base,'period-presets.js'),'utf8');
+const auditor=fs.readFileSync(path.join(base,'formula-audit.js'),'utf8');
 const digest=content=>crypto.createHash('sha256').update(content,'utf8').digest('base64');
 
 test('strict Content-Security-Policy and external preset SRI match the actual files',()=>{
@@ -18,6 +19,11 @@ test('strict Content-Security-Policy and external preset SRI match the actual fi
   assert.equal(external[1],digest(preset));
   assert.ok(csp[1].includes("'sha256-"+digest(inline[1])+"'"));
   assert.ok(csp[1].includes("'sha256-"+digest(preset)+"'"));
+  const auditTag=html.match(/<script src="\\.\\/formula-audit\\.js" integrity="sha256-([^"]+)" crossorigin="anonymous"><\\/script>/);
+  assert.ok(auditTag,'formula auditor script must be pinned');
+  assert.equal(auditTag[1],digest(auditor));
+  assert.ok(csp[1].includes("'sha256-"+digest(auditor)+"'"));
+
   assert.ok(!csp[1].includes("'unsafe-inline'"));
   assert.ok(!csp[1].includes("'unsafe-eval'"));
 });
