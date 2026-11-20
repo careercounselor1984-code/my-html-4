@@ -147,10 +147,10 @@
   const jobCertExpire=pick(s.doc.getElementById('jobCertExpire')?.value,f['#jobCertExpire']);
   const validDate=v=>/^\d{4}-\d{2}-\d{2}$/.test(v)&&!Number.isNaN(Date.parse(v+'T12:00:00Z'))&&new Date(v+'T12:00:00Z').toISOString().slice(0,10)===v;
   if(!/^A\d{10,30}$/.test(reg)||name.length<2||name.includes('*')||!validDate(iapDate)){
-   show('✓ IAP 저장 완료 · 일정표 미반영(내담자 이름·IAP 수립일 확인 필요)',true);return;
+   show('✓ IAP 저장 확인 완료 · 일정표 미반영(내담자 이름·IAP 수립일 확인 필요)',true);return;
   }
   if((serviceEnd&&!validDate(serviceEnd))||(jobCertExpire&&!validDate(jobCertExpire))){
-   show('✓ IAP 저장 완료 · 일정표 미반영(만료일 형식 확인 필요)',true);return;
+   show('✓ IAP 저장 확인 완료 · 일정표 미반영(만료일 형식 확인 필요)',true);return;
   }
   const key=account+':'+reg,stamp=String(saved.updatedAt||'');
   if(calendarSyncTasks.has(key)||(stamp&&calendarSyncDone.get(key)===stamp))return;
@@ -164,7 +164,7 @@
   const finish=(ok,message)=>{
    clearTimeout(timeout);window.removeEventListener('message',receive);frame.remove();calendarSyncTasks.delete(key);
    if(ok&&stamp)calendarSyncDone.set(key,stamp);
-   if(String(owner||'').trim().toLowerCase()===account&&!s.closed)show((ok?'✓ IAP 저장 · 일정표 반영 완료':'✓ IAP 저장 완료 · 일정표 미반영')+(message?' · '+message:''),ok);
+   if(String(owner||'').trim().toLowerCase()===account&&!s.closed)show((ok?'✓ IAP 저장 확인 완료 · 일정표 반영 완료':'✓ IAP 저장 확인 완료 · 일정표 미반영')+(message?' · '+message:''),ok);
   };
   const receive=e=>{
    if(e.source!==frame.contentWindow||e.origin!==targetOrigin||e.data?.type!=='goodjob:client-link-result:v1'||e.data.requestId!==requestId)return;
@@ -176,7 +176,7 @@
    if(!calendarSyncTasks.has(key)||String(owner||'').trim().toLowerCase()!==account||s.closed){finish(false,'직원 계정이 변경되었습니다.');return;}
    frame.contentWindow.postMessage({type:'goodjob:client-link:v1',requestId,expectedEmail:account,profile},targetOrigin);
   };
-  document.body.append(frame);show('✓ IAP 저장 완료 · 일정표 자동 반영 확인 중…',true);
+  document.body.append(frame);show('✓ IAP 저장 확인 완료 · 일정표 자동 반영 확인 중…',true);
  }
  window.addEventListener('clg-auth-logout',()=>{for(const task of [...calendarSyncTasks.values()])task.finish(false,'로그아웃으로 중단');calendarSyncDone.clear()});
  function installRequiredFlow(s){
