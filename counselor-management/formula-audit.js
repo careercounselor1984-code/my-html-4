@@ -90,6 +90,7 @@ async function snapshot(bytes,Writer,Reader){
   if(count>MAX_FORMULAS)throw Error('수식이 너무 많은 파일입니다. 30,000개 이하만 분석할 수 있습니다.');
   sheets.push({name,path,source,dom,cells,rows,
    protected:!!one(dom,'sheetProtection')||!!one(dom,'tableParts'),
+   formulaRanges:byName(dom,'f').map(f=>f.getAttribute('ref')).filter(Boolean),
    merges:byName(dom,'mergeCell').map(c=>c.getAttribute('ref')).filter(Boolean)});
  }
  return {zip,wb,sheets,totalFormulas:count,externalLinks:zip.items.filter(i=>/^xl\/externalLinks\/externalLink\d+\.xml$/.test(i.name)).length};
@@ -99,7 +100,7 @@ function within(range,address){
  return !!(m&&a&&columnNumber(a[1])>=columnNumber(m[1])&&columnNumber(a[1])<=columnNumber(m[3]||m[1])&&Number(a[2])>=Number(m[2])&&Number(a[2])<=Number(m[4]||m[2]));
 }
 function repairableTarget(sheet,address){
- if(sheet.protected||sheet.merges.some(r=>within(r,address)))return false;
+ if(sheet.protected||sheet.merges.some(r=>within(r,address))||sheet.formulaRanges?.some(r=>within(r,address)))return false;
  const cell=sheet.cells.get(address);if(!cell)return sheet.rows.has(Number(validCell.exec(address)?.[2]||0));
  if(cell.formulaNode){
   if(cell.formulaNode.attributes.length||!cell.formula||byName(cell.cell,'extLst').length)return false;
@@ -177,7 +178,7 @@ async function createCorrectedCopy(bytes,model,report,ids,Writer,Reader){
   const attr=(tag,n)=>tag.match(new RegExp('(?:^|\\s)'+n+'="([^"]+)"'))?.[1]||'';
   for(const c of allCells){const addr=attr(c.open,'r');if(cellSpans.has(addr))throw Error('중복 셀이 있어 안전하게 수정할 수 없습니다.');cellSpans.set(addr,c);}
   for(const row of allRows)rowSpans.set(Number(attr(row.open,'r')),row);
-  for(const change of changes){
+  for(const change of [...changes].sort((a,b)=>Number(validCell.exec(a.address)[2])-Number(validCell.exec(b.address)[2])||columnNumber(validCell.exec(a.address)[1])-columnNumber(validCell.exec(b.address)[1]))){
    const current=sh.cells.get(change.address),span=cellSpans.get(change.address);
    const [col,rowNum]=[validCell.exec(change.address)[1],Number(validCell.exec(change.address)[2])];
    const prefix=sh.dom.documentElement.prefix?sh.dom.documentElement.prefix+':':'';
@@ -188,7 +189,7 @@ async function createCorrectedCopy(bytes,model,report,ids,Writer,Reader){
     replacement=open+'<'+prefix+'f>'+esc(change.after)+'</'+prefix+'f></'+prefix+'c>';
     patches.push({start:span.start,end:span.end,value:replacement});
    }else{
-    const row=rowSpans.get(rowNum);if(!row||row.self)throw Error('수식 누락 행 구조가 불확실합니다.');
+    const row=rowSpans.get(rowNum),domRow=sh.rows.get(rowNum);if(!row||row.self||!domRow||Array.from(domRow.children).some(n=>n.localName!=='c'))throw Error('수식 누락 행 구조가 불확실합니다.');
     const withinRow=allCells.filter(x=>x.start>=row.openEnd&&x.end<=row.end&&attr(x.open,'r'));
     const following=withinRow.find(x=>columnNumber(attr(x.open,'r').replace(/\d+/g,''))>columnNumber(col));
     const point=following?.start??row.closeStart;
@@ -230,6 +231,19 @@ async function createCorrectedCopy(bytes,model,report,ids,Writer,Reader){
  for(const issue of selected){
   const sh=verified.sheets.find(s=>s.path===issue.path);
   if(sh?.cells.get(issue.address)?.formula!==issue.after)throw Error('수정 결과 수식 재검증 실패: '+issue.sheet+'!'+issue.address);
+ }
+ // Check every pre-existing cell that was not selected for modification.
+ const chosenAddresses=new Set(selected.map(i=>i.path+'!'+i.address));
+ for(const originalSheet of model.sheets){
+  if(!replacements.has(originalSheet.path))continue;
+  const regenerated=verified.sheets.find(s=>s.path===originalSheet.path);
+  if(!regenerated)throw Error('수정된 시트를 재검증하지 못했습니다.');
+  for(const [address,prior] of originalSheet.cells){
+   if(chosenAddresses.has(originalSheet.path+'!'+address))continue;
+   const updated=regenerated.cells.get(address);
+   if(!updated||prior.formula!==updated.formula||prior.cache!==updated.cache||prior.type!==updated.type)
+    throw Error('수정 대상으로 선택하지 않은 셀의 값이 달라졌습니다: '+originalSheet.name+'!'+address);
+  }
  }
  // No ZIP entry outside the approved worksheet(s) and recalc metadata may change.
  if(verified.zip.items.length!==model.zip.items.length)throw Error('ZIP 파일 항목 수가 변경되었습니다.');
