@@ -3,7 +3,7 @@
  * Proposals are syntactic candidates, NOT validation of government performance rules.
  */
 (function(root){'use strict';
-const LIMIT_ISSUES=1000,MAX_FORMULAS=30000;
+const LIMIT_ISSUES=1000,MAX_FORMULAS=30000,MAX_AUDIT_CELLS=750000;
 const enc=typeof TextEncoder==='function'?new TextEncoder():null;
 const dec=typeof TextDecoder==='function'?new TextDecoder('utf-8',{fatal:true}):null;
 const $=id=>root.document?.getElementById(id);
@@ -91,20 +91,24 @@ async function snapshot(bytes,Writer,Reader){
   const rid=item.getAttributeNS('http://schemas.openxmlformats.org/officeDocument/2006/relationships','id');
   const path=sheetPath(relMap.get(rid)),name=item.getAttribute('name')||'';
   if(!path)throw Error('시트 참조 경로를 확인할 수 없습니다.');
-  const source=await get(path),dom=xml(source),cells=new Map(),rows=new Map();
+  const source=await get(path),dom=xml(source),cells=new Map(),occupied=new Set(),rows=new Map();
   for(const row of byName(dom,'row')){
    const n=Number(row.getAttribute('r'));if(Number.isInteger(n))rows.set(n,row);
    for(const cell of byName(row,'c')){
-    if(++cellCount>Reader.LIMIT.cells)throw Error('엑셀 셀 수가 점검 제한을 초과합니다.');
+    if(++cellCount>MAX_AUDIT_CELLS)throw Error('엑셀 셀 수가 점검 제한을 초과합니다.');
     const addr=String(cell.getAttribute('r')||'');if(!validCell.test(addr))continue;
-    const f=one(cell,'f'),v=one(cell,'v');
+    const f=one(cell,'f'),v=one(cell,'v'),type=cell.getAttribute('t')||'';
     if(f)count++;
-    cells.set(addr,{address:addr,row:n,col:validCell.exec(addr)[1],
-      formula:f?.textContent||'',formulaNode:f||null,cell,cache:v?.textContent||'',type:cell.getAttribute('t')||''});
+    occupied.add(addr);
+    // A counselor workbook may have 400k+ styled, otherwise blank cells.
+    // Index only formula/error cells. Occupied keeps us from inserting a
+    // duplicate XML cell where an apparently empty styled cell exists.
+    if(f||(type==='e'&&v))cells.set(addr,{address:addr,row:n,col:validCell.exec(addr)[1],
+      formula:f?.textContent||'',formulaNode:f||null,cell,cache:v?.textContent||'',type});
    }
   }
   if(count>MAX_FORMULAS)throw Error('수식이 너무 많은 파일입니다. 30,000개 이하만 분석할 수 있습니다.');
-  sheets.push({name,path,source,dom,cells,rows,
+  sheets.push({name,path,source,dom,cells,occupied,rows,
    protected:!!one(dom,'sheetProtection')||!!one(dom,'tableParts'),
    formulaRanges:byName(dom,'f').map(f=>f.getAttribute('ref')).filter(Boolean),
    merges:byName(dom,'mergeCell').map(c=>c.getAttribute('ref')).filter(Boolean)});
@@ -117,6 +121,7 @@ function within(range,address){
 }
 function repairableTarget(sheet,address){
  if(sheet.protected||sheet.merges.some(r=>within(r,address))||sheet.formulaRanges?.some(r=>within(r,address)))return false;
+ if(sheet.occupied?.has(address)&&!sheet.cells.has(address))return false;
  const cell=sheet.cells.get(address);if(!cell)return sheet.rows.has(Number(validCell.exec(address)?.[2]||0));
  if(cell.formulaNode){
   if(cell.formulaNode.attributes.length||!cell.formula||byName(cell.cell,'extLst').length)return false;
