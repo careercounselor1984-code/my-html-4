@@ -85,7 +85,8 @@ try{
  if(!String(result.stdout).includes('data-audit-smoke="pass"')){
   const output=String(result.stdout||'');
   const marker=output.match(/data-audit-smoke="([^"]+)"/)?.[1]||'absent';
-  const detail=output.match(/<pre id="result">([\\s\\S]*?)<\\/pre>/)?.[1]||'No browser result detail';
+  const prefix='<pre id="result">',at=output.indexOf(prefix);
+  const detail=at>=0?output.slice(at+prefix.length,output.indexOf('</pre>',at)):'No browser result detail';
   console.error('Browser smoke failed',result.status,'attribute',marker,'detail',detail.slice(0,2400),'head',output.slice(0,260),'stderr',String(result.stderr).slice(-500));
   process.exitCode=1;
  }else console.log('PASS: Real Chrome read XLSX → identify formulas → approved copy → reopen → preserve adjacent formulas');
