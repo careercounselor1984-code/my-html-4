@@ -37,7 +37,7 @@ function create(frame,goBack){
  '<details class="gjs-analytics" open><summary>상담사별 · 날짜별 · 센터별 활동 분석</summary><div class="gjs-table-wrap" data-analytics></div><div class="gjs-table-wrap" data-center-analytics></div><p class="gjs-note">활동 입력 기준이며 공식 취업률·알선취업률과 다릅니다. 센터별 수치는 개인정보 없는 합계만 표시됩니다.</p></details>'+
  '</div>';d.body.append(root);
  var q=function(x){return root.querySelector(x)};
- var state={jobs:[],activities:[],centerStats:[],selectedKey:'',type:'provided',userId:'',busy:false,visible:false,truncated:false,pollTimer:null,refreshQueued:false};
+ var state={jobs:[],activities:[],centerStats:[],selectedKey:'',type:'provided',userId:'',busy:false,visible:false,truncated:false,pollTimer:null,refreshQueued:false,loadedOnce:false,knownActivityIds:new Set()};
  var status=function(s){q('[data-status]').textContent=s||''};
  q('[data-date]').value=today();q('[data-event-date]').value=today();
  function client(){var c=window.clgJobArchiveClient&&window.clgJobArchiveClient();if(!c)throw Error('로그인 후 사용할 수 있습니다.');return c}
@@ -191,8 +191,10 @@ function create(frame,goBack){
    var all=[],off=0,pageSize=500;
    for(var j=0;j<10;j++){var p=await c.from(ACTIVITY).select('id,job_key,event_type,client_label,client_code,event_date,notes,actor_id,actor_name,actor_team,created_at,voided_at').is('voided_at',null).order('created_at',{ascending:false}).range(off,off+pageSize-1);if(p.error)throw p.error;all=all.concat(p.data||[]);if(!p.data||p.data.length<pageSize)break;off+=pageSize}
    var keys=new Set(jobs.map(function(x){return x.job_key}));state.jobs=jobs;state.activities=all.filter(function(x){return keys.has(x.job_key)});
+   var freshlyAdded=state.loadedOnce?state.activities.filter(function(a){return !state.knownActivityIds.has(a.id)}).length:0;
+   state.knownActivityIds=new Set(state.activities.map(function(a){return a.id}));state.loadedOnce=true;
    state.truncated=jobs.length>=1000||all.length>=5000;render();await refreshCenterCounts();
-   status(state.truncated?'목록 표시 상한에 도달했습니다. 장기 정확 통계는 서버 집계 확장이 필요합니다.':'공유 공고 '+new Set(jobs.map(function(x){return x.job_key})).size+'건 · 활동 '+state.activities.length+'건');
+   status(state.truncated?'목록 표시 상한에 도달했습니다. 정확한 장기 통계에는 서버 집계 확장이 필요합니다.':(freshlyAdded?'새 활동 '+freshlyAdded+'건 확인 · ':'')+'공유 공고 '+new Set(jobs.map(function(x){return x.job_key})).size+'건 · 활동 '+state.activities.length+'건');
   }catch(e){status('불러오기 실패: '+safe(e.message,200)+' · 활동기록 테이블 권한을 확인해 주세요.')}
   finally{state.busy=false;q('[data-reload]').disabled=false}
  }
@@ -230,6 +232,7 @@ function create(frame,goBack){
  }
  function show(){state.visible=true;root.hidden=false;loadData();if(!state.pollTimer)state.pollTimer=window.setInterval(function(){if(state.visible&&!state.busy)loadData()},45000)}
  function hide(){state.visible=false;root.hidden=true;if(state.pollTimer){window.clearInterval(state.pollTimer);state.pollTimer=null}}
+ function clear(){hide();state.jobs=[];state.activities=[];state.centerStats=[];state.userId='';state.selectedKey='';state.loadedOnce=false;state.knownActivityIds.clear();q('[data-client-code]').value='';q('[data-client]').value='';q('[data-notes]').value='';q('[data-side]').hidden=true;q('[data-layout]').classList.remove('gjs-open');render();status('로그아웃으로 기록 화면을 초기화했습니다.')}
  q('[data-back]').onclick=function(){hide();if(typeof goBack==='function')goBack()};
  q('[data-close-side]').onclick=closeSide;q('[data-reload]').onclick=loadData;q('[data-export]').onclick=downloadCsv;
  q('[data-period]').onchange=function(){q('[data-date]').hidden=q('[data-period]').value!=='date';render();refreshCenterCounts()};
@@ -237,7 +240,7 @@ function create(frame,goBack){
  root.querySelectorAll('[data-type]').forEach(function(b){b.onclick=function(){state.type=b.dataset.type;renderSide()}});
  q('[data-client-code]').addEventListener('input',checkDuplicate);
  q('[data-form]').addEventListener('submit',add);
- return {show:show,hide:hide,reload:loadData};
+ return {show:show,hide:hide,clear:clear,reload:loadData};
 }
 window.GJSharedDashboard={create:create};
 })();
