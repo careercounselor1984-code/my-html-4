@@ -20,5 +20,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Test manager counts and year presets
+      - name: Check formula parser syntax
+        run: |
+          node --check counselor-management/formula-audit.js
+          node --check counselor-management/period-presets.js
+      - name: Test management and formula safety logic
         run: node --test tests/counselor-*.test.cjs
+      - name: Real Chrome XLSX repair smoke (synthetic only)
+        run: node tests/counselor-formula-browser-smoke.cjs
