@@ -80,14 +80,20 @@ const chrome=['/usr/bin/google-chrome','/usr/bin/chromium','/usr/bin/chromium-br
 if(!chrome)throw Error('Chrome not available');
 const location=path.resolve('.counselor-formula-smoke.html');
 fs.writeFileSync(location,fixture,'utf8');
-try{
- const result=cp.spawnSync(chrome,['--headless=new','--no-sandbox','--disable-gpu','--disable-dev-shm-usage','--disable-extensions','--allow-file-access-from-files','--virtual-time-budget=15000','--dump-dom','file://'+location],{encoding:'utf8',timeout:120000,maxBuffer:24*1024*1024});
- if(!String(result.stdout).includes('data-audit-smoke="pass"')){
-  const output=String(result.stdout||'');
-  const marker=output.match(/data-audit-smoke="([^"]+)"/)?.[1]||'absent';
-  const prefix='<pre id="result">',at=output.indexOf(prefix);
-  const detail=at>=0?output.slice(at+prefix.length,output.indexOf('</pre>',at)):'No browser result detail';
-  console.error('Browser smoke failed',result.status,'attribute',marker,'detail',detail.slice(0,2400),'head',output.slice(0,260),'stderr',String(result.stderr).slice(-500));
-  process.exitCode=1;
- }else console.log('PASS: Real Chrome read XLSX → identify formulas → approved copy → reopen → preserve adjacent formulas');
-}finally{fs.unlinkSync(location);}
+(async()=>{
+ let browser;
+ try{
+  const puppeteer=require('puppeteer-core');
+  browser=await puppeteer.launch({executablePath:chrome,headless:true,args:['--no-sandbox','--disable-dev-shm-usage','--disable-gpu','--allow-file-access-from-files']});
+  const page=await browser.newPage(),pageErrors=[];
+  page.on('pageerror',error=>pageErrors.push(String(error)));
+  await page.goto('file://'+location,{waitUntil:'load',timeout:30000});
+  await page.waitForFunction(()=>['pass','fail'].includes(document.documentElement.getAttribute('data-audit-smoke')),{timeout:45000});
+  const outcome=await page.evaluate(()=>({status:document.documentElement.getAttribute('data-audit-smoke'),detail:document.getElementById('result').textContent}));
+  if(outcome.status!=='pass')throw Error('Chrome audit failed: '+outcome.detail+' / pageerrors: '+pageErrors.join(' | '));
+  console.log('PASS: Chrome loaded synthetic XLSX, repaired two formulas in a copy, and re-read corrected XML');
+ }finally{
+  if(browser)await browser.close();
+  fs.unlinkSync(location);
+ }
+})().catch(error=>{console.error(String(error?.stack||error));process.exitCode=1;});
