@@ -4,7 +4,7 @@
 const TABLE='counselor_job_archive';
 // 공유 카드 화면은 별도 모듈로 분리하여 기존 채용정보 작성 화면을 보호합니다.
 const dashboardModule=document.createElement('script');
-dashboardModule.src='./job-share-dashboard.js?v=20261121-1';
+dashboardModule.src='./job-share-dashboard.js?v=20261121-2';
 dashboardModule.async=true;document.head.appendChild(dashboardModule);
 const fields=['company','title','duties','location','employment','education','experience','workHours','salary','deadline','url','source'];
 const statuses={matched:1,api_only:1,page_only:1,conflict:1,unverified:1,manual:1,page_selected:1,api_selected:1};
