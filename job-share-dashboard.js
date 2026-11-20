@@ -226,6 +226,7 @@ function create(frame,goBack){
   }catch(err){status('기록 취소 실패: '+safe(err.message,200))}
  }
  function downloadCsv(){
+  if(state.truncated){status('상세 활동이 5,000건을 초과하여 CSV가 일부 누락될 수 있습니다. 기간을 좁혀 다시 조회해 주세요.');return}
   var rows=new Map();periodActivities(state.activities).forEach(function(a){var date=String(a.event_date).slice(0,10),name=safe(a.actor_name,80)||'상담사',key=date+'|'+name,rec=rows.get(key)||{date:date,name:name,n:[0,0,0]},ix=['provided','referred','employed'].indexOf(a.event_type);if(ix>=0)rec.n[ix]++;rows.set(key,rec)});
   function quote(v){var s=String(v);if(/^[=+\-@\t\r]/.test(s))s="'"+s;return '"'+s.replace(/"/g,'""')+'"'}
   var lines=[['진행일','상담사','정보제공','알선','취업'].map(quote).join(',')];
@@ -251,6 +252,8 @@ function create(frame,goBack){
  root.querySelectorAll('[data-type]').forEach(function(b){b.onclick=function(){state.type=b.dataset.type;renderSide()}});
  q('[data-client-code]').addEventListener('input',checkDuplicate);
  q('[data-form]').addEventListener('submit',add);
+ window.addEventListener('clg-page-change',hide);
+ window.addEventListener('clg-tab-switch',hide);
  return {show:show,hide:hide,clear:clear,reload:loadData};
 }
 window.GJSharedDashboard={create:create};
