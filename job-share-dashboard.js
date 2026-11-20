@@ -189,21 +189,30 @@ function create(frame,goBack){
    state.userId=auth.data.user.id;var jobs=[],cursor=0,step=200;
    for(var i=0;i<5;i++){var r=await c.from(ARCHIVE).select('id,owner_id,owner_name,job_key,job,is_shared,saved_at').eq('is_shared',true).order('saved_at',{ascending:false}).range(cursor,cursor+step-1);if(r.error)throw r.error;jobs=jobs.concat(r.data||[]);if(!r.data||r.data.length<step)break;cursor+=step}
    var all=[],off=0,pageSize=500;
-   for(var j=0;j<10;j++){var p=await c.from(ACTIVITY).select('id,job_key,event_type,client_label,event_date,notes,actor_id,actor_name,created_at,voided_at').is('voided_at',null).order('created_at',{ascending:false}).range(off,off+pageSize-1);if(p.error)throw p.error;all=all.concat(p.data||[]);if(!p.data||p.data.length<pageSize)break;off+=pageSize}
+   for(var j=0;j<10;j++){var p=await c.from(ACTIVITY).select('id,job_key,event_type,client_label,client_code,event_date,notes,actor_id,actor_name,actor_team,created_at,voided_at').is('voided_at',null).order('created_at',{ascending:false}).range(off,off+pageSize-1);if(p.error)throw p.error;all=all.concat(p.data||[]);if(!p.data||p.data.length<pageSize)break;off+=pageSize}
    var keys=new Set(jobs.map(function(x){return x.job_key}));state.jobs=jobs;state.activities=all.filter(function(x){return keys.has(x.job_key)});
-   state.truncated=jobs.length>=1000||all.length>=5000;render();
+   state.truncated=jobs.length>=1000||all.length>=5000;render();await refreshCenterCounts();
    status(state.truncated?'목록 표시 상한에 도달했습니다. 장기 정확 통계는 서버 집계 확장이 필요합니다.':'공유 공고 '+new Set(jobs.map(function(x){return x.job_key})).size+'건 · 활동 '+state.activities.length+'건');
   }catch(e){status('불러오기 실패: '+safe(e.message,200)+' · 활동기록 테이블 권한을 확인해 주세요.')}
   finally{state.busy=false;q('[data-reload]').disabled=false}
  }
  async function add(e){
-  e.preventDefault();if(!state.selectedKey)return;var who=safe(q('[data-client]').value,80),when=q('[data-event-date]').value,memo=safe(q('[data-notes]').value,400);
-  if(!who||!when){status('내담자 성명 또는 관리번호와 진행일을 입력해 주세요.');return}
+  e.preventDefault();if(!state.selectedKey)return;
+  var who=safe(q('[data-client]').value,80),code=normalizedCode(q('[data-client-code]').value),when=q('[data-event-date]').value,memo=safe(q('[data-notes]').value,400);
+  if(!/^[a-z0-9_-]{4,80}$/.test(code)){status('내담자 고유번호는 영문·숫자·하이픈·밑줄 4~80자로 입력해 주세요.');return}
+  if(/^[0-9]{13}$/.test(code)||/^01[016789][0-9]{7,8}$/.test(code)){status('개인 전화번호와 주민등록번호는 등록할 수 없습니다. 내부 등록번호를 사용하세요.');return}
+  if(!who||!when){status('내담자 표시명과 진행일을 입력해 주세요.');return}
   if(!/^\d{4}-\d{2}-\d{2}$/.test(when)){status('진행일 형식을 확인해 주세요.');return}
+  if(checkDuplicate())return;
   var b=q('[data-save]');b.disabled=true;
-  try{var c=client(),r=await c.from(ACTIVITY).insert({job_key:state.selectedKey,event_type:state.type,client_label:who,event_date:when,notes:memo});
-   if(r.error)throw r.error;q('[data-client]').value='';q('[data-notes]').value='';await loadData();status('활동 기록이 저장되었습니다.');
-  }catch(err){status('기록 저장 실패: '+safe(err.message,200))}finally{b.disabled=false}
+  try{
+   var c=client(),r=await c.from(ACTIVITY).insert({job_key:state.selectedKey,event_type:state.type,client_code:code,client_label:who,event_date:when,notes:memo});
+   if(r.error)throw r.error;
+   q('[data-notes]').value='';await loadData();status('내담자 '+who+'의 '+TYPES[state.type]+' 기록이 저장되었습니다.');
+  }catch(err){
+   if(err.code==='23505'){status('중복 기록입니다. 같은 공고·센터·내담자·활동 단계는 한 번만 기록할 수 있습니다.');await loadData()}
+   else status('기록 저장 실패: '+safe(err.message,200))
+  }finally{b.disabled=false;checkDuplicate()}
  }
  async function voidEvent(id){
   if(!window.confirm('선택한 기록을 취소할까요? 원본은 감사 이력으로 유지됩니다.'))return;
@@ -219,8 +228,8 @@ function create(frame,goBack){
   var blob=new Blob(['\uFEFF'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'}),url=URL.createObjectURL(blob),a=elem(d,'a');
   a.href=url;a.download='상담사공유_채용활동_'+today()+'.csv';d.body.append(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(url)},3000)
  }
- function show(){state.visible=true;root.hidden=false;loadData()}
- function hide(){state.visible=false;root.hidden=true}
+ function show(){state.visible=true;root.hidden=false;loadData();if(!state.pollTimer)state.pollTimer=window.setInterval(function(){if(state.visible&&!state.busy)loadData()},45000)}
+ function hide(){state.visible=false;root.hidden=true;if(state.pollTimer){window.clearInterval(state.pollTimer);state.pollTimer=null}}
  q('[data-back]').onclick=function(){hide();if(typeof goBack==='function')goBack()};
  q('[data-close-side]').onclick=closeSide;q('[data-reload]').onclick=loadData;q('[data-export]').onclick=downloadCsv;
  q('[data-period]').onchange=function(){q('[data-date]').hidden=q('[data-period]').value!=='date';render();refreshCenterCounts()};
