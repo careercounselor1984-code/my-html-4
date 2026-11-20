@@ -75,7 +75,7 @@ const probe='(async()=>{try{'+
  'if(sheet.cells.get("A10")?.formula!=="SUM(C10:D10)")throw Error("neighbor formula damaged");'+
  'document.documentElement.setAttribute("data-audit-smoke","pass");'+
  '}catch(e){document.documentElement.setAttribute("data-audit-smoke","fail");document.getElementById("result").textContent=String(e?.stack||e);}})();';
-const fixture='<!doctype html><html lang="ko"><head><meta charset="UTF-8"></head><body><pre id="result"></pre><script>'+reader+'\n'+writer+'\n'+audit+'\n'+probe+'</script></body></html>';
+const fixture='<!doctype html><html lang="ko"><head><meta charset="UTF-8"></head><body><pre id="result"></pre><script>document.documentElement.setAttribute("data-audit-smoke","boot");</script><script>'+reader+'</script><script>'+writer+'</script><script>'+audit+'</script><script>'+probe+'</script></body></html>';
 const chrome=['/usr/bin/google-chrome','/usr/bin/chromium','/usr/bin/chromium-browser','/opt/google/chrome/chrome'].find(p=>fs.existsSync(p));
 if(!chrome)throw Error('Chrome not available');
 const location=path.resolve('.counselor-formula-smoke.html');
