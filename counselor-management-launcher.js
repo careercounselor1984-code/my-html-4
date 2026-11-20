@@ -1,6 +1,6 @@
 /* North-center integration. Authorization comes from active server employee records. */
 (()=>{'use strict';
-const PAGE='p_counselor_management',VERSION='20261116-oneclick-save-1';
+const PAGE='p_counselor_management',VERSION='20261121-period-report-1';
 let generation=0,busy=false,current=null;
 const nativeRenderMenu=renderMenu,nativeLoadPage=loadPage;
 function syncMenu(){
