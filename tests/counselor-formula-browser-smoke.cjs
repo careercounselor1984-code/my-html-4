@@ -26,7 +26,10 @@ const stat=wrap(
  row(11,[formula('A11','SUM(#REF!)')])+
  row(12,[formula('A12','SUM(C12:D12)'),formula('B12','SUM(E12:F12)')])
 );
-const sheets=names.map(name=>name==='진행통계'?stat:name==='상담사관리현황'?members:wrap(''));
+const stress=process.env.CM_STRESS==='1';
+const letter=n=>{let s='';for(;n>0;n=Math.floor((n-1)/26))s=String.fromCharCode(65+(n-1)%26)+s;return s;};
+const fat=stress?wrap(Array.from({length:1000},(_,i)=>row(100+i,Array.from({length:510},(_,j)=>'<c r="'+letter(j+1)+(100+i)+'" s="0"/>'))).join('')):members;
+const sheets=names.map(name=>name==='진행통계'?stat:name==='상담사관리현황'?fat:wrap(''));
 const workbook='<?xml version="1.0" encoding="UTF-8"?><workbook xmlns="'+ns+'" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>'+names.map((n,i)=>'<sheet name="'+xmlEsc(n)+'" sheetId="'+(i+1)+'" r:id="rId'+(i+1)+'"/>').join('')+'</sheets></workbook>';
 const rels='<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'+names.map((n,i)=>'<Relationship Id="rId'+(i+1)+'" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet'+(i+1)+'.xml"/>').join('')+'</Relationships>';
 const contentTypes='<?xml version="1.0" encoding="UTF-8"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>'+names.map((_,i)=>'<Override PartName="/xl/worksheets/sheet'+(i+1)+'.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>').join('')+'</Types>';
@@ -66,6 +69,7 @@ const probe='(async()=>{try{'+
  'const src=Uint8Array.from(atob("'+base64+'"),x=>x.charCodeAt(0));'+
  'const X=window.CounselorExcel,W=window.CounselorCopyWriter,A=window.CounselorFormulaAudit;'+
  'const model=await A.snapshot(src.buffer,W,X),report=A.audit(model);'+
+ (stress?'if(model.sheets.find(s=>s.name==="상담사관리현황").occupied.size!==510000)throw Error("unexpected occupied cell count");document.documentElement.setAttribute("data-audit-smoke","pass");return;':'')+
  'if(model.sheets.length!==10)throw Error("mixed workbook sheet count wrong");'+
  'const fixes=report.issues.filter(i=>i.repairable&&(i.address==="A11"||i.address==="B11"));'+
  'if(fixes.length!==2)throw Error("expected two approved fixes, got "+fixes.length);'+
@@ -89,10 +93,10 @@ fs.writeFileSync(location,fixture,'utf8');
   const page=await browser.newPage(),pageErrors=[];
   page.on('pageerror',error=>pageErrors.push(String(error)));
   await page.goto('file://'+location,{waitUntil:'load',timeout:30000});
-  await page.waitForFunction(()=>['pass','fail'].includes(document.documentElement.getAttribute('data-audit-smoke')),{timeout:45000});
+  await page.waitForFunction(()=>['pass','fail'].includes(document.documentElement.getAttribute('data-audit-smoke')),{timeout:stress?90000:45000});
   const outcome=await page.evaluate(()=>({status:document.documentElement.getAttribute('data-audit-smoke'),detail:document.getElementById('result').textContent}));
   if(outcome.status!=='pass')throw Error('Chrome audit failed: '+outcome.detail+' / pageerrors: '+pageErrors.join(' | '));
-  console.log('PASS: Chrome read mixed-layout XLSX (without fixed nine sheets), repaired two formula candidates in copy, and re-read corrected XML');
+  console.log(stress?'PASS: Chrome scanned 510,000 styled XLSX cells in formula-only mode':'PASS: Chrome read mixed-layout XLSX (without fixed nine sheets), repaired two formula candidates in copy, and re-read corrected XML');
  }finally{
   if(browser)await browser.close();
   fs.unlinkSync(location);
