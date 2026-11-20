@@ -1,7 +1,7 @@
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const source=fs.readFileSync('journal-workspace.js','utf8');
-const start=source.indexOf(' // Confirmed IAP save -> owner-scoped calendar bridge.');
+const start=source.indexOf(' // A saved journal is not a confirmed server change. Keep confirmation and history separate.');
 const end=source.indexOf(' function installRequiredFlow(s)',start);
 assert(start>=0&&end>start,'bridge must be installed');
 assert(source.includes('syncSavedIapToCalendar(s,reg,after,show);'),'verified IAP save triggers bridge');
