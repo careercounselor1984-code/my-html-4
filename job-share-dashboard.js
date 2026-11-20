@@ -193,7 +193,7 @@ function create(frame,goBack){
    for(var i=0;i<5;i++){var r=await c.from(ARCHIVE).select('id,owner_id,owner_name,job_key,job,is_shared,saved_at').eq('is_shared',true).order('saved_at',{ascending:false}).range(cursor,cursor+step-1);if(r.error)throw r.error;jobs=jobs.concat(r.data||[]);if(!r.data||r.data.length<step)break;cursor+=step}
    var all=[],off=0,pageSize=500;
    for(var j=0;j<10;j++){var p=await c.from(ACTIVITY).select('id,job_key,event_type,client_label,client_code,event_date,notes,actor_id,actor_name,actor_team,created_at,voided_at').is('voided_at',null).order('created_at',{ascending:false}).range(off,off+pageSize-1);if(p.error)throw p.error;all=all.concat(p.data||[]);if(!p.data||p.data.length<pageSize)break;off+=pageSize}
-   var keys=new Set(jobs.map(function(x){return x.job_key}));state.jobs=jobs;state.activities=all.filter(function(x){return keys.has(x.job_key)});
+   state.jobs=jobs;state.activities=all;
    var freshlyAdded=state.loadedOnce?state.activities.filter(function(a){return !state.knownActivityIds.has(a.id)}).length:0;
    state.knownActivityIds=new Set(state.activities.map(function(a){return a.id}));state.loadedOnce=true;
    state.truncated=jobs.length>=1000||all.length>=5000;render();await refreshCenterCounts();
