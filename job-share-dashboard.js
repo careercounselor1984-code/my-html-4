@@ -49,7 +49,7 @@ function create(frame,goBack){
  function uniqueJobs(){
   var m=new Map();state.jobs.forEach(function(x){
    if(!m.has(x.job_key))m.set(x.job_key,{key:x.job_key,job:x.job||{},saved_at:x.saved_at,owners:new Set()});
-   m.get(x.job_key).owners.add(x.owner_name||'공유 상담사');
+   m.get(x.job_key).owners.add(x.owner_id);
   });return Array.from(m.values());
  }
  function activitiesFor(k){return state.activities.filter(function(a){return a.job_key===k&&!a.voided_at})}
