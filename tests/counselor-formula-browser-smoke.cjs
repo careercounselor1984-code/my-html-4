@@ -5,9 +5,9 @@ const html=fs.readFileSync(path.join(__dirname,'../counselor-management/index.ht
 const audit=fs.readFileSync(path.join(__dirname,'../counselor-management/formula-audit.js'),'utf8');
 function extract(marker){
  const a=html.indexOf(marker);if(a<0)throw Error('module marker not found: '+marker);
- const from=html.indexOf('(function(root)',a),end=html.indexOf('})(globalThis);',from);
+ const from=html.indexOf('(function(root)',a),end=html.indexOf("})(typeof self!=='undefined'?self:globalThis);",from);
  if(from<0||end<0)throw Error('module boundary missing: '+marker);
- return html.slice(from,end+'})(globalThis);'.length);
+ return html.slice(from,end+"})(typeof self!=='undefined'?self:globalThis);".length);
 }
 const reader=extract('/* Read-only OOXML projection.'),writer=extract('/* Minimal OOXML edits, preserving');
 const names=['21 평가기준','22 평가기준','23 평가기준','데이터(지우지말것)','직무분류2505','진행통계','평가통계','상담사관리현황','3단계 취업지원서비스'];
