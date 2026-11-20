@@ -1,0 +1,24 @@
+name: Counselor management checks
+
+on:
+  pull_request:
+    paths:
+      - 'counselor-management/**'
+      - 'counselor-management-launcher.js'
+      - 'tests/counselor-*.test.cjs'
+      - '.github/workflows/counselor-management-checks.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Test manager counts and year presets
+        run: node --test tests/counselor-period-presets.test.cjs tests/counselor-manager-report.test.cjs
