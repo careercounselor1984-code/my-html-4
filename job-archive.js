@@ -4,7 +4,7 @@
 const TABLE='counselor_job_archive';
 // 공유 카드 화면은 별도 모듈로 분리하여 기존 채용정보 작성 화면을 보호합니다.
 const dashboardModule=document.createElement('script');
-dashboardModule.src='./job-share-dashboard.js?v=20261121-2';
+dashboardModule.src='./job-share-dashboard.js?v=20261121-phase2';
 dashboardModule.async=true;document.head.appendChild(dashboardModule);
 const fields=['company','title','duties','location','employment','education','experience','workHours','salary','deadline','url','source'];
 const statuses={matched:1,api_only:1,page_only:1,conflict:1,unverified:1,manual:1,page_selected:1,api_selected:1};
@@ -231,7 +231,7 @@ function mount(frame){
   wrapped.__gjArchiveV2=true;w.saveAndGenerate=wrapped;
  }
  connectSave();
- function clear(){sharedDashboard?.hide();epoch++;busy=false;rows=[];checked.clear();uid='';q('[data-list]').replaceChildren();q('[data-count]').textContent='로그인 필요';message('로그인이 필요합니다.')}
+ function clear(){sharedDashboard?.clear?.();epoch++;busy=false;rows=[];checked.clear();uid='';q('[data-list]').replaceChildren();q('[data-count]').textContent='로그인 필요';message('로그인이 필요합니다.')}
  panels.set(d,{refresh,connectSave,clear});
  refresh();
  return panels.get(d);
