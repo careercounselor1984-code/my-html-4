@@ -78,3 +78,19 @@
 #gjSharedDashboard .gjs-origin{display:inline-block;text-decoration:none;color:#245cb4;font-size:11px;font-weight:750;margin-top:5px}
 @media(max-width:980px){#gjSharedDashboard .gjs-wrap{padding:15px}#gjSharedDashboard .gjs-stats{grid-template-columns:repeat(2,minmax(0,1fr))}#gjSharedDashboard .gjs-layout.gjs-open{grid-template-columns:minmax(0,1fr)}#gjSharedDashboard .gjs-side{position:static;max-height:none;grid-row:1}}
 @media(max-width:580px){#gjSharedDashboard .gjs-head{flex-direction:column}#gjSharedDashboard h1{font-size:21px}#gjSharedDashboard .gjs-grid{grid-template-columns:1fr}#gjSharedDashboard .gjs-tools select{max-width:100px}#gjSharedDashboard .gjs-stat{padding:13px}#gjSharedDashboard .gjs-stat strong{font-size:25px}}
+/* 2차: 내담자별 상태 카드, 중복 입력 경고 */
+#gjSharedDashboard .gjs-warning{min-height:17px;color:#526b8a;font-size:11px;line-height:1.6;margin:9px 0 0}
+#gjSharedDashboard .gjs-warning.is-error{color:#b91c1c;font-weight:850}
+#gjSharedDashboard .gjs-journey{border:1px solid #e1e9f4;border-radius:11px;background:#f9fbfe;padding:11px 12px;margin:9px 0}
+#gjSharedDashboard .gjs-journey-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap}
+#gjSharedDashboard .gjs-journey-head strong{font-size:13px;color:#263a5a}
+#gjSharedDashboard .gjs-journey-head small{font-size:11px;color:#76859d;overflow-wrap:anywhere}
+#gjSharedDashboard .gjs-journey-flow{display:flex;gap:4px;margin:10px 0}
+#gjSharedDashboard .gjs-stage{flex:1;text-align:center;font-size:11px;font-weight:750;padding:6px 4px;background:#e9eff6;color:#78879a;border-radius:6px;position:relative}
+#gjSharedDashboard .gjs-stage.done{background:#dcedff;color:#245ca3}
+#gjSharedDashboard .gjs-stage.done:last-child{background:#d9f3e8;color:#087447}
+#gjSharedDashboard .gjs-journey-actions{display:flex;justify-content:space-between;align-items:center;gap:8px}
+#gjSharedDashboard .gjs-journey-actions span{color:#74849d;font-size:10.5px;line-height:1.4}
+#gjSharedDashboard .gjs-journey-actions button{white-space:nowrap;min-height:26px;padding:4px 7px;color:#1d5db5;font-size:11px;font-weight:850}
+#gjSharedDashboard .gjs-analytics h3{font-size:13px;font-weight:900;margin:16px 0 7px}
+#gjSharedDashboard #gjs-client-code{text-transform:uppercase;font-weight:750;letter-spacing:.25px}
