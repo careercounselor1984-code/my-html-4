@@ -79,6 +79,7 @@ function create(frame,goBack){
   if(!jobs.length)grid.append(elem(d,'div','gjs-empty',state.jobs.length?'조건에 맞는 공유 공고가 없습니다.':'공유된 공고가 없습니다. 내 보관함에서 공고를 공유해 주세요.'));
   if(state.selectedKey)renderSide();
   renderAnalytics(records);
+  aggregateCenterRows();
  }
  function renderAnalytics(records){
   var body=q('[data-analytics]');body.replaceChildren(),people=new Map(),dates=new Map();
@@ -93,6 +94,72 @@ function create(frame,goBack){
   tab('일자별 집계',Array.from(dates.values()).sort(function(a,b){return b.label.localeCompare(a.label)}));
   if(!records.length)body.append(elem(d,'p','gjs-muted','해당 기간에 활동 기록이 없습니다.'));
  }
+
+ function aggregateCenterRows(){
+  var out=q('[data-center-analytics]');out.replaceChildren();
+  out.append(elem(d,'h3','','센터별 활동 건수 (내담자 정보 제외)'));
+  var map=new Map();
+  (state.centerStats||[]).forEach(function(v){
+   var key=safe(v.center_name,100)||'미분류',r=map.get(key)||{label:key,n:[0,0,0]},i=['provided','referred','employed'].indexOf(v.activity_type);
+   if(i!==-1)r.n[i]+=Number(v.activity_count)||0;
+   map.set(key,r);
+  });
+  var table=elem(d,'table'),head=elem(d,'tr');
+  ['센터','정보제공','알선','취업','합계'].forEach(function(x){head.append(elem(d,'th','',x))});table.append(head);
+  Array.from(map.values()).sort(function(a,b){return a.label.localeCompare(b.label,'ko')}).forEach(function(row){
+   var tr=elem(d,'tr');[row.label].concat(row.n,[row.n.reduce(function(a,b){return a+b},0)]).forEach(function(x){tr.append(elem(d,'td','',String(x)))});table.append(tr);
+  });out.append(table);
+  if(!map.size)out.append(elem(d,'p','gjs-muted','선택한 기간에 센터별 기록이 없습니다.'));
+ }
+ function centerRange(){
+  var v=q('[data-period]').value,t=today();
+  if(v==='all')return {p_from:null,p_to:null};
+  if(v==='today')return {p_from:t,p_to:t};
+  if(v==='date')return {p_from:q('[data-date]').value,p_to:q('[data-date]').value};
+  return {p_from:new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Seoul'}).format(new Date(new Date(t+'T00:00:00+09:00').getTime()-6*86400000)),p_to:t};
+ }
+ async function refreshCenterCounts(){
+  try{var r=await client().rpc('job_activity_center_summary',centerRange());if(r.error)throw r.error;
+   state.centerStats=r.data||[];aggregateCenterRows();
+  }catch(err){state.centerStats=[];aggregateCenterRows();status('센터별 집계 오류: '+safe(err.message,130))}
+ }
+ function checkDuplicate(){
+  var code=normalizedCode(q('[data-client-code]').value),duplicate=!!code&&activitiesFor(state.selectedKey).some(function(a){return a.client_code===code&&a.event_type===state.type});
+  q('[data-dup]').textContent=duplicate?'이미 이 내담자의 '+TYPES[state.type]+' 기록이 있습니다. 중복 기록은 허용하지 않습니다.':(!code?'고유번호를 입력하면 기존 기록과 자동 연결됩니다.':'');
+  q('[data-dup]').classList.toggle('is-error',duplicate);
+  q('[data-save]').disabled=duplicate;
+  return duplicate;
+ }
+ function renderJourneys(records){
+  var box=q('[data-journeys]');box.replaceChildren();var map=new Map();
+  records.forEach(function(a){
+   var key=safe(a.client_code,80)||'기존 기록:'+safe(a.client_label,80);
+   if(!map.has(key))map.set(key,{code:key,label:safe(a.client_label,80),last:'',records:[]});
+   var row=map.get(key);row.records.push(a);
+   if(String(a.event_date)>row.last)row.last=String(a.event_date);
+  });
+  var items=Array.from(map.values()).sort(function(a,b){return b.last.localeCompare(a.last)});
+  q('[data-journey-count]').textContent='('+items.length+'명)';
+  if(!items.length)box.append(elem(d,'p','gjs-muted','이 공고에 등록된 내담자가 없습니다.'));
+  items.forEach(function(v){
+   var article=elem(d,'div','gjs-journey'),top=elem(d,'div','gjs-journey-head');
+   top.append(elem(d,'strong','',v.label),elem(d,'small','',v.code));article.append(top);
+   var stages=new Set(v.records.map(function(r){return r.event_type})),flow=elem(d,'div','gjs-journey-flow');
+   ['provided','referred','employed'].forEach(function(type){flow.append(elem(d,'span','gjs-stage'+(stages.has(type)?' done':''),TYPES[type]))});
+   article.append(flow);var bottom=elem(d,'div','gjs-journey-actions');
+   bottom.append(elem(d,'span','',Array.from(new Set(v.records.map(function(r){return r.actor_name||'상담사'}))).join(', ')+' · '+v.last));
+   var next=stages.has('employed')?null:stages.has('referred')?'employed':stages.has('provided')?'referred':'provided';
+   if(next&&!v.code.startsWith('legacy-')&&!v.code.startsWith('기존 기록:')){
+    var b=elem(d,'button','','다음 단계: '+TYPES[next]);b.type='button';
+    b.onclick=function(){
+     state.type=next;q('[data-client-code]').value=v.code;q('[data-client]').value=v.label;q('[data-event-date]').value=today();
+     root.querySelectorAll('[data-type]').forEach(function(x){x.classList.toggle('active',x.dataset.type===next)});
+     checkDuplicate();q('[data-notes]').focus();
+    };bottom.append(b);
+   }
+   article.append(bottom);box.append(article);
+  });
+ }
  function select(key,type){state.selectedKey=key;state.type=type||'provided';q('[data-side]').hidden=false;q('[data-layout]').classList.add('gjs-open');q('[data-client]').value='';q('[data-client-code]').value='';q('[data-event-date]').value=today();q('[data-notes]').value='';render();q('[data-client-code]').focus()}
  function renderSide(){
   var x=uniqueJobs().find(function(j){return j.key===state.selectedKey});if(!x){closeSide();return}
@@ -102,6 +169,7 @@ function create(frame,goBack){
   root.querySelectorAll('[data-type]').forEach(function(b){b.classList.toggle('active',b.dataset.type===state.type)});
   var hist=activitiesFor(state.selectedKey).slice().sort(function(a,b){return String(b.event_date).localeCompare(String(a.event_date))||String(b.created_at).localeCompare(String(a.created_at))});
   q('[data-history-count]').textContent='('+hist.length+'건)';
+  renderJourneys(hist);
   var list=q('[data-history]');list.replaceChildren();
   if(!hist.length)list.append(elem(d,'p','gjs-muted','아직 이 공고의 활용 기록이 없습니다.'));
   hist.forEach(function(a){var item=elem(d,'div','gjs-event'),top=elem(d,'div','gjs-event-top');
@@ -111,6 +179,7 @@ function create(frame,goBack){
    if(a.actor_id===state.userId){var cancel=elem(d,'button','','기록 취소');cancel.type='button';cancel.onclick=function(){voidEvent(a.id)};item.append(cancel)}
    list.append(item);
   });
+  checkDuplicate();
  }
  function closeSide(){state.selectedKey='';q('[data-side]').hidden=true;q('[data-layout]').classList.remove('gjs-open');render()}
  async function loadData(){
@@ -154,9 +223,10 @@ function create(frame,goBack){
  function hide(){state.visible=false;root.hidden=true}
  q('[data-back]').onclick=function(){hide();if(typeof goBack==='function')goBack()};
  q('[data-close-side]').onclick=closeSide;q('[data-reload]').onclick=loadData;q('[data-export]').onclick=downloadCsv;
- q('[data-period]').onchange=function(){q('[data-date]').hidden=q('[data-period]').value!=='date';render()};
- q('[data-date]').onchange=render;q('[data-search]').oninput=render;q('[data-sort]').onchange=render;q('[data-hide-expired]').onchange=render;
+ q('[data-period]').onchange=function(){q('[data-date]').hidden=q('[data-period]').value!=='date';render();refreshCenterCounts()};
+ q('[data-date]').onchange=function(){render();refreshCenterCounts()};q('[data-search]').oninput=render;q('[data-sort]').onchange=render;q('[data-hide-expired]').onchange=render;
  root.querySelectorAll('[data-type]').forEach(function(b){b.onclick=function(){state.type=b.dataset.type;renderSide()}});
+ q('[data-client-code]').addEventListener('input',checkDuplicate);
  q('[data-form]').addEventListener('submit',add);
  return {show:show,hide:hide,reload:loadData};
 }
