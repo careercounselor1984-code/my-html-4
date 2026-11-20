@@ -2,6 +2,10 @@
 (()=>{
 'use strict';
 const TABLE='counselor_job_archive';
+// 공유 카드 화면은 별도 모듈로 분리하여 기존 채용정보 작성 화면을 보호합니다.
+const dashboardModule=document.createElement('script');
+dashboardModule.src='./job-share-dashboard.js?v=20261121-1';
+dashboardModule.async=true;document.head.appendChild(dashboardModule);
 const fields=['company','title','duties','location','employment','education','experience','workHours','salary','deadline','url','source'];
 const statuses={matched:1,api_only:1,page_only:1,conflict:1,unverified:1,manual:1,page_selected:1,api_selected:1};
 const panels=new WeakMap();
@@ -70,7 +74,7 @@ function mount(frame){
   '<div class="gja-head"><strong>채용공고 보관함</strong><small data-count>불러오는 중</small></div>'+
   '<div class="gja-tabs" role="tablist"><button type="button" data-tab="mine" role="tab" aria-selected="true">내 보관함</button><button type="button" data-tab="shared" role="tab" aria-selected="false">상담사 공유</button></div>'+
   '<input class="gja-search" data-query type="search" placeholder="기업명 · 직무 · 지역 검색" aria-label="공고 검색">'+
-  '<div class="gja-filter"><select data-period aria-label="보관 기간"><option value="all">전체 기간</option><option value="today">오늘</option><option value="date">날짜 지정</option></select><label><input data-open type="checkbox">마감 공고 숨기기</label><button type="button" data-refresh>새로고침</button></div>'+
+  '<div class="gja-filter"><select data-period aria-label="보관 기간"><option value="today">오늘</option><option value="all">전체 기간</option><option value="date">날짜 지정</option></select><label><input data-open type="checkbox">마감 공고 숨기기</label><button type="button" data-refresh>새로고침</button></div>'+
   '<div class="gja-datebar" data-datebar hidden><button type="button" data-prev aria-label="이전 날짜">‹</button><input data-date type="date" aria-label="보관 날짜"><span data-weekday></span><button type="button" data-next aria-label="다음 날짜">›</button><button type="button" data-today>오늘</button></div>'+
   '<div class="gja-tools" data-tools><label><input type="checkbox" data-selectall><span data-selected>0건 선택</span></label><button type="button" class="gja-action" data-share disabled>선택 공유</button><button type="button" class="gja-action" data-unshare disabled hidden>공유 해제</button><button type="button" class="gja-action danger" data-delete disabled>삭제</button></div>'+
   '<p class="gja-status" data-status role="status" aria-live="polite"></p><div class="gja-list" data-list></div><button class="gja-more" data-more type="button" hidden>더 보기</button>';
@@ -84,6 +88,8 @@ function mount(frame){
  const checked=new Set(),batch=100;
  const today=()=>new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Seoul'}).format(new Date());
  q('[data-date]').value=today();
+ q('[data-period]').value='today';
+ let sharedDashboard=null;
  const scope=()=>q('[data-tab="shared"]').getAttribute('aria-selected')==='true'?'shared':'mine';
  const message=s=>q('[data-status]').textContent=s;
  const weekday=()=>q('[data-weekday]').textContent=new Intl.DateTimeFormat('ko-KR',{timeZone:'Asia/Seoul',weekday:'short'}).format(new Date(q('[data-date]').value+'T12:00:00+09:00'));
@@ -178,8 +184,16 @@ function mount(frame){
  }
  function switchTab(name){
   box.querySelectorAll('[data-tab]').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.tab===name)));
-  q('[data-query]').value='';return refresh();
+  q('[data-query]').value='';
+  q('[data-period]').value=name==='mine'?'today':'all';
+  q('[data-datebar]').hidden=true;
+  if(name==='shared'){
+   if(!sharedDashboard&&window.GJSharedDashboard)sharedDashboard=window.GJSharedDashboard.create(frame,()=>switchTab('mine'));
+   sharedDashboard?.show();
+  }else sharedDashboard?.hide();
+  return refresh();
  }
+ dashboardModule.addEventListener('load',()=>{if(scope()==='shared'&&!sharedDashboard){sharedDashboard=window.GJSharedDashboard?.create(frame,()=>switchTab('mine'));sharedDashboard?.show()}});
  box.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));
  q('[data-period]').onchange=()=>{q('[data-datebar]').hidden=q('[data-period]').value!=='date';refresh()};
  q('[data-date]').onchange=()=>{if(q('[data-date]').value)refresh()};
@@ -207,7 +221,7 @@ function mount(frame){
    if(job.title||job.company){
     message('PC 목록 저장됨 · 보관함에도 저장하는 중…');
     save(job).then(async()=>{
-     q('[data-period]').value='all';q('[data-datebar]').hidden=true;
+     q('[data-period]').value='today';q('[data-datebar]').hidden=true;
      if(scope()!=='mine')await switchTab('mine');else await refresh();
      message('내 보관함에도 저장했습니다.');
     }).catch(e=>message('PC에는 저장됐지만 보관함 연동 실패: '+e.message));
@@ -217,7 +231,7 @@ function mount(frame){
   wrapped.__gjArchiveV2=true;w.saveAndGenerate=wrapped;
  }
  connectSave();
- function clear(){epoch++;busy=false;rows=[];checked.clear();uid='';q('[data-list]').replaceChildren();q('[data-count]').textContent='로그인 필요';message('로그인이 필요합니다.')}
+ function clear(){sharedDashboard?.hide();epoch++;busy=false;rows=[];checked.clear();uid='';q('[data-list]').replaceChildren();q('[data-count]').textContent='로그인 필요';message('로그인이 필요합니다.')}
  panels.set(d,{refresh,connectSave,clear});
  refresh();
  return panels.get(d);
