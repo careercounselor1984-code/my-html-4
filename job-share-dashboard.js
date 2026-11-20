@@ -16,7 +16,7 @@ function create(frame,goBack){
  var root=d.createElement('section');root.id='gjSharedDashboard';root.hidden=true;root.setAttribute('aria-label','상담사 공유 채용공고');
  root.innerHTML='<div class="gjs-wrap">'+
  '<header class="gjs-head"><div><div class="gjs-kicker">공동 채용정보 관리</div><h1>상담사 공유 채용공고</h1><p class="gjs-subtitle">공고별 내담자 진행 상황과 중복 방지 기록을 관리합니다. 센터 간 비교는 집계 수치만 표시합니다.</p></div>'+
- '<div class="gjs-head-actions"><button data-reload>↻ 새로고침</button><button data-export>분석 CSV</button><button class="gjs-back" data-back>← 내 보관함으로</button></div></header>'+
+ '<div class="gjs-head-actions"><button data-reload>↻ 새로고침</button><button data-export>상담사·일자 CSV</button><button data-export-center>센터 집계 CSV</button><button class="gjs-back" data-back>← 내 보관함으로</button></div></header>'+
  '<div class="gjs-stats"><div class="gjs-stat"><span>공유 공고</span><strong data-njobs>0</strong><small>중복 공고 통합</small></div><div class="gjs-stat"><span>정보제공</span><strong data-nprovided>0</strong><small data-window-label>조회 기간 기준</small></div><div class="gjs-stat"><span>알선</span><strong data-nreferred>0</strong><small>등록한 활동 건수</small></div><div class="gjs-stat"><span>취업</span><strong data-nemployed>0</strong><small>취업 확인 기록</small></div></div>'+
  '<div class="gjs-tools"><input data-search type="search" placeholder="기업명 · 공고명 · 지역 검색" aria-label="공고 검색">'+
  '<select data-period class="gjs-period" aria-label="활동 집계 기간"><option value="today">오늘 활동</option><option value="week">최근 7일</option><option value="month">이번 달</option><option value="all">전체 기간</option><option value="date">날짜 지정</option></select>'+
@@ -39,7 +39,7 @@ function create(frame,goBack){
  var q=function(x){return root.querySelector(x)};
  var state={jobs:[],activities:[],centerStats:[],selectedKey:'',type:'provided',userId:'',busy:false,visible:false,truncated:false,pollTimer:null,refreshQueued:false,loadedOnce:false,knownActivityIds:new Set()};
  var status=function(s){q('[data-status]').textContent=s||''};
- q('[data-date]').value=today();q('[data-event-date]').value=today();
+ q('[data-date]').value=today();q('[data-event-date]').value=today();q('[data-event-date]').max=today();
  function client(){var c=window.clgJobArchiveClient&&window.clgJobArchiveClient();if(!c)throw Error('로그인 후 사용할 수 있습니다.');return c}
  function periodActivities(items){
   var v=q('[data-period]').value,date=today(),chosen=q('[data-date]').value;
@@ -207,7 +207,7 @@ function create(frame,goBack){
   if(!/^[a-z0-9_-]{4,80}$/.test(code)){status('내담자 고유번호는 영문·숫자·하이픈·밑줄 4~80자로 입력해 주세요.');return}
   if(/^[0-9]{13}$/.test(code)||/^01[016789][0-9]{7,8}$/.test(code)){status('개인 전화번호와 주민등록번호는 등록할 수 없습니다. 내부 등록번호를 사용하세요.');return}
   if(!who||!when){status('내담자 표시명과 진행일을 입력해 주세요.');return}
-  if(!/^\d{4}-\d{2}-\d{2}$/.test(when)){status('진행일 형식을 확인해 주세요.');return}
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(when)||when>today()){status('진행일은 오늘 이전의 올바른 날짜여야 합니다.');return}
   if(checkDuplicate())return;
   var b=q('[data-save]');b.disabled=true;
   try{
@@ -233,11 +233,19 @@ function create(frame,goBack){
   var blob=new Blob(['\uFEFF'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'}),url=URL.createObjectURL(blob),a=elem(d,'a');
   a.href=url;a.download='상담사공유_채용활동_'+today()+'.csv';d.body.append(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(url)},3000)
  }
+ function exportCenterCsv(){
+  var data=[['센터','정보제공','알선','취업','합계']],rows=new Map();
+  (state.centerStats||[]).forEach(function(v){var key=safe(v.center_name,100)||'미분류',row=rows.get(key)||[key,0,0,0],i=['provided','referred','employed'].indexOf(v.activity_type);if(i!==-1)row[i+1]+=Number(v.activity_count)||0;rows.set(key,row)});
+  Array.from(rows.values()).sort(function(a,b){return a[0].localeCompare(b[0],'ko')}).forEach(function(v){data.push(v.concat(v.slice(1).reduce(function(a,b){return a+b},0)))});
+  function quote(x){return '\"'+String(x).replace(/\"/g,'\"\"')+'\"'}
+  var blob=new Blob(['\uFEFF'+data.map(function(r){return r.map(quote).join(',')}).join('\r\n')],{type:'text/csv;charset=utf-8'}),url=URL.createObjectURL(blob),a=elem(d,'a');
+  a.href=url;a.download='센터별_채용활동_'+today()+'.csv';d.body.append(a);a.click();a.remove();window.setTimeout(function(){URL.revokeObjectURL(url)},3000)
+ }
  function show(){state.visible=true;root.hidden=false;loadData();if(!state.pollTimer)state.pollTimer=window.setInterval(function(){if(state.visible&&!state.busy)loadData()},45000)}
  function hide(){state.visible=false;root.hidden=true;if(state.pollTimer){window.clearInterval(state.pollTimer);state.pollTimer=null}}
  function clear(){hide();state.jobs=[];state.activities=[];state.centerStats=[];state.userId='';state.selectedKey='';state.loadedOnce=false;state.knownActivityIds.clear();q('[data-client-code]').value='';q('[data-client]').value='';q('[data-notes]').value='';q('[data-side]').hidden=true;q('[data-layout]').classList.remove('gjs-open');render();status('로그아웃으로 기록 화면을 초기화했습니다.')}
  q('[data-back]').onclick=function(){hide();if(typeof goBack==='function')goBack()};
- q('[data-close-side]').onclick=closeSide;q('[data-reload]').onclick=loadData;q('[data-export]').onclick=downloadCsv;
+ q('[data-close-side]').onclick=closeSide;q('[data-reload]').onclick=loadData;q('[data-export]').onclick=downloadCsv;q('[data-export-center]').onclick=exportCenterCsv;
  q('[data-period]').onchange=function(){q('[data-date]').hidden=q('[data-period]').value!=='date';render();refreshCenterCounts()};
  q('[data-date]').onchange=function(){render();refreshCenterCounts()};q('[data-search]').oninput=render;q('[data-sort]').onchange=render;q('[data-hide-expired]').onchange=render;
  root.querySelectorAll('[data-type]').forEach(function(b){b.onclick=function(){state.type=b.dataset.type;renderSide()}});
