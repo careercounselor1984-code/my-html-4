@@ -16,3 +16,4 @@ jobs:
       - run: |
           node --check journal-workspace.js
           node tests/iap-auto-calendar-bridge.test.cjs
+          node tests/consultation-tracking.test.cjs
