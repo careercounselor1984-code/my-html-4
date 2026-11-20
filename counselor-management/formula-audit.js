@@ -260,7 +260,12 @@ async function createCorrectedCopy(bytes,model,report,ids,Writer,Reader){
  }
  return {bytes:result,changes:selected.length};
 }
-function csvCell(v){return '"'+String(v??'').replace(/\r?\n/g,' ').replace(/"/g,'""')+'"';}
+function csvCell(v){
+ let value=String(v??'').replace(/\r?\n/g,' ');
+ // Spreadsheet applications may interpret imported CSV fields as formulas.
+ if(/^[\s]*[=+@-]/.test(value))value="'"+value;
+ return '"'+value.replace(/"/g,'""')+'"';
+}
 function download(bytes,name,type){
  const b=new Blob([bytes],{type}),u=URL.createObjectURL(b),a=root.document.createElement('a');
  a.href=u;a.download=name;root.document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),30000);
