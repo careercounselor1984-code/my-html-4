@@ -6,7 +6,7 @@ const path=require('node:path');
 const vm=require('node:vm');
 
 const html=fs.readFileSync(path.join(__dirname,'../counselor-management/index.html'),'utf8');
-const needle="(function(root){'use strict';\n function build(snapshots,period,H)";
+const needle="(function(root){'use strict';\nfunction build(snapshots,period,H)";
 const start=html.indexOf(needle);
 const end=html.indexOf('})(globalThis);',start);
 assert.ok(start>=0&&end>start,'manager calculation module must remain discoverable');
