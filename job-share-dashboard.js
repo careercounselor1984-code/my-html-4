@@ -1,4 +1,4 @@
-/* 공유 채용공고 · 상담사별 정보제공/알선/취업 이력 v1
+/* 공유 채용공고 · 상담사별 정보제공/알선/취업 이력 v2
  * 기존 Supabase 로그인과 RLS를 그대로 사용하며 내담자 정보는 GitHub에 저장하지 않습니다.
  */
 (function(){
@@ -7,14 +7,15 @@ if(window.GJSharedDashboard)return;
 var ACTIVITY='counselor_job_activity',ARCHIVE='counselor_job_archive';
 var TYPES={provided:'정보제공',referred:'알선',employed:'취업'};
 function safe(v,n){return String(v==null?'':v).trim().slice(0,n||1000)}
+function normalizedCode(v){return safe(v,80).toLowerCase().replace(/\s+/g,'')}
 function today(){return new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Seoul'}).format(new Date())}
 function elem(d,tag,cls,value){var e=d.createElement(tag);if(cls)e.className=cls;if(value!==undefined)e.textContent=value;return e}
 function create(frame,goBack){
  var d=frame.contentDocument;if(!d||!d.body)return null;
- if(!d.getElementById('gjSharedDashboardCss')){var stylesheet=d.createElement('link');stylesheet.id='gjSharedDashboardCss';stylesheet.rel='stylesheet';stylesheet.href=new URL('./job-share-dashboard.css?v=20261121-1',window.location.href).href;d.head.append(stylesheet)}
+ if(!d.getElementById('gjSharedDashboardCss')){var stylesheet=d.createElement('link');stylesheet.id='gjSharedDashboardCss';stylesheet.rel='stylesheet';stylesheet.href=new URL('./job-share-dashboard.css?v=20261121-2',window.location.href).href;d.head.append(stylesheet)}
  var root=d.createElement('section');root.id='gjSharedDashboard';root.hidden=true;root.setAttribute('aria-label','상담사 공유 채용공고');
  root.innerHTML='<div class="gjs-wrap">'+
- '<header class="gjs-head"><div><div class="gjs-kicker">공동 채용정보 관리</div><h1>상담사 공유 채용공고</h1><p class="gjs-subtitle">한 공고에 여러 상담사가 정보제공 · 알선 · 취업 기록을 누적합니다.</p></div>'+
+ '<header class="gjs-head"><div><div class="gjs-kicker">공동 채용정보 관리</div><h1>상담사 공유 채용공고</h1><p class="gjs-subtitle">공고별 내담자 진행 상황과 중복 방지 기록을 관리합니다. 센터 간 비교는 집계 수치만 표시합니다.</p></div>'+
  '<div class="gjs-head-actions"><button data-reload>↻ 새로고침</button><button data-export>분석 CSV</button><button class="gjs-back" data-back>← 내 보관함으로</button></div></header>'+
  '<div class="gjs-stats"><div class="gjs-stat"><span>공유 공고</span><strong data-njobs>0</strong><small>중복 공고 통합</small></div><div class="gjs-stat"><span>정보제공</span><strong data-nprovided>0</strong><small data-window-label>조회 기간 기준</small></div><div class="gjs-stat"><span>알선</span><strong data-nreferred>0</strong><small>등록한 활동 건수</small></div><div class="gjs-stat"><span>취업</span><strong data-nemployed>0</strong><small>취업 확인 기록</small></div></div>'+
  '<div class="gjs-tools"><input data-search type="search" placeholder="기업명 · 공고명 · 지역 검색" aria-label="공고 검색">'+
@@ -22,21 +23,21 @@ function create(frame,goBack){
  '<input data-date type="date" aria-label="활동 집계 날짜" hidden>'+
  '<select data-sort aria-label="공고 정렬"><option value="recent">최근 공유순</option><option value="active">활동 많은 순</option><option value="company">기업명순</option></select>'+
  '<label><input data-hide-expired type="checkbox">마감 공고 숨기기</label></div>'+
- '<p class="gjs-note">상단 날짜는 활동 통계 기준이며, 아래 공고는 전체 공유 공고를 표시합니다. 내담자 식별정보는 업무 목적에 필요한 최소한만 입력해 주세요.</p>'+
+ '<p class="gjs-note">상단 날짜는 활동 통계 기준입니다. 내담자 고유번호는 내부 업무번호만 사용하세요(전화번호·주민등록번호 금지). 취업 기록은 고용24 공식 실적이 아닙니다. 45초마다 자동 갱신합니다.</p>'+
  '<div class="gjs-status" data-status role="status" aria-live="polite"></div>'+
  '<div class="gjs-layout" data-layout><div class="gjs-grid" data-grid></div>'+
  '<aside class="gjs-side" data-side hidden><div class="gjs-side-head"><b>공고 활용 기록</b><button data-close-side aria-label="상세 닫기">✕</button></div>'+
  '<h2 data-side-title></h2><div class="gjs-muted" data-side-meta></div><a class="gjs-origin" data-origin href="#" target="_blank" rel="noopener noreferrer" hidden>원문 공고 확인 ↗</a>'+
  '<div class="gjs-types"><button data-type="provided" class="active">정보제공</button><button data-type="referred">알선</button><button data-type="employed">취업</button></div>'+
- '<form data-form><label for="gjs-client">내담자 성명 또는 관리번호 *</label><input id="gjs-client" data-client maxlength="80" required autocomplete="off" placeholder="예: 김○○ 또는 내부관리번호">'+
+ '<form data-form><label for="gjs-client-code">내담자 고유번호 *</label><input id="gjs-client-code" data-client-code maxlength="80" required autocomplete="off" placeholder="예: IAP-000123 · 상담사 공통 내부번호"><p class="gjs-muted">같은 내담자는 모든 상담사가 동일한 고유번호로 입력하세요.</p><label for="gjs-client">내담자 표시명 *</label><input id="gjs-client" data-client maxlength="80" required autocomplete="off" placeholder="예: 김○○">'+
  '<label for="gjs-date">실제 진행일 *</label><input id="gjs-date" data-event-date type="date" required>'+
  '<label for="gjs-notes">메모 (선택)</label><textarea id="gjs-notes" data-notes maxlength="400" placeholder="지원 여부, 입사 확인 등 필요한 사항만 기록"></textarea>'+
- '<button class="gjs-save gjs-primary" type="submit" data-save>활동 기록 저장</button></form>'+
- '<div class="gjs-history-title">공고별 활동 이력 <span data-history-count></span></div><div data-history></div></aside></div>'+
- '<details class="gjs-analytics"><summary>상담사별 활동 집계 · 일자별 분석</summary><div class="gjs-table-wrap" data-analytics></div></details>'+
+ '<p class="gjs-warning" data-dup role="status" aria-live="polite"></p><button class="gjs-save gjs-primary" type="submit" data-save>활동 기록 저장</button></form>'+
+ '<div class="gjs-history-title">내담자별 진행 상태 <span data-journey-count></span></div><div data-journeys></div><div class="gjs-history-title">전체 활동 이력 <span data-history-count></span></div><div data-history></div></aside></div>'+
+ '<details class="gjs-analytics" open><summary>상담사별 · 날짜별 · 센터별 활동 분석</summary><div class="gjs-table-wrap" data-analytics></div><div class="gjs-table-wrap" data-center-analytics></div><p class="gjs-note">활동 입력 기준이며 공식 취업률·알선취업률과 다릅니다. 센터별 수치는 개인정보 없는 합계만 표시됩니다.</p></details>'+
  '</div>';d.body.append(root);
  var q=function(x){return root.querySelector(x)};
- var state={jobs:[],activities:[],selectedKey:'',type:'provided',userId:'',busy:false,visible:false,truncated:false};
+ var state={jobs:[],activities:[],centerStats:[],selectedKey:'',type:'provided',userId:'',busy:false,visible:false,truncated:false,pollTimer:null,refreshQueued:false};
  var status=function(s){q('[data-status]').textContent=s||''};
  q('[data-date]').value=today();q('[data-event-date]').value=today();
  function client(){var c=window.clgJobArchiveClient&&window.clgJobArchiveClient();if(!c)throw Error('로그인 후 사용할 수 있습니다.');return c}
@@ -92,7 +93,7 @@ function create(frame,goBack){
   tab('일자별 집계',Array.from(dates.values()).sort(function(a,b){return b.label.localeCompare(a.label)}));
   if(!records.length)body.append(elem(d,'p','gjs-muted','해당 기간에 활동 기록이 없습니다.'));
  }
- function select(key,type){state.selectedKey=key;state.type=type||'provided';q('[data-side]').hidden=false;q('[data-layout]').classList.add('gjs-open');q('[data-client]').value='';q('[data-event-date]').value=today();q('[data-notes]').value='';render();q('[data-client]').focus()}
+ function select(key,type){state.selectedKey=key;state.type=type||'provided';q('[data-side]').hidden=false;q('[data-layout]').classList.add('gjs-open');q('[data-client]').value='';q('[data-client-code]').value='';q('[data-event-date]').value=today();q('[data-notes]').value='';render();q('[data-client-code]').focus()}
  function renderSide(){
   var x=uniqueJobs().find(function(j){return j.key===state.selectedKey});if(!x){closeSide();return}
   q('[data-side-title]').textContent=[x.job.company,x.job.title].filter(Boolean).join(' · ')||'공고';
