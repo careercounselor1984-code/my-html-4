@@ -65,13 +65,28 @@ function sheetPath(target){
 }
 async function snapshot(bytes,Writer,Reader){
  if(!(bytes instanceof ArrayBuffer||ArrayBuffer.isView(bytes)))throw Error('Excel 파일 형식을 확인하세요.');
- await Reader.readXlsx(bytes);
+ const byteLength=bytes.byteLength;
+ if(!byteLength||byteLength>Reader.LIMIT.file)throw Error('8MB 이하의 XLSX 파일만 점검합니다.');
+ // This is a formula-only audit. Do not require the fixed nine-sheet
+ // participant-management template used by the separate counseling editor.
  const zip=Writer.archive(bytes),find=n=>zip.items.find(i=>i.name===n);
+ if(zip.items.length>Reader.LIMIT.entries)throw Error('XLSX 구성 항목이 너무 많습니다.');
+ const unique=new Set(),totalSize=zip.items.reduce((n,i)=>{
+  if(unique.has(i.name))throw Error('중복 ZIP 항목은 처리하지 않습니다.');
+  unique.add(i.name);
+  if(i.size>Reader.LIMIT.part)throw Error('용량 제한을 넘는 XLSX 구성요소가 있습니다.');
+  if(i.flags&1)throw Error('암호화된 ZIP 항목은 처리하지 않습니다.');
+  if(i.method!==0&&i.method!==8)throw Error('지원하지 않는 ZIP 압축 방식입니다.');
+  if(i.name.includes('..')||i.name.startsWith('/'))throw Error('안전하지 않은 ZIP 경로입니다.');
+  return n+i.size;
+ },0);
+ if(totalSize>Reader.LIMIT.total)throw Error('압축 해제 데이터가 점검 제한을 초과합니다.');
  if(zip.items.some(i=>/^_xmlsignatures\//i.test(i.name)||/vbaProject\.bin$/i.test(i.name)))throw Error('전자서명/매크로가 있는 파일은 수정사본을 만들지 않습니다.');
  async function get(n){const item=find(n);if(!item)throw Error('필수 XLSX 항목이 없습니다: '+n);return dec.decode(await Writer.inflate(zip,item));}
  const wb=xml(await get('xl/workbook.xml')),rel=xml(await get('xl/_rels/workbook.xml.rels'));
  const relMap=new Map(byName(rel,'Relationship').filter(x=>x.getAttribute('TargetMode')!=='External').map(x=>[x.getAttribute('Id'),x.getAttribute('Target')]));
- const sheets=[];let count=0;
+ const sheets=[];let count=0,cellCount=0;
+ if(byName(wb,'sheet').length>20)throw Error('20개 초과 시트는 분석할 수 없습니다.');
  for(const item of byName(wb,'sheet')){
   const rid=item.getAttributeNS('http://schemas.openxmlformats.org/officeDocument/2006/relationships','id');
   const path=sheetPath(relMap.get(rid)),name=item.getAttribute('name')||'';
@@ -80,6 +95,7 @@ async function snapshot(bytes,Writer,Reader){
   for(const row of byName(dom,'row')){
    const n=Number(row.getAttribute('r'));if(Number.isInteger(n))rows.set(n,row);
    for(const cell of byName(row,'c')){
+    if(++cellCount>Reader.LIMIT.cells)throw Error('엑셀 셀 수가 점검 제한을 초과합니다.');
     const addr=String(cell.getAttribute('r')||'');if(!validCell.test(addr))continue;
     const f=one(cell,'f'),v=one(cell,'v');
     if(f)count++;
