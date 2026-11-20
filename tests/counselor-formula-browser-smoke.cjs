@@ -10,7 +10,7 @@ function extract(marker){
  return html.slice(from,end+"})(typeof self!=='undefined'?self:globalThis);".length);
 }
 const reader=extract('/* Read-only OOXML projection.'),writer=extract('/* Minimal OOXML edits, preserving');
-const names=['21 평가기준','22 평가기준','23 평가기준','데이터(지우지말것)','직무분류2505','진행통계','평가통계','상담사관리현황','3단계 취업지원서비스'];
+const names=['진행통계','평가통계','상담사관리현황','구촉','훈련수당','업무 공지','직무분류2505','데이터(지우지말것)','수당(1.30)','취업성공수당 관리'];
 const ns='http://schemas.openxmlformats.org/spreadsheetml/2006/main';
 const xmlEsc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 const cell=(ref,value)=>'<c r="'+ref+'" t="inlineStr"><is><t>'+xmlEsc(value)+'</t></is></c>';
@@ -26,7 +26,7 @@ const stat=wrap(
  row(11,[formula('A11','SUM(#REF!)')])+
  row(12,[formula('A12','SUM(C12:D12)'),formula('B12','SUM(E12:F12)')])
 );
-const sheets=names.map((name,i)=>i===5?stat:i===7?members:wrap(''));
+const sheets=names.map(name=>name==='진행통계'?stat:name==='상담사관리현황'?members:wrap(''));
 const workbook='<?xml version="1.0" encoding="UTF-8"?><workbook xmlns="'+ns+'" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>'+names.map((n,i)=>'<sheet name="'+xmlEsc(n)+'" sheetId="'+(i+1)+'" r:id="rId'+(i+1)+'"/>').join('')+'</sheets></workbook>';
 const rels='<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'+names.map((n,i)=>'<Relationship Id="rId'+(i+1)+'" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet'+(i+1)+'.xml"/>').join('')+'</Relationships>';
 const contentTypes='<?xml version="1.0" encoding="UTF-8"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>'+names.map((_,i)=>'<Override PartName="/xl/worksheets/sheet'+(i+1)+'.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>').join('')+'</Types>';
@@ -66,6 +66,7 @@ const probe='(async()=>{try{'+
  'const src=Uint8Array.from(atob("'+base64+'"),x=>x.charCodeAt(0));'+
  'const X=window.CounselorExcel,W=window.CounselorCopyWriter,A=window.CounselorFormulaAudit;'+
  'const model=await A.snapshot(src.buffer,W,X),report=A.audit(model);'+
+ 'if(model.sheets.length!==10)throw Error("mixed workbook sheet count wrong");'+
  'const fixes=report.issues.filter(i=>i.repairable&&(i.address==="A11"||i.address==="B11"));'+
  'if(fixes.length!==2)throw Error("expected two approved fixes, got "+fixes.length);'+
  'const output=await A.createCorrectedCopy(src.buffer,model,report,new Set(fixes.map(i=>i.id)),W,X);'+
@@ -91,7 +92,7 @@ fs.writeFileSync(location,fixture,'utf8');
   await page.waitForFunction(()=>['pass','fail'].includes(document.documentElement.getAttribute('data-audit-smoke')),{timeout:45000});
   const outcome=await page.evaluate(()=>({status:document.documentElement.getAttribute('data-audit-smoke'),detail:document.getElementById('result').textContent}));
   if(outcome.status!=='pass')throw Error('Chrome audit failed: '+outcome.detail+' / pageerrors: '+pageErrors.join(' | '));
-  console.log('PASS: Chrome loaded synthetic XLSX, repaired two formulas in a copy, and re-read corrected XML');
+  console.log('PASS: Chrome read mixed-layout XLSX (without fixed nine sheets), repaired two formula candidates in copy, and re-read corrected XML');
  }finally{
   if(browser)await browser.close();
   fs.unlinkSync(location);
