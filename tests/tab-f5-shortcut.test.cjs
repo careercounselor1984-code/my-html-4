@@ -6,10 +6,10 @@ const vm=require('node:vm');
 const html=fs.readFileSync('index.html','utf8');
 const m=html.match(/<script id="clg-multi-work-tabs-v1-script">([\s\S]*?)<\/script>/);
 assert(m,'workspace tabs script must exist');
+const source=m[1];
 assert(source.includes('const MAX_TABS=10;'),'10 active tabs supported');
 assert(html.includes("PAGES.unshift({id:'p_home'"),'home landing page registered');
 assert(html.includes("let activePageId = 'p_home';"),'home opens as default');
-const source=m[1];
 new vm.Script(source,{filename:'workspace-tabs.js'});
 assert(source.includes("document.addEventListener('keydown',e=>onTabReloadShortcut(e,null),true)"),
  'top-level F5 and Ctrl+R routed to active tab');
