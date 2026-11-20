@@ -134,6 +134,51 @@
  function nativeIapRecord(reg){
   try{const db=JSON.parse(requiredStorage().getItem('iap_participant_records_v1')||'{}');return db?.records?.[reg]||null}catch{return null}
  }
+
+ // Confirmed IAP save -> owner-scoped calendar bridge. No schedule write is assumed successful.
+ const calendarSyncTasks=new Map(),calendarSyncDone=new Map();
+ function syncSavedIapToCalendar(s,reg,saved,show){
+  const account=String(owner||'').trim().toLowerCase(),current=String(window.__CLG_JOURNAL_EMPLOYEE?.email||'').trim().toLowerCase();
+  if(!account||account!==current||s.closed||s.flow?.reg!==reg)return;
+  const f=saved?.state?.fields||{},pick=(...v)=>v.find(x=>typeof x==='string'&&x.trim())?.trim()||'';
+  const name=pick(s.doc.querySelector(nameSelector)?.value,s.client?.name,f['#clientName'],f['#participantName'],f['#personName']);
+  const iapDate=pick(s.doc.getElementById('iapDate')?.value,f['#iapDate']);
+  const serviceEnd=pick(s.doc.getElementById('svcEnd')?.value,f['#svcEnd']);
+  const jobCertExpire=pick(s.doc.getElementById('jobCertExpire')?.value,f['#jobCertExpire']);
+  const validDate=v=>/^\d{4}-\d{2}-\d{2}$/.test(v)&&!Number.isNaN(Date.parse(v+'T12:00:00Z'))&&new Date(v+'T12:00:00Z').toISOString().slice(0,10)===v;
+  if(!/^A\d{10,30}$/.test(reg)||name.length<2||name.includes('*')||!validDate(iapDate)){
+   show('✓ IAP 저장 완료 · 일정표 미반영(내담자 이름·IAP 수립일 확인 필요)',true);return;
+  }
+  if((serviceEnd&&!validDate(serviceEnd))||(jobCertExpire&&!validDate(jobCertExpire))){
+   show('✓ IAP 저장 완료 · 일정표 미반영(만료일 형식 확인 필요)',true);return;
+  }
+  const key=account+':'+reg,stamp=String(saved.updatedAt||'');
+  if(calendarSyncTasks.has(key)||(stamp&&calendarSyncDone.get(key)===stamp))return;
+  const values={name,iapDate,type:f['name:userType:2']===true?'2':'1'};
+  if(serviceEnd)values.serviceEnd=serviceEnd;
+  if(jobCertExpire)values.jobCertExpire=jobCertExpire;
+  const frame=document.createElement('iframe');frame.hidden=true;frame.setAttribute('aria-hidden','true');
+  frame.src='https://careercounselor1984-code.github.io/my-html-9/clients.html';
+  const profile={regNo:reg,values},requestId=crypto.randomUUID(),targetOrigin=new URL(frame.src).origin;
+  let timeout;
+  const finish=(ok,message)=>{
+   clearTimeout(timeout);window.removeEventListener('message',receive);frame.remove();calendarSyncTasks.delete(key);
+   if(ok&&stamp)calendarSyncDone.set(key,stamp);
+   if(String(owner||'').trim().toLowerCase()===account&&!s.closed)show((ok?'✓ IAP 저장 · 일정표 반영 완료':'✓ IAP 저장 완료 · 일정표 미반영')+(message?' · '+message:''),ok);
+  };
+  const receive=e=>{
+   if(e.source!==frame.contentWindow||e.origin!==targetOrigin||e.data?.type!=='goodjob:client-link-result:v1'||e.data.requestId!==requestId)return;
+   finish(e.data.ok===true,e.data.ok?'':String(e.data.message||'연동 실패'));
+  };
+  calendarSyncTasks.set(key,{finish});window.addEventListener('message',receive);
+  timeout=setTimeout(()=>finish(false,'응답이 없습니다. 일정표 연결 점검에서 확인하세요.'),20000);
+  frame.onload=()=>{
+   if(!calendarSyncTasks.has(key)||String(owner||'').trim().toLowerCase()!==account||s.closed){finish(false,'직원 계정이 변경되었습니다.');return;}
+   frame.contentWindow.postMessage({type:'goodjob:client-link:v1',requestId,expectedEmail:account,profile},targetOrigin);
+  };
+  document.body.append(frame);show('✓ IAP 저장 완료 · 일정표 자동 반영 확인 중…',true);
+ }
+ window.addEventListener('clg-auth-logout',()=>{for(const task of [...calendarSyncTasks.values()])task.finish(false,'로그아웃으로 중단');calendarSyncDone.clear()});
  function installRequiredFlow(s){
   if(!requiredPages.has(s.tab.pageId)||s.closed||s.flow||!s.doc?.body)return;
   const doc=s.doc,win=s.win,originalReg=doc.querySelector(regSelector);
@@ -293,6 +338,7 @@
     }
     flow.stored=true;flow.savedFingerprint=fingerprint();flow.dirty=false;
     show('✓ IAP 저장 확인 완료 · '+new Date().toLocaleTimeString('ko-KR'),true);
+     syncSavedIapToCalendar(s,reg,after,show);
     return;
    }
    const key=storageKey(reg),database=readRequiredDb(),latest=database[key]||null;
@@ -324,7 +370,7 @@
     if(!flow.searched||!e.target.closest?.('#iapParticipantSaveBtn,#iapEditSaveBtn'))return;
     win.setTimeout(()=>{
      const saved=nativeIapRecord(flow.reg);
-     if(saved&&!flow.needsSave()){flow.stored=true;flow.savedFingerprint=fingerprint();flow.dirty=false;show('✓ IAP 저장된 내용 확인',true)}
+     if(saved&&!flow.needsSave()){flow.stored=true;flow.savedFingerprint=fingerprint();flow.dirty=false;show('✓ IAP 저장된 내용 확인',true);syncSavedIapToCalendar(s,flow.reg,saved,show)}
     },0);
    });
   }
