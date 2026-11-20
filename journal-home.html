@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>업무 홈 · 좋은일자리</title>
+<style>
+:root{color-scheme:light;font-family:Pretendard,"Malgun Gothic","Apple SD Gothic Neo",system-ui,sans-serif;color:#1a2c47;background:#f4f7fb}
+*{box-sizing:border-box}
+body{margin:0;background:#f4f7fb}
+main{max-width:1160px;margin:auto;padding:28px 26px 48px}
+header{display:flex;gap:14px;align-items:flex-end;justify-content:space-between;margin-bottom:25px}
+.eyebrow{font-size:12px;font-weight:800;letter-spacing:.08em;color:#5274a1}
+h1{margin:7px 0 7px;font-size:29px;letter-spacing:-.9px}
+.subtitle{margin:0;color:#667894;font-size:14px}
+.date{font-size:13px;color:#60728f;background:white;border:1px solid #e2e9f1;border-radius:30px;padding:8px 14px;white-space:nowrap}
+.panel{background:#fff;border:1px solid #e0e8f2;border-radius:17px;padding:22px 23px;margin-bottom:19px;box-shadow:0 4px 20px rgba(37,63,99,.035)}
+.section-head{display:flex;align-items:center;justify-content:space-between;gap:15px;margin-bottom:14px}
+h2{margin:0;font-size:17px;letter-spacing:-.4px}
+.link{border:0;background:transparent;color:#2561c1;font-size:13px;font-weight:750;cursor:pointer;white-space:nowrap}
+.link:hover{text-decoration:underline}
+#notices{display:grid;gap:9px}
+.notice{padding:12px 13px;background:#f8fafd;border:1px solid #eaf0f7;border-radius:11px;display:flex;align-items:center;gap:11px;text-align:left;cursor:pointer;color:inherit}
+.notice:hover{border-color:#9bb7e4;background:#f4f8ff}
+.notice .flag{font-size:11px;color:#4268ab;background:#e9f1ff;padding:5px 8px;border-radius:7px;flex-shrink:0}
+.notice strong{font-size:13px;line-height:1.5;font-weight:700;flex:1;overflow-wrap:anywhere}
+.notice time{font-size:11px;color:#7a8aa2;white-space:nowrap}
+.empty{background:#f8fafd;border:1px dashed #d9e4f0;border-radius:11px;padding:18px;color:#708097;font-size:13px}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.tile{border:1px solid #e0e9f3;background:#fff;cursor:pointer;text-align:left;padding:18px;border-radius:13px;min-height:116px;display:flex;flex-direction:column;justify-content:space-between;transition:background .16s,border-color .16s,transform .16s}
+.tile:hover{background:#f3f7ff;border-color:#94b0dd;transform:translateY(-2px)}
+.tile:focus-visible,.link:focus-visible,.notice:focus-visible{outline:3px solid #75a4f1;outline-offset:3px}
+.tile .symbol{font-size:22px;color:#315da4;line-height:1.1}
+.tile strong{display:block;font-size:14px;color:#203a5d;margin:11px 0 4px}
+.tile small{display:block;font-size:12px;color:#71829b}
+.foot{font-size:12px;color:#73829a;line-height:1.7;padding:0 4px}
+@media(max-width:800px){main{padding:18px 15px 36px}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}h1{font-size:25px}.panel{padding:17px}header{align-items:flex-start;flex-direction:column}}
+@media(max-width:420px){.tile{padding:14px;min-height:108px}.notice time{display:none}}
+</style>
+</head>
+<body>
+<main>
+<header><div><div class="eyebrow">GOOD JOB · COUNSELING WORKSPACE</div><h1>상담 업무 홈</h1><p class="subtitle">오늘 필요한 상담 업무를 빠르게 시작하세요.</p></div><time class="date" id="today"></time></header>
+<section class="panel" aria-label="센터 공지사항">
+<div class="section-head"><h2>📢 센터 공지사항</h2><button type="button" class="link" id="openBoard">공용 게시판 전체 보기</button></div>
+<div id="notices" aria-live="polite"><div class="empty">최근 공지사항을 확인하고 있습니다.</div></div>
+</section>
+<section class="panel" aria-label="업무 바로가기">
+<div class="section-head"><h2>업무 바로가기</h2><span class="subtitle">선택한 업무가 작업 탭으로 열립니다.</span></div>
+<div class="grid" id="shortcuts">
+<button type="button" class="tile" data-page="p01"><span class="symbol">◉</span><span><strong>초기상담 Ⅰ유형</strong><small>기본정보 · 상담기록</small></span></button>
+<button type="button" class="tile" data-page="p02"><span class="symbol">◉</span><span><strong>초기상담 Ⅱ유형</strong><small>기본정보 · 상담기록</small></span></button>
+<button type="button" class="tile" data-page="p05"><span class="symbol">◎</span><span><strong>IAP 수립상담</strong><small>계획수립 · 활동일정</small></span></button>
+<button type="button" class="tile" data-page="p06"><span class="symbol">₩</span><span><strong>구직촉진수당</strong><small>수당 확인 · 상담</small></span></button>
+<button type="button" class="tile" data-page="p12"><span class="symbol">⌕</span><span><strong>채용정보&알선</strong><small>등록번호 검색 없이 사용</small></span></button>
+<button type="button" class="tile" data-page="p07"><span class="symbol">✓</span><span><strong>필수상담</strong><small>구직상태 · 활동점검</small></span></button>
+<button type="button" class="tile" data-page="p03"><span class="symbol">◇</span><span><strong>심리검사 해석</strong><small>검사결과 · 의견기록</small></span></button>
+<button type="button" class="tile" data-page="p11"><span class="symbol">□</span><span><strong>종료·사후관리</strong><small>종료처리 · 사후지원</small></span></button>
+<button type="button" class="tile" data-page="p_calendar"><span class="symbol">▦</span><span><strong>상담 일정표</strong><small>상담 일정 · 기한 확인</small></span></button>
+</div></section>
+<p class="foot">상담기록 메뉴는 기존 등록번호 검색·저장 절차가 유지됩니다. 채용정보&알선 메뉴만 검색 없이 바로 이용할 수 있습니다.</p>
+</main>
+<script>
+(function(){
+'use strict';
+var STORAGE='clg_shared_board_v1';
+var list=document.getElementById('notices');
+document.getElementById('today').textContent=new Intl.DateTimeFormat('ko-KR',{year:'numeric',month:'long',day:'numeric',weekday:'long'}).format(new Date());
+function getParent(){try{return window.parent!==window&&window.parent.document?window.parent:null}catch(e){return null}}
+function openBoard(){var p=getParent();if(!p)return;var b=p.document.getElementById('boardOpenBtn');if(b)b.click();else window.alert('공용 게시판을 불러오지 못했습니다. 상단 공지 메뉴를 확인해 주세요.')}
+document.getElementById('openBoard').addEventListener('click',openBoard);
+document.querySelectorAll('[data-page]').forEach(function(button){
+ button.addEventListener('click',function(){var p=getParent();if(p&&typeof p.loadPage==='function')p.loadPage(button.dataset.page);else window.alert('메뉴를 열 수 없습니다. 통합본을 다시 확인해 주세요.')});
+});
+function readNotices(){try{var p=getParent();var x=JSON.parse((p?p.localStorage:localStorage).getItem(STORAGE)||'[]');return Array.isArray(x)?x:[]}catch(e){return []}}
+function renderNotices(){
+ var rows=readNotices().filter(function(x){return x&& (x.category==='공지사항'||x.important||x.pinned)});
+ rows.sort(function(a,b){return Number(!!b.pinned)-Number(!!a.pinned)||new Date(b.updatedAt||b.createdAt||0)-new Date(a.updatedAt||a.createdAt||0)});
+ list.replaceChildren();
+ if(!rows.length){var e=document.createElement('div');e.className='empty';e.textContent='표시할 공지사항이 없습니다. 전체 내용은 공용 게시판에서 확인할 수 있습니다.';list.appendChild(e);return}
+ rows.slice(0,4).forEach(function(x){
+  var btn=document.createElement('button');btn.type='button';btn.className='notice';btn.addEventListener('click',openBoard);
+  var flag=document.createElement('span');flag.className='flag';flag.textContent=x.pinned?'고정':(x.important?'필독':'공지');
+  var title=document.createElement('strong');title.textContent=String(x.title||'제목 없음');
+  var time=document.createElement('time');var d=new Date(x.updatedAt||x.createdAt||0);
+  time.textContent=isNaN(d.getTime())?'':new Intl.DateTimeFormat('ko-KR',{month:'2-digit',day:'2-digit'}).format(d);
+  btn.append(flag,title,time);list.appendChild(btn);
+ });
+}
+renderNotices();
+var p=getParent();if(p)p.addEventListener('clg-board-updated',function(){setTimeout(renderNotices,100)});
+window.addEventListener('storage',function(e){if(e.key===STORAGE)renderNotices()});
+setTimeout(renderNotices,1600);
+})();
+</script>
+</body></html>

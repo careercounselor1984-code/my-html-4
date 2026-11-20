@@ -3,7 +3,7 @@ const fs=require('node:fs'),assert=require('node:assert/strict'),{JSDOM}=require
 const main=fs.readFileSync('index.html','utf8');
 const pages=JSON.parse(main.match(/const PAGES = (\[.*?\]);/s)[1]);
 const source=fs.readFileSync('journal-workspace.js','utf8');
-const ids=['p01','p02','p03','p04','p06','p07','p10','p11','p12','p13','p16','p17','p21','p23','p30','p34'];
+const ids=['p01','p02','p03','p04','p06','p07','p10','p11','p13','p16','p17','p21','p23','p30','p34'];
 const A='A12345678901',B='A98765432109';
 const dom=new JSDOM('<body><div id="tabs"></div></body>',{url:'https://journal.test/',pretendToBeVisual:true,runScripts:'outside-only'});
 const w=dom.window,d=w.document,tabs=[];
@@ -40,10 +40,13 @@ function addField(ctx){
  const field=ctx.doc.createElement('textarea');field.id='clgAuditPatientSpecificNote';ctx.doc.body.appendChild(field);
  return field;
 }
+const jobInfo=init('p12'); // unlike counseling records, jobs & matching never need an IAP lookup
 const made=ids.map(id=>{const ctx=init(id);const realCount=ctx.doc.querySelectorAll('input,select,textarea').length;
  assert(realCount>=(id==='p21'?1:4),id+' expected real inputs; found '+realCount);
  addField(ctx);return {...ctx,realCount}});
 w.eval(source);
+assert.equal(jobInfo.doc.getElementById('clgRequiredFlowGate'),null,'job-info/matching must open without registration');
+assert.notEqual(jobInfo.doc.getElementById('c_date')?.inert,true,'job-info/matching stays editable');
 const dbKey='clg_required_consult_records_v1:'+encodeURIComponent('audit@example.test');
 for(const ctx of made){
  const {doc,win,page}=ctx;

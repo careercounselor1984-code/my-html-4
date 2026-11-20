@@ -123,7 +123,8 @@
 
  // Mandatory registration -> local lookup -> edit -> confirmed save workflow.
  // The parent owns the guard so the legacy embedded forms keep their own logic.
- const requiredPages=new Set(['p01','p02','p03','p04','p05','p06','p07','p10','p11','p12','p13','p16','p17','p21','p23','p30','p34']);
+ // Job-information & matching (p12) does not need an IAP lookup gate.
+  const requiredPages=new Set(['p01','p02','p03','p04','p05','p06','p07','p10','p11','p13','p16','p17','p21','p23','p30','p34']);
  const requiredStoragePrefix='clg_required_consult_records_v1:';
  function requiredDbKey(){return requiredStoragePrefix+encodeURIComponent(owner)}
  function requiredStorage(){return window.GoodJobPrivacy?.storage||window.localStorage}
