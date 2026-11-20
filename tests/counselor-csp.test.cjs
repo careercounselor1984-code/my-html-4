@@ -19,9 +19,11 @@ test('strict Content-Security-Policy and external preset SRI match the actual fi
   assert.equal(external[1],digest(preset));
   assert.ok(csp[1].includes("'sha256-"+digest(inline[1])+"'"));
   assert.ok(csp[1].includes("'sha256-"+digest(preset)+"'"));
-  const auditTag=html.match(/<script src="\\.\\/formula-audit\\.js" integrity="sha256-([^"]+)" crossorigin="anonymous"><\\/script>/);
-  assert.ok(auditTag,'formula auditor script must be pinned');
-  assert.equal(auditTag[1],digest(auditor));
+  const marker='src="./formula-audit.js" integrity="sha256-';
+  const position=html.indexOf(marker);
+  assert.ok(position>=0,'formula auditor script must be pinned');
+  const auditHash=html.slice(position+marker.length).split('"',1)[0];
+  assert.equal(auditHash,digest(auditor));
   assert.ok(csp[1].includes("'sha256-"+digest(auditor)+"'"));
 
   assert.ok(!csp[1].includes("'unsafe-inline'"));
