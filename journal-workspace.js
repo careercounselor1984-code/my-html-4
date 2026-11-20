@@ -388,7 +388,7 @@
     }
     flow.stored=true;flow.savedFingerprint=fingerprint();flow.dirty=false;
     show('✓ IAP 저장 확인 완료 · '+new Date().toLocaleTimeString('ko-KR'),true);
-     syncSavedIapToCalendar(s,reg,after,show);
+     try{syncSavedIapToCalendar(s,reg,after,show)}catch(e){show('✓ IAP 저장 확인 완료 · 일정표 연동 보류: '+e.message,true)}
     return;
    }
    const key=storageKey(reg),database=readRequiredDb(),latest=database[key]||null;
@@ -408,7 +408,7 @@
    flow.stored=true;flow.revision=snapshot.revision;
    flow.savedFingerprint=fingerprint();flow.dirty=false;
    show('✓ 상담내용 전체 저장 완료 · '+new Date().toLocaleTimeString('ko-KR'),true);
-   syncSavedConsultationToCalendar(s,reg,snapshot,show);
+   try{syncSavedConsultationToCalendar(s,reg,snapshot,show)}catch(e){show('✓ 상담내용 저장 완료 · 일정표 연동 보류: '+e.message,true)}
   }
   lookupBtn.addEventListener('click',lookup);
   noInput.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();lookup()}});
@@ -421,7 +421,7 @@
     if(!flow.searched||!e.target.closest?.('#iapParticipantSaveBtn,#iapEditSaveBtn'))return;
     win.setTimeout(()=>{
      const saved=nativeIapRecord(flow.reg);
-     if(saved&&!flow.needsSave()){flow.stored=true;flow.savedFingerprint=fingerprint();flow.dirty=false;show('✓ IAP 저장된 내용 확인',true);syncSavedIapToCalendar(s,flow.reg,saved,show)}
+     if(saved&&!flow.needsSave()){flow.stored=true;flow.savedFingerprint=fingerprint();flow.dirty=false;show('✓ IAP 저장된 내용 확인',true);try{syncSavedIapToCalendar(s,flow.reg,saved,show)}catch(e){show('✓ IAP 저장 확인 완료 · 일정표 연동 보류: '+e.message,true)}}
     },0);
    });
   }
