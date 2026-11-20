@@ -83,7 +83,10 @@ fs.writeFileSync(location,fixture,'utf8');
 try{
  const result=cp.spawnSync(chrome,['--headless=new','--no-sandbox','--disable-gpu','--disable-dev-shm-usage','--disable-extensions','--allow-file-access-from-files','--virtual-time-budget=15000','--dump-dom','file://'+location],{encoding:'utf8',timeout:120000,maxBuffer:24*1024*1024});
  if(!String(result.stdout).includes('data-audit-smoke="pass"')){
-  console.error('Browser smoke failed',result.status,String(result.stdout).slice(-2500),String(result.stderr).slice(-1400));
+  const output=String(result.stdout||'');
+  const marker=output.match(/data-audit-smoke="([^"]+)"/)?.[1]||'absent';
+  const detail=output.match(/<pre id="result">([\\s\\S]*?)<\\/pre>/)?.[1]||'No browser result detail';
+  console.error('Browser smoke failed',result.status,'attribute',marker,'detail',detail.slice(0,2400),'head',output.slice(0,260),'stderr',String(result.stderr).slice(-500));
   process.exitCode=1;
  }else console.log('PASS: Real Chrome read XLSX → identify formulas → approved copy → reopen → preserve adjacent formulas');
 }finally{fs.unlinkSync(location);}
