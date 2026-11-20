@@ -19,7 +19,7 @@ function create(frame,goBack){
  '<div class="gjs-head-actions"><button data-reload>↻ 새로고침</button><button data-export>분석 CSV</button><button class="gjs-back" data-back>← 내 보관함으로</button></div></header>'+
  '<div class="gjs-stats"><div class="gjs-stat"><span>공유 공고</span><strong data-njobs>0</strong><small>중복 공고 통합</small></div><div class="gjs-stat"><span>정보제공</span><strong data-nprovided>0</strong><small data-window-label>조회 기간 기준</small></div><div class="gjs-stat"><span>알선</span><strong data-nreferred>0</strong><small>등록한 활동 건수</small></div><div class="gjs-stat"><span>취업</span><strong data-nemployed>0</strong><small>취업 확인 기록</small></div></div>'+
  '<div class="gjs-tools"><input data-search type="search" placeholder="기업명 · 공고명 · 지역 검색" aria-label="공고 검색">'+
- '<select data-period class="gjs-period" aria-label="활동 집계 기간"><option value="today">오늘 활동</option><option value="week">최근 7일</option><option value="all">전체 기간</option><option value="date">날짜 지정</option></select>'+
+ '<select data-period class="gjs-period" aria-label="활동 집계 기간"><option value="today">오늘 활동</option><option value="week">최근 7일</option><option value="month">이번 달</option><option value="all">전체 기간</option><option value="date">날짜 지정</option></select>'+
  '<input data-date type="date" aria-label="활동 집계 날짜" hidden>'+
  '<select data-sort aria-label="공고 정렬"><option value="recent">최근 공유순</option><option value="active">활동 많은 순</option><option value="company">기업명순</option></select>'+
  '<label><input data-hide-expired type="checkbox">마감 공고 숨기기</label></div>'+
@@ -44,7 +44,7 @@ function create(frame,goBack){
  function periodActivities(items){
   var v=q('[data-period]').value,date=today(),chosen=q('[data-date]').value;
   if(v==='all')return items;
-  var lower=v==='week'?new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Seoul'}).format(new Date(new Date(date+'T00:00:00+09:00').getTime()-6*86400000)):date;
+  var lower=v==='week'?new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Seoul'}).format(new Date(new Date(date+'T00:00:00+09:00').getTime()-6*86400000)):v==='month'?date.slice(0,7)+'-01':date;
   return items.filter(function(a){var x=String(a.event_date).slice(0,10);return v==='today'?x===date:v==='date'?x===chosen:x>=lower&&x<=date});
  }
  function uniqueJobs(){
@@ -70,7 +70,7 @@ function create(frame,goBack){
   var records=periodActivities(state.activities),nums=counts(records),jobs=uniqueJobs();
   q('[data-njobs]').textContent=jobs.length.toLocaleString('ko-KR');
   q('[data-nprovided]').textContent=nums[0].toLocaleString('ko-KR');q('[data-nreferred]').textContent=nums[1].toLocaleString('ko-KR');q('[data-nemployed]').textContent=nums[2].toLocaleString('ko-KR');
-  q('[data-window-label]').textContent={'today':'오늘 진행','week':'최근 7일','date':q('[data-date]').value,'all':'전체 기록'}[q('[data-period]').value];
+  q('[data-window-label]').textContent={'today':'오늘 진행','week':'최근 7일','month':'이번 달','date':q('[data-date]').value,'all':'전체 기록'}[q('[data-period]').value];
   var term=safe(q('[data-search]').value).toLowerCase(),hide=q('[data-hide-expired]').checked;
   jobs=jobs.filter(function(x){return (!hide||!expired(x.job))&&[x.job.company,x.job.title,x.job.location,x.job.duties].some(function(v){return safe(v).toLowerCase().includes(term)})});
   if(q('[data-sort]').value==='active')jobs.sort(function(a,b){return activitiesFor(b.key).length-activitiesFor(a.key).length});
@@ -82,16 +82,18 @@ function create(frame,goBack){
   aggregateCenterRows();
  }
  function renderAnalytics(records){
-  var body=q('[data-analytics]');body.replaceChildren(),people=new Map(),dates=new Map();
+  var body=q('[data-analytics]');body.replaceChildren(),people=new Map(),dates=new Map(),months=new Map();
   records.forEach(function(a){var who=safe(a.actor_name,80)||'상담사',date=String(a.event_date).slice(0,10),ix=['provided','referred','employed'].indexOf(a.event_type);if(ix<0)return;
    if(!people.has(who))people.set(who,{label:who,n:[0,0,0]});if(!dates.has(date))dates.set(date,{label:date,n:[0,0,0]});
-   people.get(who).n[ix]++;dates.get(date).n[ix]++;
+   var month=date.slice(0,7);if(!months.has(month))months.set(month,{label:month,n:[0,0,0]});
+   people.get(who).n[ix]++;dates.get(date).n[ix]++;months.get(month).n[ix]++;
   });
   function tab(label,rows){body.append(elem(d,'h3','',label));var t=elem(d,'table'),h=elem(d,'tr');
-   [(label==='상담사별 집계'?'상담사':'일자'),'정보제공','알선','취업','합계'].forEach(function(v){h.append(elem(d,'th','',v))});t.append(h);
+   [(label==='상담사별 집계'?'상담사':label==='월별 집계'?'월':'일자'),'정보제공','알선','취업','합계'].forEach(function(v){h.append(elem(d,'th','',v))});t.append(h);
    rows.forEach(function(r){var tr=elem(d,'tr');[r.label].concat(r.n,[r.n.reduce(function(s,n){return s+n},0)]).forEach(function(v){tr.append(elem(d,'td','',String(v)))});t.append(tr)});body.append(t)}
   tab('상담사별 집계',Array.from(people.values()).sort(function(a,b){return b.n.reduce(function(s,n){return s+n},0)-a.n.reduce(function(s,n){return s+n},0)}));
   tab('일자별 집계',Array.from(dates.values()).sort(function(a,b){return b.label.localeCompare(a.label)}));
+  tab('월별 집계',Array.from(months.values()).sort(function(a,b){return b.label.localeCompare(a.label)}));
   if(!records.length)body.append(elem(d,'p','gjs-muted','해당 기간에 활동 기록이 없습니다.'));
  }
 
@@ -115,6 +117,7 @@ function create(frame,goBack){
   var v=q('[data-period]').value,t=today();
   if(v==='all')return {p_from:null,p_to:null};
   if(v==='today')return {p_from:t,p_to:t};
+  if(v==='month')return {p_from:t.slice(0,7)+'-01',p_to:t};
   if(v==='date')return {p_from:q('[data-date]').value,p_to:q('[data-date]').value};
   return {p_from:new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Seoul'}).format(new Date(new Date(t+'T00:00:00+09:00').getTime()-6*86400000)),p_to:t};
  }
