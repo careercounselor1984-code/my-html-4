@@ -27,7 +27,7 @@ code{font-size:11px;color:#295276;word-break:break-all;background:#f1f6fc;border
 @media(max-width:440px){.card{padding:18px}}
 </style>
 <script src="kakao-share-config.js?v=20261121-config" defer></script>
-<script src="https://t1.kakaocdn.net/kakao_js_sdk/2.8.5/kakao.min.js" integrity="sha384-v6JKY3z4FUkWq21oZDHZe74YvuPk/WUrVLrDHTBojHXClOSa3iXy7sCXPY1jkFbj" crossorigin="anonymous" defer></script>
+<!-- 카카오 SDK는 아래 코드에서 2.8.5 → 2.8.1 순서로 진단·로드합니다. -->
 </head>
 <body>
 <main class="card">
@@ -40,31 +40,70 @@ code{font-size:11px;color:#295276;word-break:break-all;background:#f1f6fc;border
 <div class="target">고용24 원문 공고 보기</div>
 </div>
 <button id="share" type="button">카카오톡 공식 공유창 열기</button>
-<p id="state" role="status" aria-live="polite">카카오 공식 SDK와 기존 센터 앱 설정을 확인 중입니다.</p>
+<p id="state" role="status" aria-live="polite">카카오 공식 SDK와 기존 센터 앱 설정을 확인 중입니다.</p><p id="diagnostics" class="note" aria-live="polite"></p>
 <p class="note">버튼을 누르면 카카오가 제공하는 공유 대상 선택창이 열립니다. 성공하면 <b>나와의 채팅</b>으로 전송한 뒤, 카드 이미지와 <b>고용24 원문 공고 보기</b> 버튼이 표시되는지 확인해 주세요. 긴 영문 URL은 메시지 본문에 넣지 않습니다.</p>
 <p class="note">SDK 도메인 오류가 발생하면 카카오디벨로퍼스 → 좋은일자리 채용정보 → 플랫폼 키 → JavaScript 키 → JavaScript SDK 도메인에 <code>https://careercounselor1984-code.github.io</code>를 추가해야 합니다. 전송 카드 링크는 기존 등록한 <code>square-water-31bb.careercounselor1984.workers.dev</code>를 사용합니다.</p>
 </main>
 <script>
 (function(){
 "use strict";
-const button=document.getElementById("share"),state=document.getElementById("state");
+const button=document.getElementById("share"),state=document.getElementById("state"),diagnostics=document.getElementById("diagnostics");
 const link="https://square-water-31bb.careercounselor1984.workers.dev/?id=a11c20261121";
 const image="https://bowxlaiyjxknqccoughl.supabase.co/functions/v1/job-card-simple-image?v=2";
-function show(message,bad=false){state.textContent=message;state.classList.toggle("bad",bad)}
-function init(){
+const srcs=[
+ {version:"2.8.5",url:"https://t1.kakaocdn.net/kakao_js_sdk/2.8.5/kakao.min.js",sri:"sha384-v6JKY3z4FUkWq21oZDHZe74YvuPk/WUrVLrDHTBojHXClOSa3iXy7sCXPY1jkFbj"},
+ {version:"2.8.1",url:"https://t1.kakaocdn.net/kakao_js_sdk/2.8.1/kakao.min.js",sri:"sha384-OL+ylM/iuPLtW5U3XcvLSGhE8JzReKDank5InqlHGWPhb4140/yrBw0bg0y7+C9J"}
+];
+const failures=[];
+let ready=false;
+button.disabled=true;
+function show(msg,bad=false){state.textContent=msg;state.classList.toggle("bad",bad);}
+function diagnostic(extra=""){
+ const hasKey=!!String(window.GOODJOB_KAKAO_JS_KEY||"").trim();
+ const hasSDK=!!window.Kakao;
+ const share=typeof window.Kakao?.Share?.sendDefault==="function";
+ diagnostics.textContent="설정 확인 — 앱 JavaScript 키: "+(hasKey?"정상":"불러오지 못함")+" / 카카오 SDK: "+(hasSDK?"로드됨":"미로드")+" / 공유 기능: "+(share?"사용 가능":"미사용")+(extra?"\n"+extra:"");
+}
+function activate(){
  const key=String(window.GOODJOB_KAKAO_JS_KEY||"").trim();
- if(!key){show("센터 앱 JavaScript 키가 로드되지 않았습니다. 공유 설정 파일을 확인해 주세요.",true);return false;}
- if(!window.Kakao?.Share?.sendDefault){show("카카오 JavaScript SDK를 불러오지 못했습니다. 인터넷 연결이나 브라우저 차단 기능을 확인해 주세요.",true);return false;}
+ if(!key){diagnostic();show("앱 JavaScript 키 설정 파일이 로드되지 않았습니다. 카카오 SDK와 별도의 문제입니다.",true);return false;}
+ if(typeof window.Kakao?.Share?.sendDefault!=="function"){diagnostic();show("SDK를 가져왔지만 카카오 공유 기능을 찾지 못했습니다.",true);return false;}
  try{
-  if(!Kakao.isInitialized())Kakao.init(key);
-  show("준비 완료. 노란 공유 버튼을 눌러 나와의 채팅으로 전송해 보세요.");
+  if(!window.Kakao.isInitialized())window.Kakao.init(key);
+  ready=true;button.disabled=false;
+  diagnostic();
+  show("준비 완료! 노란 공유 버튼을 눌러 '나와의 채팅'으로 전송해 보세요.");
   return true;
- }catch(e){show("카카오 SDK 초기화 오류: "+(e?.message||String(e)),true);return false;}
+ }catch(e){diagnostic();show("카카오 앱 키 초기화 오류: "+(e?.message||String(e)),true);return false;}
+}
+function attempt(index){
+ if(index>=srcs.length){
+  diagnostic("두 버전 모두 로드 실패: "+failures.join(" → "));
+  show("카카오 SDK 파일이 브라우저에서 차단되거나 다운로드되지 않았습니다. F12 → 콘솔에서 kakao.min.js 관련 오류를 확인해 주세요.",true);
+  return;
+ }
+ const source=srcs[index];
+ show("카카오 SDK "+source.version+" 연결 중…");
+ const script=document.createElement("script");
+ script.src=source.url;
+ script.integrity=source.sri;
+ script.crossOrigin="anonymous";
+ script.async=true;
+ script.onload=()=>{
+  if(activate())return;
+  failures.push(source.version+"(공유 API 확인 실패)");
+  attempt(index+1);
+ };
+ script.onerror=()=>{
+  failures.push(source.version+"(스크립트 다운로드/무결성 검사 실패)");
+  attempt(index+1);
+ };
+ document.head.appendChild(script);
 }
 button.addEventListener("click",function(){
- if(!init())return;
+ if(!ready||!activate())return;
  try{
-  Kakao.Share.sendDefault({
+  window.Kakao.Share.sendDefault({
    objectType:"feed",
    content:{
     title:"생산직 사원 모집(주간)",
@@ -74,12 +113,17 @@ button.addEventListener("click",function(){
    },
    buttons:[{title:"고용24 원문 공고 보기",link:{mobileWebUrl:link,webUrl:link}}]
   });
-  show("공유 요청을 보냈습니다. 카카오 공유 대상 선택창에서 '나와의 채팅'을 선택해 주세요. 창이 열리지 않으면 팝업 차단이나 SDK 도메인 등록을 확인해 주세요.");
- }catch(e){
-  show("공유 요청 오류: "+(e?.message||String(e))+"\nJavaScript SDK 도메인·웹 도메인 등록 상태를 확인해 주세요.",true);
- }
+  show("공유창이 열리면 '나와의 채팅'을 선택해 전송해 주세요.");
+ }catch(e){show("공유 요청 오류: "+(e?.message||String(e))+"\nJavaScript SDK 도메인과 제품 링크 도메인 등록 상태를 확인해 주세요.",true);}
 });
-window.addEventListener("load",init);
+window.addEventListener("load",()=>{
+ diagnostic();
+ if(!window.GOODJOB_KAKAO_JS_KEY){
+  show("센터 공용 JavaScript 키가 설정되지 않았습니다. 먼저 키 설정 파일을 확인해 주세요.",true);
+  return;
+ }
+ attempt(0);
+});
 })();
 </script>
 </body>
