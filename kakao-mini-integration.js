@@ -87,7 +87,7 @@ async function createLink(job){
   const result=await response.json().catch(()=>({}));
   if(!response.ok||!result.ok||!/^[a-f0-9]{12}$/.test(result.id||""))
     throw Error(result.message||"공고 미리보기 링크 생성 실패 ("+response.status+")");
-  return API+"?id="+result.id+"&mini=1";
+  return API+"?id="+result.id+"&mini=2";
 }
 async function copyJob(doc,mode){
   const job=currentJob(doc);
