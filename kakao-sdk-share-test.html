@@ -43,13 +43,13 @@ input{border:1px solid #cddae7;padding:11px;border-radius:8px;font:500 13px syst
 <div id="full" class="full"></div>
 <a id="source" class="tiny" target="_blank" rel="noopener noreferrer" href="#">
 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M7 13h10M13 9l4 4-4 4"/></svg>
-고용24 원문 공고 보기
+🌐 고용24 원문 공고 보기
 </a>
 <hr class="line">
 <div class="actual">
 <p><b>실제 카카오톡으로 전송될 글</b> · <span id="count"></span></p>
 <pre id="short"></pre>
-<p class="small">아래에 작은 ‘원문 공고 보기’ 버튼이 붙어. 큰 이미지는 없고 글과 버튼 어디를 눌러도 같은 고용24 원문으로 이동해.</p>
+<p class="small">아래에 작은 ‘원문 공고 보기’ 버튼이 붙어. 큰 이미지는 없고 글과 버튼 어디를 눌러도 같은 고용24 원문으로 이동해. 카카오톡의 버튼 배경색은 바꿀 수 없지만 아이콘은 컬러로 표시할 수 있어.</p>
 </div>
 <button id="share" type="button" disabled>카카오톡 글+원문 버튼 공유</button>
 <p id="state" role="status" aria-live="polite">카카오 공유 기능 준비 중…</p>
@@ -133,7 +133,7 @@ button.addEventListener("click",()=>{
   const source=goLink(target);
   window.Kakao.Share.sendDefault({
    objectType:"text",text:short,link:{mobileWebUrl:source,webUrl:source},
-   buttons:[{title:"원문 공고 보기",link:{mobileWebUrl:source,webUrl:source}}]
+   buttons:[{title:"🌐 원문 보기",link:{mobileWebUrl:source,webUrl:source}}]
   });
   msg("카카오 공유창이 열리면 수신자를 선택해 줘. 메시지는 200자 이내의 8개 항목 요약이야. 글이나 원문 보기 버튼을 누르면 모두 고용24 공고로 이동해.");
  }catch(e){msg("공유 요청 실패: "+(e?.message||String(e)),true)}
