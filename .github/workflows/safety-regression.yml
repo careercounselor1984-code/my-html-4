@@ -18,6 +18,8 @@ jobs:
       - name: Check safety regression
         run: |
           node --check client-guidance.js
+          node --check journal-workspace.js
+          node tests/iap-auto-calendar-bridge.test.cjs
           node tests/journal-safety.test.cjs
           node tests/iap-audit-normal-plans.test.cjs
           node tests/kakao-compact.test.cjs
