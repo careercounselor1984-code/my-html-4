@@ -24,7 +24,10 @@
     const source=/work24|work\.go/.test(host)?"고용24":/saramin/.test(host)?"사람인":/jobkorea/.test(host)?"잡코리아":/alba/.test(host)?"알바천국":"웹 채용공고";
     return {
       url,title,company:val(doc,"c_name"),location:val(doc,"c_address"),
-      salary:val(doc,"c_salary"),workHours:val(doc,"c_work_hours"),
+      duties:val(doc,"c_task"),experience:val(doc,"c_exp"),education:val(doc,"c_edu"),
+      employment:val(doc,"c_type"),
+      salary:val(doc,"c_salary"),
+      workHours:[val(doc,"c_work_days"),val(doc,"c_work_hours")].filter(Boolean).join(" / "),
       deadline:val(doc,"c_deadline"),source
     };
   }
@@ -34,15 +37,18 @@
   }
   function buildMessage(doc){
     const job=currentJob(doc);
-    const note=val(doc,"goodjobMiniNote")||"관심 있으시면 답장 주세요.";
-    return [
-      "📢 [채용안내] "+(job.title||"채용공고"),
-      job.company?"🏢 "+job.company:"",
-      job.location?"📍 "+job.location:"",
-      job.salary?"💰 "+job.salary:"",
-      job.workHours?"🕒 "+job.workHours:"",
-      "",note
-    ].filter((line,i)=>line||i>=5).join("\n");
+    const condition=[job.experience||"-",job.education||"-"].join(" / ");
+    const lines=[
+      "📢 공고명: "+(job.title||"미확인"),
+      "🏢 기업명: "+(job.company||"미확인"),
+      "🛠️ 담당업무: "+(job.duties||"미확인"),
+      "📍 근무지: "+(job.location||"-"),
+      "👤 지원조건: "+condition,
+      "📄 근무형태: "+(job.employment||"미확인"),
+      "🕒 근무시간: "+(job.workHours||"미확인")
+    ];
+    if(job.salary)lines.push("💰 급여: "+job.salary);
+    return lines.join("\n");
   }
   async function copyMessage(doc){
     try{
@@ -101,7 +107,8 @@
       const params=new URLSearchParams({
         id:result.id,
         title:job.title,company:job.company,location:job.location,
-        salary:job.salary,source:job.source
+        duties:job.duties,experience:job.experience,education:job.education,
+        employment:job.employment,workHours:job.workHours,salary:job.salary,source:job.source
       });
       const shareUrl=SHARE_PAGE+"?"+params.toString();
       if(popup&&!popup.closed){popup.location.replace(shareUrl);}
@@ -129,13 +136,10 @@
     const copy=doc.createElement("button");copy.type="button";copy.textContent="① 채용안내 글 복사";copy.style.cssText="background:#dbeafe;border:0;border-radius:9px;padding:11px 15px;color:#1e40af;font-weight:700;cursor:pointer";
     const send=doc.createElement("button");send.type="button";send.id="goodjobMiniShareBtn";send.textContent="② 카카오톡 초미니 링크 공유";send.style.cssText="background:#1d4ed8;border:0;border-radius:9px;padding:11px 15px;color:white;font-weight:700;cursor:pointer";
     controls.append(copy,send);
-    const label=doc.createElement("label");label.textContent="안내 문구";label.style.cssText="display:block;font-size:12px;font-weight:700;color:#64748b;margin-top:10px";
-    const note=doc.createElement("input");note.type="text";note.id="goodjobMiniNote";note.value="관심 있으시면 답장 주세요.";note.maxLength=70;
-    note.style.cssText="width:100%;box-sizing:border-box;padding:9px;border:1px solid #cbd5e1;border-radius:8px;margin:5px 0";
     const help=doc.createElement("small");help.textContent="공고 정보만 발행 서버에 전달합니다. 내담자·상담일지 정보는 전송되지 않습니다. 최초 공유 시 발급키 입력이 필요합니다.";
     help.style.cssText="display:block;color:#64748b;line-height:1.55";
     const state=doc.createElement("div");state.id="goodjobMiniStatus";state.setAttribute("role","status");state.style.cssText="font-size:12px;margin-top:8px;min-height:16px";
-    panel.append(header,controls,label,note,help,state);
+    panel.append(header,controls,help,state);
     copy.addEventListener("click",()=>copyMessage(doc));
     send.addEventListener("click",()=>share(doc));
     const parent=original.parentElement;
