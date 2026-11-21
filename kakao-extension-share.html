@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="ko"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer"><meta name="robots" content="noindex,nofollow,noarchive">
+<title>좋은일자리 · 카카오톡 채용정보 공유</title>
+<style>
+*{box-sizing:border-box}body{margin:0;padding:6vh 16px;background:#f4f7fb;color:#20334a;font-family:system-ui,'Malgun Gothic',sans-serif}
+main{max-width:500px;margin:auto;background:#fff;padding:25px;border:1px solid #dfe7f0;border-radius:16px;box-shadow:0 8px 32px #172c4a0d}
+h1{font-size:20px;margin:0 0 9px}p{font-size:13px;line-height:1.65;color:#63758a}button{background:#fee500;color:#2b2600;border:1px solid #e5cb00;border-radius:10px;padding:14px;width:100%;font-size:16px;font-weight:850;cursor:pointer;margin:10px 0}
+pre{font:12px/1.6 system-ui,'Malgun Gothic',sans-serif;white-space:pre-wrap;word-break:break-word;padding:15px;background:#f7f9fc;border:1px solid #e5ecf3;border-radius:9px}
+a{font-size:12px;color:#245aa6}#status{font-weight:650}small{color:#8694a5}
+</style>
+<script src="./kakao-share-config.js?v=20261121-config"></script>
+<script src="https://t1.kakaocdn.net/kakao_js_sdk/2.8.5/kakao.min.js"
+ integrity="sha384-v6JKY3z4FUkWq21oZDHZe74YvuPk/WUrVLrDHTBojHXClOSa3iXy7sCXPY1jkFbj" crossorigin="anonymous"></script>
+</head>
+<body><main>
+<h1>💬 채용정보 카카오톡 공유</h1>
+<p id="status" role="status">카카오 공유 기능을 확인하고 있습니다.</p>
+<button id="share" type="button">카카오톡 공유하기</button>
+<p>공유창이 자동으로 열리지 않으면 위의 노란 버튼을 한 번 눌러 주세요. PC 카카오톡에서는 한 번에 한 명씩 선택될 수 있습니다.</p>
+<pre id="preview"></pre>
+<a id="original" target="_blank" rel="noopener noreferrer" hidden>원문 채용공고 확인</a>
+<p><small>내담자 이름·연락처 등 개인정보는 이 공유 URL에 포함되지 않습니다.</small></p>
+</main>
+<script>
+(function(){"use strict";
+ const $=id=>document.getElementById(id);
+ const params=new URLSearchParams(location.search);
+ const text=params.get("text")||"";
+ const url=params.get("url")||"";
+ const allowed=["work24.go.kr","work.go.kr","saramin.co.kr","jobkorea.co.kr","alba.co.kr"];
+ let valid=null;
+ try{
+  const u=new URL(url);
+  if(url.length<=2500&&u.protocol==="https:"&&!u.username&&!u.password&&(!u.port||u.port==="443")&&allowed.some(x=>u.hostname===x||u.hostname.endsWith("."+x)))valid=u;
+ }catch{}
+ const status=$("status"),btn=$("share");
+ $("preview").textContent=text;
+ if(!valid||!text||text.length>200){
+  btn.disabled=true;status.textContent="공유할 채용정보 또는 공식 원문 주소를 확인해 주세요.";return;
+ }
+ const redirect=new URL("./job-open.html",location.href);
+ redirect.searchParams.set("to",valid.href);
+ const source=redirect.href;
+ $("original").href=valid.href;$("original").hidden=false;
+ let sdkReady=false;
+ try{
+  const sdk=window.Kakao;
+  const key=String(window.GOODJOB_KAKAO_JS_KEY||"").trim();
+  if(!sdk||!key||typeof sdk.init!=="function"||typeof sdk.isInitialized!=="function")throw Error("카카오 연결 정보를 찾을 수 없습니다.");
+  if(!sdk.isInitialized())sdk.init(key);
+  if(typeof sdk.Share?.sendDefault!=="function")throw Error("카카오 공유 기능이 준비되지 않았습니다.");
+  sdkReady=true;status.textContent="공유창을 준비했습니다. 자동으로 열리지 않으면 노란 버튼을 눌러 주세요.";
+ }catch(err){status.textContent="카카오 공유 준비 실패: "+(err?.message||String(err));btn.disabled=true;}
+ function send(){
+  if(!sdkReady)return;
+  try{
+   window.Kakao.Share.sendDefault({
+    objectType:"text",text,
+    link:{mobileWebUrl:source,webUrl:source},
+    buttons:[{title:"원문 공고 보기",link:{mobileWebUrl:source,webUrl:source}}]
+   });
+   status.textContent="카카오톡 공유창에서 수신자를 선택한 후 전송하세요. 공유창이 보이지 않으면 노란 버튼을 눌러 다시 시도하세요.";
+  }catch(err){status.textContent="공유 요청 실패: "+(err?.message||String(err));}
+ }
+ btn.addEventListener("click",send);
+ // 확장프로그램 클릭 → 웹 페이지 로드 시 자동 실행 시도.
+ // 브라우저 팝업 차단 시 사용자 클릭이 필요하므로 전송완료로 표시하지 않음.
+ if(sdkReady&&params.get("auto")==="1")send();
+})();
+</script>
+</body></html>
