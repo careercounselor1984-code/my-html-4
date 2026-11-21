@@ -305,9 +305,9 @@ function attach(){
   proof.style.cssText="background:#f1f5f9;border:1px solid #b9c7d5;border-radius:9px;padding:11px 15px;color:#34506b;font-weight:750;cursor:pointer";
   const pasteBox=doc.createElement("textarea");
   pasteBox.id="goodjobEvidencePaste";pasteBox.rows=2;pasteBox.hidden=true;
-  pasteBox.readOnly=true;
+  pasteBox.readOnly=false;
   pasteBox.placeholder="PC 카카오톡에서 보낸 메시지가 보이게 캡처 → 여기를 클릭하고 Ctrl+V";
-  pasteBox.style.cssText="display:block;margin-top:10px;width:100%;box-sizing:border-box;border:1px dashed #91acc5;border-radius:8px;padding:12px;font:12px 'Malgun Gothic',sans-serif;resize:vertical";
+  pasteBox.style.cssText="margin-top:10px;width:100%;box-sizing:border-box;border:1px dashed #91acc5;border-radius:8px;padding:12px;font:12px 'Malgun Gothic',sans-serif;resize:vertical";
   const help=doc.createElement("small");
   help.textContent="노란색 ‘카카오톡 바로 공유’는 수신자 선택창을 바로 엽니다. 발송 증빙: PC 카카오톡에서 실제 전송한 대화를 Win+Shift+S로 캡처한 다음 ‘발송 증빙 저장’을 누르거나 입력칸에 Ctrl+V로 붙여넣으세요. 파일은 서버가 아닌 이 PC에만 저장됩니다. 복사 버튼은 예비 기능입니다.";
   help.style.cssText="display:block;margin-top:8px;color:#64748b;line-height:1.55";
