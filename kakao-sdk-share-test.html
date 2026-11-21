@@ -2,7 +2,7 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
-<title>좋은일자리 | 카카오톡 카드 공유 최종 테스트</title>
+<title>좋은일자리 | 간결형 카카오 카드 공유 테스트</title>
 <style>
 *{box-sizing:border-box}
 :root{font-family:system-ui,-apple-system,"Malgun Gothic",sans-serif;background:#eef3f8;color:#17334f}
@@ -12,7 +12,7 @@ h1{font-size:23px;margin:0 0 8px;letter-spacing:-.5px}
 .sub{font-size:13px;color:#647d94;line-height:1.7;margin:0 0 18px}
 .panel{padding:25px;background:#fff;border:1px solid #dce5ef;border-radius:20px;box-shadow:0 10px 33px #173a6012}
 .section-name{font-size:11px;font-weight:800;letter-spacing:.06em;color:#215c90;margin:4px 0 12px}
-.cover{display:block;width:100%;aspect-ratio:2/1;object-fit:cover;border-radius:13px;background:#17436a}
+.cover{display:block;width:100%;aspect-ratio:5/1;object-fit:cover;border-radius:13px;background:#17436a}
 .job{padding:17px 3px 12px}
 .job h2{font-size:20px;line-height:1.45;margin:3px 0 10px;overflow-wrap:anywhere;letter-spacing:-.3px}
 .job p{font-size:15px;line-height:1.75;margin:2px 0;overflow-wrap:anywhere}
@@ -37,10 +37,10 @@ a{color:#195b93}
 <script id="sdk" src="https://t1.kakaocdn.net/kakao_js_sdk/2.8.5/kakao.min.js" integrity="sha384-v6JKY3z4FUkWq21oZDHZe74YvuPk/WUrVLrDHTBojHXClOSa3iXy7sCXPY1jkFbj" crossorigin="anonymous" defer></script>
 </head><body><main>
 <h1>카카오톡 채용공고 카드 공유</h1>
-<p class="sub">실제 울산 북구 고용24 채용공고로 확인하는 독립 테스트야. 통합본·확장프로그램에는 아직 적용하지 않았어.</p>
+<p class="sub">실제 고용24 채용공고로 확인하는 독립 테스트야. 통합본·확장프로그램에는 아직 적용하지 않았어.</p>
 <section class="panel">
 <div class="section-name">좋은일자리 북부센터 · 채용정보</div>
-<img class="cover" id="cover" alt="좋은일자리 채용정보 공통 카드 이미지, 파란 배경의 GOOD JOB" src="https://bowxlaiyjxknqccoughl.supabase.co/functions/v1/goodjob-kakao-cover?v=1">
+<img class="cover" id="cover" alt="간결한 좋은일자리 GOOD JOB 로고 배너" src="https://bowxlaiyjxknqccoughl.supabase.co/functions/v1/goodjob-kakao-cover?v=2">
 <div class="job">
 <h2 id="viewTitle"></h2>
 <div id="viewRows"></div>
@@ -51,24 +51,26 @@ a{color:#195b93}
 <p id="health" aria-live="polite"></p>
 <details class="details"><summary>다른 채용공고로 테스트하기 · 내용 변경</summary>
 <form id="inputs" autocomplete="off">
-<label>공고명<input id="title" maxlength="160" required value="물류, 공정담당 관리자 모집 [울산동부고용센터 채용대행]"></label>
+<label>공고명<input id="title" maxlength="160" required value="자재 구매 및 사무보조원"></label>
 <div class="grid">
-<label>기업명<input id="company" maxlength="90" value="(주)한빛케이에스이"></label>
-<label>근무지<input id="jobLocation" maxlength="120" value="울산 북구 중산산업1길 19"></label>
+<label>기업명<input id="company" maxlength="90" value="(주)로담신한옥"></label>
+<label>근무지<input id="jobLocation" maxlength="120" value="울산광역시 울주군 삼동면 은현작동로 361-18 (주)로담신한옥"></label>
 </div>
-<label>담당업무<input id="duties" maxlength="160" value="물류·공정관리"></label>
+<label>담당업무<input id="duties" maxlength="300" value="- 자재 발주 - 공장 내 자재 재고 관리 - 발주 내역 (거래명세서 등) 정리"></label>
 <div class="grid">
-<label>경력<input id="experience" maxlength="50" value="관계없음"></label>
-<label>학력<input id="education" maxlength="50" value="학력무관"></label>
+<label>경력<input id="experience" maxlength="50" value="무관"></label>
+<label>학력<input id="education" maxlength="50" value="무관"></label>
 </div>
 <div class="grid">
-<label>근무형태<input id="employment" maxlength="100" value="기간의 정함이 없는 근로계약"></label>
-<label>근무시간<input id="workHours" maxlength="100" value="주 5일 · 08:00~17:00"></label>
+<label>근무형태<input id="employment" maxlength="220" value="기간의 정함이 있는 근로계약3 개월/ 계약기간 만료 후 상용직전환검토"></label>
+<label>근무시간<input id="workHours" maxlength="220" value="주5일근무 / 평일 : (근무시간) (오전) 8시 30분 ~ (오후) 5시 30분, 주 5일 근무, 평균근무시간 : 40"></label>
 </div>
-<label>급여<input id="salary" maxlength="95" value="연봉 3,200만~3,600만원"></label>
-<label>고용24 원문 주소 (필수)<input id="originalUrl" inputmode="url" required value="https://www.work24.go.kr/wk/a/b/1500/empDetailAuthView.do?infoTypeCd=VALIDATION&amp;infoTypeGroup=tb_workinfoworknet&amp;wantedAuthNo=K131612611200008"></label>
+<label>급여<input id="salary" maxlength="95" value="월급 215만원"></label>
+<label>고용24 원문 주소 (필수)<input id="originalUrl" inputmode="url" required value="https://www.work24.go.kr/wk/a/b/1500/empDetailAuthView.do?infoTypeCd=VALIDATION&amp;infoTypeGroup=tb_workinfoworknet&amp;wantedAuthNo=K171252611200014"></label>
 </form>
 </details>
+<p class="note"><b>카카오 표시 제한:</b> 위 8개 항목은 공유 요청에 모두 포함하지만, 카카오 기본 피드 카드는 제목과 설명을 합쳐 <b>최대 4줄</b>만 보여줘. 전체 정보가 실제 대화창에 모두 보이는 건 아니야.</p>
+<p class="note"><b>여러 명 전송:</b> 공유창에서 2명 이상 선택해 봐. 카카오 공식 공유의 기본 한도는 최대 10개 대상이지만, 앱 권한과 사용 환경에 따라 선택 화면은 달라질 수 있어.</p>
 <p class="note">전송할 때는 PC 크롬의 카카오 계정으로 공유 대상을 선택해. 긴 영문 주소는 메시지에 표시되지 않고, <b>원문 공고 보기</b> 버튼에만 연결돼. 카드에는 공개된 채용정보만 넣어 줘.</p>
 <p class="note">원문 버튼이 연결되지 않으면 카카오디벨로퍼스의 <b>제품 링크 관리 → 웹 도메인</b>에 <code>https://careercounselor1984-code.github.io</code> 등록 상태를 확인해야 해. 화면에 나타난 링크를 직접 확인하려면 <a id="checkSource" target="_blank" rel="noopener noreferrer">원문 연결 주소 열어보기</a>를 눌러봐.</p>
 </section></main>
@@ -77,7 +79,7 @@ a{color:#195b93}
 const $=id=>document.getElementById(id);
 const ids=["title","company","jobLocation","duties","experience","education","employment","workHours","salary","originalUrl"];
 const permitted=["work24.go.kr","work.go.kr","saramin.co.kr","jobkorea.co.kr","alba.co.kr"];
-const banner="https://bowxlaiyjxknqccoughl.supabase.co/functions/v1/goodjob-kakao-cover?v=1";
+const banner="https://bowxlaiyjxknqccoughl.supabase.co/functions/v1/goodjob-kakao-cover?v=2";
 const btn=$("share"),state=$("state"),health=$("health"),img=$("cover");
 let sdkReady=false,coverReady=false;
 function notice(s,err=false){state.textContent=s;state.classList.toggle("bad",err)}
@@ -100,7 +102,7 @@ function goLink(target){
 }
 function render(){
  const j=read();
- $("viewTitle").textContent=j.title||"공고명을 입력해 주세요";
+ $("viewTitle").textContent=j.title?"📢 "+j.title:"공고명을 입력해 주세요";
  const rows=[
  ["🏢",j.company||"기업명 미확인"],
  ["🛠️",j.duties||"담당업무 미확인"],
@@ -154,10 +156,10 @@ btn.addEventListener("click",()=>{
  try{
   window.Kakao.Share.sendDefault({
    objectType:"feed",
-   content:{title:j.title,description:desc.slice(0,590),imageUrl:banner,imageWidth:800,imageHeight:400,link:{mobileWebUrl:link,webUrl:link}},
+   content:{title:"📢 "+j.title,description:desc,imageUrl:banner,imageWidth:800,imageHeight:160,link:{mobileWebUrl:link,webUrl:link}},
    buttons:[{title:"고용24 원문 공고 보기",link:{mobileWebUrl:link,webUrl:link}}]
   });
-  notice("카카오 공유창을 열었어. '나와의 채팅' 또는 수신자를 선택해 전송한 뒤 원문 버튼까지 확인해 줘.");
+  notice("카카오 공유창을 열었어. 수신자 2명을 선택할 수 있는지도 확인해 봐. 기본 피드 카드에서 설명은 최대 4줄까지 보여.");
  }catch(e){notice("카카오 공유 요청 오류: "+(e?.message||String(e))+"\n제품 링크 관리의 웹 도메인 등록 여부도 확인해 주세요.",true)}
 });
 window.addEventListener("load",()=>{
