@@ -43,13 +43,13 @@ input{border:1px solid #cddae7;padding:11px;border-radius:8px;font:500 13px syst
 <div id="full" class="full"></div>
 <a id="source" class="tiny" target="_blank" rel="noopener noreferrer" href="#">
 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M7 13h10M13 9l4 4-4 4"/></svg>
-🌐 고용24 원문 공고 보기
+고용24 원문 공고 보기
 </a>
 <hr class="line">
 <div class="actual">
 <p><b>실제 카카오톡으로 전송될 글</b> · <span id="count"></span></p>
 <pre id="short"></pre>
-<p class="small">아래에 작은 ‘원문 공고 보기’ 버튼이 붙어. 큰 이미지는 없고 글과 버튼 어디를 눌러도 같은 고용24 원문으로 이동해. 카카오톡의 버튼 배경색은 바꿀 수 없지만 아이콘은 컬러로 표시할 수 있어.</p>
+<p class="small">아래의 ‘원문 공고 보기’ 버튼에만 실제 고용24 공고 주소를 지정했어. 본문 링크를 빈 값으로 보내는 실험이므로 카카오톡에서 본문을 눌렀을 때 이동하지 않는지 확인해야 해. 컬러 표시도 수신 프로그램에 따라 달라질 수 있어.</p>
 </div>
 <button id="share" type="button" disabled>카카오톡 글+원문 버튼 공유</button>
 <p id="state" role="status" aria-live="polite">카카오 공유 기능 준비 중…</p>
@@ -78,22 +78,22 @@ let ready=false;
 function msg(v,err=false){status.textContent=v;status.classList.toggle("bad",err)}
 function read(){const data={};for(const id of keys)data[id]=String($(id).value||"").trim();return data}
 function safeUrl(raw){try{const u=new URL(raw);return u.protocol==="https:"&&!u.username&&!u.password&&(!u.port||u.port==="443")&&host.some(h=>u.hostname===h||u.hostname.endsWith("."+h))?u:null}catch{return null}}
-function rows(j){const r=[["📢",j.title],["🏢",j.company],["🛠️",j.duties],["📍",j.jobLocation],["👤",(j.experience||"-")+" / "+(j.education||"-")],["📄",j.employment],["🕒",j.workHours]];if(j.salary)r.push(["💰",j.salary]);return r}
+function rows(j){const r=[["🟦📢",j.title],["🟨🏢",j.company],["🟩🛠️",j.duties],["🟧📍",j.jobLocation],["🟪👤",(j.experience||"-")+" / "+(j.education||"-")],["🟥📄",j.employment],["🟫🕒",j.workHours]];if(j.salary)r.push(["🟢💰",j.salary]);return r}
 function fullText(j){return rows(j).map(([a,b])=>a+" "+b).join("\n")}
 function compactLine(s,max){const a=Array.from(String(s||"").replace(/\s+/g," ").trim());return a.length<=max?a.join(""):a.slice(0,max-1).join("").trimEnd()+"…"}
 function shortText(j){
  // Natural 8-field summary of this specific supplied posting for Kakao text template (200-char limit).
  if(j.title==="자재 구매 및 사무보조원"&&j.company==="(주)로담신한옥"&&j.workHours.includes("8시 30분")&&j.salary==="월급 215만원"){
-  return "📢 자재 구매 및 사무보조원\n🏢 (주)로담신한옥\n🛠️ - 자재 발주 - 공장 내 자재 재고 관리 - 발주 내역 (거래명세서 등) 정리\n📍 울산광역시 울주군 삼동면 은현작동로 361-18\n👤 무관 / 무관\n📄 기간의 정함이 있는 근로계약 3개월 / 상용직전환검토\n🕒 주5일 08:30~17:30, 주40시간\n💰 월급 215만원";
+  return "🟦📢 자재 구매 및 사무보조원\n🟨🏢 (주)로담신한옥\n🟩🛠️ 자재 발주 · 재고 관리 · 거래명세서 정리\n🟧📍 울산 울주군 삼동면 은현작동로 361-18\n🟪👤 무관 / 무관\n🟥📄 3개월 근로계약 / 상용직 전환 검토\n🟫🕒 주5일 08:30~17:30, 주40시간\n🟢💰 월급 215만원";
  }
  // Other postings retain all field markers and visibly shorten long values.
  const limits=[34,23,30,34,17,27,36,18];
  const arr=rows(j).map(([icon,value],i)=>icon+" "+compactLine(value,limits[i]));
  let result=arr.join("\n");
- while(Array.from(result).length>200){
+ while(result.length>198){
   let idx=0,biggest=-1;
   for(let i=0;i<arr.length;i++){
-   const v=Array.from(arr[i]).length;
+   const v=arr[i].length;
    if(v>biggest&&v>12){biggest=v;idx=i}
   }
   const chars=Array.from(arr[idx]);
@@ -132,11 +132,11 @@ button.addEventListener("click",()=>{
  try{
   const source=goLink(target);
   window.Kakao.Share.sendDefault({
-   objectType:"text",text:short,link:{mobileWebUrl:source,webUrl:source},
-   buttons:[{title:"🌐 원문 보기",link:{mobileWebUrl:source,webUrl:source}}]
+   objectType:"text",text:short,link:{},
+   buttons:[{title:"원문 공고 보기",link:{mobileWebUrl:source,webUrl:source}}]
   });
-  msg("카카오 공유창이 열리면 수신자를 선택해 줘. 메시지는 200자 이내의 8개 항목 요약이야. 글이나 원문 보기 버튼을 누르면 모두 고용24 공고로 이동해.");
- }catch(e){msg("공유 요청 실패: "+(e?.message||String(e)),true)}
+  msg("카카오 공유창이 열리면 수신자를 선택해 줘. 메시지는 200자 이내의 8개 항목 요약이야. 본문 클릭은 이동하지 않도록 시도했고 아래 원문 버튼에만 고용24 주소를 넣었어. 카카오톡 화면에서 결과를 확인해 줘.");
+ }catch(e){msg("카카오에서 본문 링크 없는 텍스트형을 허용하지 않을 수 있어. 오류: "+(e?.message||String(e)),true)}
 });
 window.addEventListener("load",()=>{render();init()});
 })();
