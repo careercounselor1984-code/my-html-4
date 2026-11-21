@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>좋은일자리 | 카카오톡 공식 카드 공유 테스트</title>
+<style>
+*{box-sizing:border-box}
+:root{font-family:system-ui,-apple-system,"Malgun Gothic",sans-serif;background:#edf3f8;color:#163958}
+body{margin:0;padding:22px 14px}
+main{max-width:570px;margin:0 auto}
+.card{background:#fff;border-radius:20px;border:1px solid #dae6f0;padding:24px;box-shadow:0 10px 30px #193a5512}
+h1{margin:0;font-size:21px}
+.sub{font-size:13px;color:#657f99;line-height:1.6;margin:7px 0 22px}
+.header{border-top:5px solid #1e609d;background:#f8fbff;border:1px solid #e2ebf3;border-radius:14px;padding:19px;margin-bottom:18px}
+.eyebrow{font-size:12px;color:#1c669d;font-weight:800;letter-spacing:.02em}
+.header h2{font-size:19px;margin:11px 0}
+.detail{line-height:1.9;font-size:15px}
+.target{display:block;text-align:center;border-radius:9px;background:#e6eef8;color:#164e7e;font-size:14px;font-weight:800;padding:12px;margin-top:17px}
+button{width:100%;border:0;border-radius:12px;padding:17px;background:#fee500;color:#291f00;font-weight:800;font-size:17px;cursor:pointer}
+button:disabled{background:#e5e9ef;color:#8b949f;cursor:wait}
+#state{white-space:pre-wrap;color:#1b6948;font-size:13px;line-height:1.6;min-height:40px;margin-top:14px}
+#state.bad{color:#b12436}
+.note{font-size:12px;color:#667f93;line-height:1.75;margin:8px 0 0}
+code{font-size:11px;color:#295276;word-break:break-all;background:#f1f6fc;border-radius:5px;padding:2px 4px}
+@media(max-width:440px){.card{padding:18px}}
+</style>
+<script src="kakao-share-config.js?v=20261121-config" defer></script>
+<script src="https://t1.kakaocdn.net/kakao_js_sdk/2.8.5/kakao.min.js" integrity="sha384-v6JKY3z4FUkWq21oZDHZe74YvuPk/WUrVLrDHTBojHXClOSa3iXy7sCXPY1jkFbj" crossorigin="anonymous" defer></script>
+</head>
+<body>
+<main class="card">
+<h1>카카오톡 공식 카드 공유 · 독립 테스트</h1>
+<p class="sub">통합본과 채용정보 도우미는 변경하지 않습니다. 이 화면에서 전송이 되는지만 확인합니다.</p>
+<div class="header">
+<div class="eyebrow">GOOD JOB · 채용정보</div>
+<h2>생산직 사원 모집(주간)</h2>
+<div class="detail">🏢 (주)네오플라테크<br>📍 경북 구미시<br>💰 시급 10,320원</div>
+<div class="target">고용24 원문 공고 보기</div>
+</div>
+<button id="share" type="button">카카오톡 공식 공유창 열기</button>
+<p id="state" role="status" aria-live="polite">카카오 공식 SDK와 기존 센터 앱 설정을 확인 중입니다.</p>
+<p class="note">버튼을 누르면 카카오가 제공하는 공유 대상 선택창이 열립니다. 성공하면 <b>나와의 채팅</b>으로 전송한 뒤, 카드 이미지와 <b>고용24 원문 공고 보기</b> 버튼이 표시되는지 확인해 주세요. 긴 영문 URL은 메시지 본문에 넣지 않습니다.</p>
+<p class="note">SDK 도메인 오류가 발생하면 카카오디벨로퍼스 → 좋은일자리 채용정보 → 플랫폼 키 → JavaScript 키 → JavaScript SDK 도메인에 <code>https://careercounselor1984-code.github.io</code>를 추가해야 합니다. 전송 카드 링크는 기존 등록한 <code>square-water-31bb.careercounselor1984.workers.dev</code>를 사용합니다.</p>
+</main>
+<script>
+(function(){
+"use strict";
+const button=document.getElementById("share"),state=document.getElementById("state");
+const link="https://square-water-31bb.careercounselor1984.workers.dev/?id=a11c20261121";
+const image="https://bowxlaiyjxknqccoughl.supabase.co/functions/v1/job-card-simple-image?v=2";
+function show(message,bad=false){state.textContent=message;state.classList.toggle("bad",bad)}
+function init(){
+ const key=String(window.GOODJOB_KAKAO_JS_KEY||"").trim();
+ if(!key){show("센터 앱 JavaScript 키가 로드되지 않았습니다. 공유 설정 파일을 확인해 주세요.",true);return false;}
+ if(!window.Kakao?.Share?.sendDefault){show("카카오 JavaScript SDK를 불러오지 못했습니다. 인터넷 연결이나 브라우저 차단 기능을 확인해 주세요.",true);return false;}
+ try{
+  if(!Kakao.isInitialized())Kakao.init(key);
+  show("준비 완료. 노란 공유 버튼을 눌러 나와의 채팅으로 전송해 보세요.");
+  return true;
+ }catch(e){show("카카오 SDK 초기화 오류: "+(e?.message||String(e)),true);return false;}
+}
+button.addEventListener("click",function(){
+ if(!init())return;
+ try{
+  Kakao.Share.sendDefault({
+   objectType:"feed",
+   content:{
+    title:"생산직 사원 모집(주간)",
+    description:"🏢 (주)네오플라테크\n📍 경북 구미시\n💰 시급 10,320원",
+    imageUrl:image,
+    link:{mobileWebUrl:link,webUrl:link}
+   },
+   buttons:[{title:"고용24 원문 공고 보기",link:{mobileWebUrl:link,webUrl:link}}]
+  });
+  show("공유 요청을 보냈습니다. 카카오 공유 대상 선택창에서 '나와의 채팅'을 선택해 주세요. 창이 열리지 않으면 팝업 차단이나 SDK 도메인 등록을 확인해 주세요.");
+ }catch(e){
+  show("공유 요청 오류: "+(e?.message||String(e))+"\nJavaScript SDK 도메인·웹 도메인 등록 상태를 확인해 주세요.",true);
+ }
+});
+window.addEventListener("load",init);
+})();
+</script>
+</body>
+</html>
