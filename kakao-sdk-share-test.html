@@ -165,7 +165,7 @@ window.addEventListener("load",()=>{
  const p=new URLSearchParams(location.search);
  for(const id of ids)if(p.has(id))$(id).value=String(p.get(id)||"").slice(0,2500);
  render();init();
- if(img.complete&&!img.naturalWidth){notice("카드 이미지를 불러오지 못했습니다.",true)}
+ if(img.complete&&img.naturalWidth>0){coverReady=true;render();if(sdkReady)notice("준비 완료. 공유 버튼을 눌러 나와의 채팅으로 확인해 보세요.");}else if(img.complete&&!img.naturalWidth){notice("카드 이미지를 불러오지 못했습니다.",true)}
 });
 })();
 </script>
