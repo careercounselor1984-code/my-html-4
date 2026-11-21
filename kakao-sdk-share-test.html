@@ -54,22 +54,33 @@ let ready=false;
 button.disabled=true;
 function show(msg,bad=false){state.textContent=msg;state.classList.toggle("bad",bad);}
 function info(){
- const key=!!String(window.GOODJOB_KAKAO_JS_KEY||"").trim();
- const sdk=!!window.Kakao;
- const share=typeof window.Kakao?.Share?.sendDefault==="function";
- diag.textContent="앱 JavaScript 키: "+(key?"정상":"미로드")+" / SDK 실행: "+(sdk?"정상":"실패")+" / 공유 기능: "+(share?"정상":"미사용");
- return {key,sdk,share};
+ const hasKey=!!String(window.GOODJOB_KAKAO_JS_KEY||"").trim();
+ const kakao=window.Kakao;
+ const hasSDK=!!(kakao && typeof kakao.init==="function" && typeof kakao.isInitialized==="function");
+ const initialized=hasSDK&&kakao.isInitialized();
+ const hasShare=typeof kakao?.Share?.sendDefault==="function";
+ const version=String(kakao?.VERSION||kakao?.version||"표시 안 됨");
+ diag.textContent="앱 JavaScript 키: "+(hasKey?"정상":"미로드")+" / SDK: "+(hasSDK?"정상":"불완전")+" / 초기화: "+(initialized?"완료":"미완료")+" / Share: "+(hasShare?"정상":"없음")+" / 버전: "+version;
+ return {hasKey,hasSDK,initialized,hasShare};
 }
 function initialize(){
- const state=info();
- if(!state.key){show("공용 JavaScript 설정 파일이 로드되지 않았습니다.",true);return;}
- if(!state.sdk){show("카카오 공식 SDK 파일이 실행되지 않았습니다. 크롬 시크릿 창에서 같은 주소로 다시 확인해 주세요.",true);return;}
- if(!state.share){show("카카오 SDK는 로드됐지만 Share 모듈을 찾을 수 없습니다.",true);return;}
+ const before=info();
+ if(!before.hasKey){show("공용 JavaScript 키 설정 파일이 로드되지 않았습니다.",true);return;}
+ if(!before.hasSDK){show("카카오 SDK 실행이 불완전합니다. init/isInitialized 함수가 있는지 확인해야 합니다.",true);return;}
  try{
+  // 일부 SDK 모듈은 Kakao.init() 이후에 등록되므로 반드시 먼저 초기화한다.
   if(!window.Kakao.isInitialized())window.Kakao.init(String(window.GOODJOB_KAKAO_JS_KEY).trim());
+  const after=info();
+  if(!after.initialized){show("Kakao.init() 호출 후에도 초기화 상태가 확인되지 않습니다.",true);return;}
+  if(!after.hasShare){
+   const modules=Object.keys(window.Kakao||{}).filter(k=>/share|link|talk|auth|init|version/i.test(k)).join(", ");
+   diag.textContent+=" / 감지된 모듈: "+(modules||"없음");
+   show("초기화는 됐지만 Kakao.Share 모듈이 없습니다. 페이지에 카카오 SDK 2.x 전체 버전이 로드됐는지 확인해 주세요.",true);
+   return;
+  }
   ready=true;button.disabled=false;
   show("준비 완료! 버튼을 누르면 카카오 공식 공유창이 열립니다.");
- }catch(e){show("카카오 앱 초기화 오류: "+(e?.message||String(e)),true);}
+ }catch(e){info();show("카카오 앱 초기화 오류: "+(e?.message||String(e)),true);}
 }
 const sdkScript=document.getElementById("kakao-official-sdk");
 sdkScript.addEventListener("error",()=>show("SDK 스크립트 로드 실패. Chrome 시크릿 창에서도 같은 오류가 나는지 확인해 주세요.",true));
