@@ -5,7 +5,7 @@
 (function(){
   "use strict";
   const API="https://bowxlaiyjxknqccoughl.supabase.co/functions/v1/job-card-share";
-  const SHARE_PAGE="https://goodjob-kakao-share-test.careercounselor1984.workers.dev/";
+  const SHARE_PAGE="https://careercounselor1984-code.github.io/my-html-4/kakao-share.html";
   const clean=v=>String(v??"").replace(/\s+/g," ").trim();
   const val=(doc,id)=>clean(doc.getElementById(id)?.value);
   const allowedHost=url=>{
