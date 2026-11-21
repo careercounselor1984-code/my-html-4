@@ -84,7 +84,7 @@ function compactLine(s,max){const a=Array.from(String(s||"").replace(/\s+/g," ")
 function shortText(j){
  // Natural 8-field summary of this specific supplied posting for Kakao text template (200-char limit).
  if(j.title==="자재 구매 및 사무보조원"&&j.company==="(주)로담신한옥"&&j.workHours.includes("8시 30분")&&j.salary==="월급 215만원"){
-  return "📢 자재 구매 및 사무보조원\n🏢 (주)로담신한옥\n🛠️ 자재 발주 / 재고 관리 / 거래명세서 정리\n📍 울산 울주군 삼동면 은현작동로 361-18\n👤 무관 / 무관\n📄 3개월 계약직 / 상용직 전환 검토\n🕒 주5일 08:30~17:30(40시간)\n💰 월급 215만원";
+  return "📢 자재 구매 및 사무보조원\n🏢 (주)로담신한옥\n🛠️ - 자재 발주 - 공장 내 자재 재고 관리 - 발주 내역 (거래명세서 등) 정리\n📍 울산광역시 울주군 삼동면 은현작동로 361-18\n👤 무관 / 무관\n📄 기간의 정함이 있는 근로계약 3개월 / 상용직전환검토\n🕒 주5일 08:30~17:30, 주40시간\n💰 월급 215만원";
  }
  // Other postings retain all field markers and visibly shorten long values.
  const limits=[34,23,30,34,17,27,36,18];
