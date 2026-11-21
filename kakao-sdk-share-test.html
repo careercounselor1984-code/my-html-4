@@ -104,14 +104,6 @@ function shortText(j){
  return result;
 }
 function goLink(target){const u=new URL("job-open.html",location.href);u.searchParams.set("to",target.href);return u.href}
-function detailLink(j,target){
- const bytes=new TextEncoder().encode(JSON.stringify({...j,originalUrl:target.href}));
- let binary="";for(const b of bytes)binary+=String.fromCharCode(b);
- const token=btoa(binary).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
- const u=new URL("job-detail.html",location.href);u.searchParams.set("d",token);
- if(u.href.length>3800)throw Error("공고가 너무 길어 자세히 보기 주소를 만들 수 없습니다.");
- return u.href;
-}
 function render(){
  const j=read(), target=safeUrl(j.originalUrl),full=fullText(j),short=shortText(j);
  $("full").textContent=full;
@@ -138,12 +130,12 @@ button.addEventListener("click",()=>{
  const {j,target,short}=render();
  if(!ready||!target||!j.title){msg("공고 제목과 허용된 채용공고 원문 주소가 필요해.",true);return}
  try{
-  const detail=detailLink(j,target),source=goLink(target);
+  const source=goLink(target);
   window.Kakao.Share.sendDefault({
-   objectType:"text",text:short,link:{mobileWebUrl:detail,webUrl:detail},
+   objectType:"text",text:short,link:{mobileWebUrl:source,webUrl:source},
    buttons:[{title:"원문 공고 보기",link:{mobileWebUrl:source,webUrl:source}}]
   });
-  msg("카카오 공유창이 열리면 수신자를 선택해 줘. 메시지는 200자 이내의 8개 항목 요약이고 전체 내용은 글을 눌러 확인할 수 있어.");
+  msg("카카오 공유창이 열리면 수신자를 선택해 줘. 메시지는 200자 이내의 8개 항목 요약이야. 글이나 원문 보기 버튼을 누르면 모두 고용24 공고로 이동해.");
  }catch(e){msg("공유 요청 실패: "+(e?.message||String(e)),true)}
 });
 window.addEventListener("load",()=>{render();init()});
