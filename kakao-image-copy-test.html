@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="ko"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>채용정보 이미지 복사 테스트 · 좋은일자리</title>
+<style>
+:root{font-family:system-ui,"Malgun Gothic","Apple SD Gothic Neo",sans-serif;background:#edf3f8;color:#183657}
+*{box-sizing:border-box}body{margin:0;padding:24px 16px}
+main{max-width:600px;margin:0 auto}
+h1{font-size:23px;margin:0 0 9px}.muted{color:#55718f;font-size:14px;line-height:1.7;margin:0 0 17px}
+.panel{background:#fff;border:1px solid #d8e4ef;border-radius:19px;padding:20px;box-shadow:0 7px 30px #173a5f12}
+.preview{display:block;width:100%;max-width:460px;height:auto;margin:0 auto;border-radius:14px;border:1px solid #e0e8f0}
+button{display:block;width:100%;margin-top:20px;padding:17px 15px;font-size:17px;font-weight:800;cursor:pointer;color:#fff;background:#175ba0;border:0;border-radius:13px}
+button:disabled{background:#809bb3;cursor:wait}
+#status{min-height:25px;margin:15px 0 0;color:#17603c;font-size:14px;line-height:1.6;white-space:pre-wrap}
+#status.error{color:#b32636}
+.tip{font-size:13px;line-height:1.7;margin-top:15px;color:#60758b}
+</style></head>
+<body><main>
+<h1>📋 채용정보 이미지 복사 테스트</h1>
+<p class="muted">상담일지 통합본과 무관한 독립 테스트입니다. 실제 내담자 정보는 사용하지 않습니다.</p>
+<div class="panel">
+<canvas class="preview" id="preview" width="840" height="920" aria-label="채용정보 카드 미리보기"></canvas>
+<button id="copy" type="button" disabled>이미지 복사하기</button>
+<p id="status" role="status" aria-live="polite">이미지를 준비하고 있습니다.</p>
+<p class="tip">① 이미지 복사하기 → ② PC 카카오톡 ‘나와의 채팅’ 클릭 → ③ Ctrl + V → ④ 이미지로 붙여넣어지는지 확인하세요. 이 실험은 카드 클릭 시 원문 이동을 지원하지 않습니다.</p>
+</div></main>
+<script>
+(function(){
+  "use strict";
+  const canvas=document.getElementById("preview"), ctx=canvas.getContext("2d");
+  const button=document.getElementById("copy"), status=document.getElementById("status");
+  if(!ctx){status.textContent="이 브라우저에서는 카드 이미지를 만들 수 없습니다.";return;}
+  const W=canvas.width,H=canvas.height;
+  const font='system-ui, "Malgun Gothic", "Apple SD Gothic Neo", sans-serif';
+  function rect(x,y,w,h,r,color){
+    ctx.beginPath();
+    ctx.roundRect(x,y,w,h,r);
+    ctx.fillStyle=color;ctx.fill();
+  }
+  function text(s,x,y,size=29,color="#1a354f",weight=500){
+    ctx.font=weight+" "+size+"px "+font;
+    ctx.fillStyle=color;ctx.textBaseline="top";ctx.fillText(s,x,y);
+  }
+  function wrap(s,x,y,width,size=29,lineHeight=43,color="#1a354f",weight=500){
+    ctx.font=weight+" "+size+"px "+font;
+    ctx.fillStyle=color;ctx.textBaseline="top";
+    let line="",lines=0;
+    for(const ch of [...s]){
+      if(ctx.measureText(line+ch).width>width && line){ctx.fillText(line,x,y+lines*lineHeight);lines++;line=ch}
+      else{line+=ch}
+    }
+    if(line){ctx.fillText(line,x,y+lines*lineHeight);lines++}
+    return lines*lineHeight;
+  }
+  function row(icon,value,y,split=false){
+    text(icon,59,y,34,"#195a9b",700);
+    const dy=wrap(value,113,y,658,27,40,"#274159",550);
+    return y+Math.max(46,dy)+(split?15:9);
+  }
+  ctx.fillStyle="#ffffff";ctx.fillRect(0,0,W,H);
+  rect(0,0,W,16,0,"#185a9c");
+  rect(49,44,388,54,13,"#eaf3fd");
+  text("GOOD JOB · 채용정보",68,56,26,"#155a99",800);
+  text("자재 구매 및 사무보조원",55,133,43,"#122e50",800);
+  text("(주)로담신한옥",56,211,31,"#385879",650);
+  ctx.strokeStyle="#d9e5ef";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(55,287);ctx.lineTo(785,287);ctx.stroke();
+  let y=327;
+  y=row("◆","자재 발주 · 재고 관리 · 사무 업무",y,true);
+  y=row("●","울산광역시 울주군",y);
+  y=row("◈","무관 / 무관",y);
+  y=row("▤","기간의 정함이 없는 근로계약",y);
+  y=row("◷","주 5일 · 09:00~18:00",y);
+  const salaryY=Math.max(706,y+9);
+  rect(51,salaryY,738,86,14,"#eaf3fd");
+  text("₩  월급 215만원",77,salaryY+23,33,"#155a99",800);
+  ctx.strokeStyle="#e5edf4";ctx.beginPath();ctx.moveTo(55,848);ctx.lineTo(785,848);ctx.stroke();
+  text("좋은일자리 북부센터",56,865,25,"#67809a",650);
+  text("※ 테스트용 예시 카드",555,867,21,"#8194a6",500);
+  let blob=null;
+  canvas.toBlob(b=>{
+    blob=b;
+    if(!blob){notice("이미지 생성에 실패했습니다.",true);return;}
+    button.disabled=false;notice("준비 완료. 아래 버튼으로 이미지를 복사해 보세요.");
+  },"image/png");
+  function notice(message,isError=false){status.textContent=message;status.classList.toggle("error",isError)}
+  button.addEventListener("click",async()=>{
+    if(!blob){notice("이미지 준비가 끝나지 않았습니다.",true);return;}
+    if(!window.isSecureContext||!navigator.clipboard?.write||typeof ClipboardItem==="undefined"){
+      notice("이 브라우저에서는 이미지 클립보드 복사가 지원되지 않습니다. PC 크롬에서 다시 열어 주세요.",true);return;
+    }
+    try{
+      await navigator.clipboard.write([new ClipboardItem({"image/png":blob})]);
+      notice("✓ 이미지 복사 완료! PC 카카오톡 ‘나와의 채팅’에서 Ctrl + V를 눌러보세요.");
+    }catch(e){
+      notice("이미지 복사 실패: "+(e?.message||"브라우저의 클립보드 권한을 확인해 주세요."),true);
+    }
+  });
+})();
+</script>
+</body></html>
