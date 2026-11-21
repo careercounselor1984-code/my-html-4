@@ -6,7 +6,6 @@
   "use strict";
   const API="https://bowxlaiyjxknqccoughl.supabase.co/functions/v1/job-card-share";
   const SHARE_PAGE="https://goodjob-kakao-share-test.careercounselor1984.workers.dev/";
-  const KEY_NAME="goodjob-mini-share-access-key-session-v1";
   const clean=v=>String(v??"").replace(/\s+/g," ").trim();
   const val=(doc,id)=>clean(doc.getElementById(id)?.value);
   const allowedHost=url=>{
@@ -80,28 +79,24 @@
     const job=currentJob(doc);
     if(!job.title){setStatus(doc,"공고 제목을 확인해 주세요.",true);return;}
     if(!allowedHost(job.url)){setStatus(doc,"원문 HTTPS URL을 입력해 주세요. 고용24·사람인·잡코리아·알바천국만 지원합니다.",true);return;}
-    let key="";
-    try{key=sessionStorage.getItem(KEY_NAME)||"";}catch{}
-    if(!key){
-      key=window.prompt("초미니 공유 발급키를 입력하세요. 이 브라우저 탭에서만 임시 보관됩니다.")||"";
-      if(!key.trim())return;
-      key=key.trim();
-      try{sessionStorage.setItem(KEY_NAME,key);}catch{}
-    }
+    const client=typeof window.clgJobArchiveClient==="function"?window.clgJobArchiveClient():null;
+    if(!client?.auth?.getSession){setStatus(doc,"상담일지 통합본에 로그인한 뒤 다시 시도해 주세요.",true);return;}
     const popup=window.open("about:blank","_blank");
     const btn=doc.getElementById("goodjobMiniShareBtn");
     if(btn)btn.disabled=true;
     setStatus(doc,"공고별 원문 링크를 발행하는 중입니다…");
     try{
+      const {data,error:authError}=await client.auth.getSession();
+      const token=data?.session?.access_token;
+      if(authError||!token)throw Error("로그인 상태를 확인할 수 없습니다. 다시 로그인해 주세요.");
       const body={...job,image:imageJpeg(job),designVersion:"mini-share-v1"};
       const response=await fetch(API,{
         method:"POST",
-        headers:{"Content-Type":"application/json","x-goodjob-share-key":key},
+        headers:{"Content-Type":"application/json","Authorization":"Bearer "+token},
         body:JSON.stringify(body)
       });
       const result=await response.json().catch(()=>({}));
       if(!response.ok||!result.ok||!/^[a-f0-9]{12}$/.test(result.id||"")){
-        if(response.status===401){try{sessionStorage.removeItem(KEY_NAME);}catch{}}
         throw Error(result.message||"링크 발급 실패 ("+response.status+")");
       }
       const params=new URLSearchParams({
@@ -136,7 +131,7 @@
     const copy=doc.createElement("button");copy.type="button";copy.textContent="① 채용안내 글 복사";copy.style.cssText="background:#dbeafe;border:0;border-radius:9px;padding:11px 15px;color:#1e40af;font-weight:700;cursor:pointer";
     const send=doc.createElement("button");send.type="button";send.id="goodjobMiniShareBtn";send.textContent="② 카카오톡 초미니 링크 공유";send.style.cssText="background:#1d4ed8;border:0;border-radius:9px;padding:11px 15px;color:white;font-weight:700;cursor:pointer";
     controls.append(copy,send);
-    const help=doc.createElement("small");help.textContent="공고 정보만 발행 서버에 전달합니다. 내담자·상담일지 정보는 전송되지 않습니다. 최초 공유 시 발급키 입력이 필요합니다.";
+    const help=doc.createElement("small");help.textContent="공고 정보만 발행 서버에 전달합니다. 내담자·상담일지 정보는 전송되지 않습니다. 상담일지 통합본 로그인 상태로 자동 인증됩니다.";
     help.style.cssText="display:block;color:#64748b;line-height:1.55";
     const state=doc.createElement("div");state.id="goodjobMiniStatus";state.setAttribute("role","status");state.style.cssText="font-size:12px;margin-top:8px;min-height:16px";
     panel.append(header,controls,help,state);
