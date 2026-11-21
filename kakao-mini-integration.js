@@ -39,15 +39,15 @@
     const job=currentJob(doc);
     const condition=[job.experience||"-",job.education||"-"].join(" / ");
     const lines=[
-      "📢 공고명: "+(job.title||"미확인"),
-      "🏢 기업명: "+(job.company||"미확인"),
-      "🛠️ 담당업무: "+(job.duties||"미확인"),
-      "📍 근무지: "+(job.location||"-"),
-      "👤 지원조건: "+condition,
-      "📄 근무형태: "+(job.employment||"미확인"),
-      "🕒 근무시간: "+(job.workHours||"미확인")
+      "📢 "+(job.title||"미확인"),
+      "🏢 "+(job.company||"미확인"),
+      "🛠️ "+(job.duties||"미확인"),
+      "📍 "+(job.location||"-"),
+      "👤 "+condition,
+      "📄 "+(job.employment||"미확인"),
+      "🕒 "+(job.workHours||"미확인")
     ];
-    if(job.salary)lines.push("💰 급여: "+job.salary);
+    if(job.salary)lines.push("💰 "+job.salary);
     return lines.join("\n");
   }
   async function copyMessage(doc){
