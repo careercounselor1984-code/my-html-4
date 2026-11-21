@@ -2,184 +2,147 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
-<title>좋은일자리 | 간결형 카카오 카드 공유 테스트</title>
+<title>좋은일자리 | 텍스트 먼저 카카오 공유 테스트</title>
 <style>
 *{box-sizing:border-box}
-:root{font-family:system-ui,-apple-system,"Malgun Gothic",sans-serif;background:#eef3f8;color:#17334f}
-body{margin:0;padding:28px 16px 50px}
-main{max-width:625px;margin:auto}
-h1{font-size:23px;margin:0 0 8px;letter-spacing:-.5px}
-.sub{font-size:13px;color:#647d94;line-height:1.7;margin:0 0 18px}
-.panel{padding:25px;background:#fff;border:1px solid #dce5ef;border-radius:20px;box-shadow:0 10px 33px #173a6012}
-.section-name{font-size:11px;font-weight:800;letter-spacing:.06em;color:#215c90;margin:4px 0 12px}
-.cover{display:block;width:100%;aspect-ratio:5/1;object-fit:cover;border-radius:13px;background:#17436a}
-.job{padding:17px 3px 12px}
-.job h2{font-size:20px;line-height:1.45;margin:3px 0 10px;overflow-wrap:anywhere;letter-spacing:-.3px}
-.job p{font-size:15px;line-height:1.75;margin:2px 0;overflow-wrap:anywhere}
-.cta-preview{background:#edf4fb;color:#175995;text-align:center;padding:13px;border-radius:10px;font-size:14px;font-weight:800;margin:8px 0 22px}
-.primary{width:100%;display:block;padding:18px 15px;border:0;border-radius:13px;background:#fee500;color:#241f00;font-size:18px;font-weight:800;cursor:pointer}
-.primary:disabled{background:#e8edf2;color:#8295a7;cursor:wait}
-#state{min-height:30px;color:#17653e;white-space:pre-wrap;font-size:13px;line-height:1.65;margin:14px 0 5px}
-#state.bad{color:#b12331}
-#health{color:#6a8196;font-size:11px;margin:0}
-.details{border-top:1px solid #e3e9f0;margin-top:22px;padding-top:15px}
-summary{font-size:14px;color:#235d92;font-weight:750;cursor:pointer;padding:7px 0}
+:root{font-family:system-ui,-apple-system,"Malgun Gothic",sans-serif;background:#f0f4f8;color:#233d54}
+body{margin:0;padding:24px 14px 55px}
+main{max-width:670px;margin:auto}
+h1{font-size:22px;margin:0 0 10px}
+.sub,.note{font-size:13px;color:#627a8e;line-height:1.75}
+.panel{background:#fff;border:1px solid #dce6ef;border-radius:18px;padding:24px;box-shadow:0 7px 25px #1437570f}
+.heading{font-size:12px;font-weight:750;color:#205d91}
+.full{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.83;font-size:15px;background:#fff;padding:12px 0 14px}
+.tiny{display:flex;gap:8px;align-items:center;text-decoration:none;padding:10px 12px;width:max-content;max-width:100%;border:1px solid #dce6ef;border-radius:9px;background:#f4f8fc;color:#245d8c;font-weight:750;font-size:12px}
+.tiny svg{flex-shrink:0}
+.line{border:0;border-top:1px solid #e4ecf3;margin:20px 0}
+button{display:block;width:100%;border:0;border-radius:12px;padding:16px;background:#fee500;font-size:17px;font-weight:800;color:#251f05;cursor:pointer}
+button:disabled{background:#e5edf3;color:#8295a1;cursor:wait}
+#state{white-space:pre-wrap;line-height:1.65;font-size:13px;color:#126442;min-height:26px}
+#state.bad{color:#b22931}
+.actual{padding:15px;background:#f6f9fc;border:1px solid #dce9f3;border-radius:13px}
+.actual p{font-size:12px;color:#4e6780;margin:0 0 9px}
+.actual pre{font:500 14px/1.7 system-ui,"Malgun Gothic",sans-serif;white-space:pre-wrap;overflow-wrap:anywhere;margin:0}
+.actual .small{font-size:12px;color:#456b8f;margin:12px 0 0}
+#count{font-weight:700}
+details{margin-top:23px;border-top:1px solid #edf0f4;padding-top:17px}
+summary{cursor:pointer;font-weight:700;color:#356283;font-size:14px}
 form{display:grid;gap:11px;margin-top:12px}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-label{display:grid;gap:5px;color:#536b81;font-size:12px;font-weight:750}
-input{width:100%;border:1px solid #cbd9e7;border-radius:9px;padding:11px 12px;font:500 13px system-ui,"Malgun Gothic",sans-serif;color:#163653;background:#fff}
-input:focus{outline:2px solid #a5c8ee;outline-offset:1px}
-.note{font-size:12px;color:#607a90;line-height:1.8;margin-top:17px}
-a{color:#195b93}
-@media(max-width:500px){.panel{padding:18px}.grid{grid-template-columns:1fr}.job h2{font-size:18px}}
+label{display:grid;gap:5px;color:#4c6c87;font-size:12px;font-weight:700}
+input{border:1px solid #cddae7;padding:11px;border-radius:8px;font:500 13px system-ui,"Malgun Gothic",sans-serif;width:100%}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+@media(max-width:450px){.grid{grid-template-columns:1fr}.panel{padding:17px}}
 </style>
 <script src="kakao-share-config.js?v=20261121-config" defer></script>
-<script id="sdk" src="https://t1.kakaocdn.net/kakao_js_sdk/2.8.5/kakao.min.js" integrity="sha384-v6JKY3z4FUkWq21oZDHZe74YvuPk/WUrVLrDHTBojHXClOSa3iXy7sCXPY1jkFbj" crossorigin="anonymous" defer></script>
+<script src="https://t1.kakaocdn.net/kakao_js_sdk/2.8.5/kakao.min.js" integrity="sha384-v6JKY3z4FUkWq21oZDHZe74YvuPk/WUrVLrDHTBojHXClOSa3iXy7sCXPY1jkFbj" crossorigin="anonymous" defer></script>
 </head><body><main>
-<h1>카카오톡 채용공고 카드 공유</h1>
-<p class="sub">실제 고용24 채용공고로 확인하는 독립 테스트야. 통합본·확장프로그램에는 아직 적용하지 않았어.</p>
+<h1>채용정보 카카오톡 공유</h1>
+<p class="sub">영문 주소 없이 글부터 보이고, 맨 아래에 작은 원문 링크만 붙는 형식을 시험해. 카카오톡 공식 텍스트 공유는 최대 200자라 실제 전송 문구는 자동으로 짧게 표시돼.</p>
 <section class="panel">
-<div class="section-name">좋은일자리 북부센터 · 채용정보</div>
-<img class="cover" id="cover" alt="간결한 좋은일자리 GOOD JOB 로고 배너" src="https://bowxlaiyjxknqccoughl.supabase.co/functions/v1/goodjob-kakao-cover?v=2">
-<div class="job">
-<h2 id="viewTitle"></h2>
-<div id="viewRows"></div>
+<div class="heading">원문 안내문 — 입력값 그대로</div>
+<div id="full" class="full"></div>
+<a id="source" class="tiny" target="_blank" rel="noopener noreferrer" href="#">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M7 13h10M13 9l4 4-4 4"/></svg>
+고용24 원문 공고 보기
+</a>
+<hr class="line">
+<div class="actual">
+<p><b>실제 카카오톡으로 전송될 글</b> · <span id="count"></span></p>
+<pre id="short"></pre>
+<p class="small">아래에 클릭 가능한 ‘고용24 원문 공고 보기’ 버튼이 붙어. 큰 이미지는 없어. 글을 누르면 원문 안내문 전체가 열려.</p>
 </div>
-<div class="cta-preview">고용24 원문 공고 보기</div>
-<button id="share" class="primary" type="button" disabled>카카오톡 카드 공유하기</button>
-<p id="state" role="status" aria-live="polite">카카오 공유 기능을 준비 중입니다.</p>
-<p id="health" aria-live="polite"></p>
-<details class="details"><summary>다른 채용공고로 테스트하기 · 내용 변경</summary>
+<button id="share" type="button" disabled>카카오톡 글+원문 버튼 공유</button>
+<p id="state" role="status" aria-live="polite">카카오 공유 기능 준비 중…</p>
+<details><summary>다른 공고로 시험하기 — 글 수정</summary>
 <form id="inputs" autocomplete="off">
-<label>공고명<input id="title" maxlength="160" required value="자재 구매 및 사무보조원"></label>
-<div class="grid">
-<label>기업명<input id="company" maxlength="90" value="(주)로담신한옥"></label>
-<label>근무지<input id="jobLocation" maxlength="120" value="울산광역시 울주군 삼동면 은현작동로 361-18 (주)로담신한옥"></label>
-</div>
-<label>담당업무<input id="duties" maxlength="300" value="- 자재 발주 - 공장 내 자재 재고 관리 - 발주 내역 (거래명세서 등) 정리"></label>
-<div class="grid">
-<label>경력<input id="experience" maxlength="50" value="무관"></label>
-<label>학력<input id="education" maxlength="50" value="무관"></label>
-</div>
-<div class="grid">
-<label>근무형태<input id="employment" maxlength="220" value="기간의 정함이 있는 근로계약3 개월/ 계약기간 만료 후 상용직전환검토"></label>
-<label>근무시간<input id="workHours" maxlength="220" value="주5일근무 / 평일 : (근무시간) (오전) 8시 30분 ~ (오후) 5시 30분, 주 5일 근무, 평균근무시간 : 40"></label>
-</div>
-<label>급여<input id="salary" maxlength="95" value="월급 215만원"></label>
-<label>고용24 원문 주소 (필수)<input id="originalUrl" inputmode="url" required value="https://www.work24.go.kr/wk/a/b/1500/empDetailAuthView.do?infoTypeCd=VALIDATION&amp;infoTypeGroup=tb_workinfoworknet&amp;wantedAuthNo=K171252611200014"></label>
+<label>공고명<input id="title" value="자재 구매 및 사무보조원"></label>
+<label>기업명<input id="company" value="(주)로담신한옥"></label>
+<label>담당업무<input id="duties" value="- 자재 발주 - 공장 내 자재 재고 관리 - 발주 내역 (거래명세서 등) 정리"></label>
+<label>근무지<input id="jobLocation" value="울산광역시 울주군 삼동면 은현작동로 361-18 (주)로담신한옥"></label>
+<div class="grid"><label>경력<input id="experience" value="무관"></label><label>학력<input id="education" value="무관"></label></div>
+<label>근무형태<input id="employment" value="기간의 정함이 있는 근로계약3 개월/ 계약기간 만료 후 상용직전환검토"></label>
+<label>근무시간<input id="workHours" value="주5일근무 / 평일 : (근무시간) (오전) 8시 30분 ~ (오후) 5시 30분, 주 5일 근무, 평균근무시간 : 40"></label>
+<label>급여<input id="salary" value="월급 215만원"></label>
+<label>고용24 원문 주소<input id="originalUrl" value="https://www.work24.go.kr/wk/a/b/1500/empDetailAuthView.do?infoTypeCd=VALIDATION&amp;infoTypeGroup=tb_workinfoworknet&amp;wantedAuthNo=K171252611200014"></label>
 </form>
 </details>
-<p class="note"><b>카카오 표시 제한:</b> 위 8개 항목은 공유 요청에 모두 포함하지만, 카카오 기본 피드 카드는 제목과 설명을 합쳐 <b>최대 4줄</b>만 보여줘. 카드 이미지나 제목을 누르면 8개 항목 전체를 볼 수 있고, 아래 원문 공고 버튼을 누르면 고용24로 이동해.</p>
-<p class="note"><b>여러 명 전송:</b> 공유창에서 2명 이상 선택해 봐. 카카오 공식 공유의 기본 한도는 최대 10개 대상이지만, 앱 권한과 사용 환경에 따라 선택 화면은 달라질 수 있어.</p>
-<p class="note">전송할 때는 PC 크롬의 카카오 계정으로 공유 대상을 선택해. 긴 영문 주소는 메시지에 표시되지 않고, <b>원문 공고 보기</b> 버튼에만 연결돼. 카드에는 공개된 채용정보만 넣어 줘.</p>
-<p class="note">원문 버튼이 연결되지 않으면 카카오디벨로퍼스의 <b>제품 링크 관리 → 웹 도메인</b>에 <code>https://careercounselor1984-code.github.io</code> 등록 상태를 확인해야 해. 화면에 나타난 링크를 직접 확인하려면 <a id="checkSource" target="_blank" rel="noopener noreferrer">원문 연결 주소 열어보기</a>를 눌러봐.</p>
+<p class="note">이것은 독립 테스트 페이지야. 상담일지 통합본과 채용정보 도우미는 아직 변경하지 않았어. 카카오 공식 공유창에서는 한 번에 여러 대상을 선택할 수도 있어.</p>
 </section></main>
 <script>
 (function(){"use strict";
 const $=id=>document.getElementById(id);
-const ids=["title","company","jobLocation","duties","experience","education","employment","workHours","salary","originalUrl"];
-const permitted=["work24.go.kr","work.go.kr","saramin.co.kr","jobkorea.co.kr","alba.co.kr"];
-const banner="https://bowxlaiyjxknqccoughl.supabase.co/functions/v1/goodjob-kakao-cover?v=2";
-const btn=$("share"),state=$("state"),health=$("health"),img=$("cover");
-let sdkReady=false,coverReady=false;
-function notice(s,err=false){state.textContent=s;state.classList.toggle("bad",err)}
-function text(s){return String(s||"").replace(/[\u0000-\u001f\u007f]/g," ").replace(/\s+/g," ").trim()}
-function safeUrl(raw){
- try{
-  if(!raw||raw.length>2500)return null;
-  const u=new URL(raw);
-  if(u.protocol!=="https:"||u.username||u.password||(u.port&&u.port!=="443"))return null;
-  if(!permitted.some(d=>u.hostname===d||u.hostname.endsWith("."+d)))return null;
-  return u;
- }catch{return null}
+const keys=["title","company","duties","jobLocation","experience","education","employment","workHours","salary","originalUrl"];
+const host=["work24.go.kr","work.go.kr","saramin.co.kr","jobkorea.co.kr","alba.co.kr"];
+const button=$("share"),status=$("state");
+let ready=false;
+function msg(v,err=false){status.textContent=v;status.classList.toggle("bad",err)}
+function read(){const data={};for(const id of keys)data[id]=String($(id).value||"").trim();return data}
+function safeUrl(raw){try{const u=new URL(raw);return u.protocol==="https:"&&!u.username&&!u.password&&(!u.port||u.port==="443")&&host.some(h=>u.hostname===h||u.hostname.endsWith("."+h))?u:null}catch{return null}}
+function rows(j){const r=[["📢",j.title],["🏢",j.company],["🛠️",j.duties],["📍",j.jobLocation],["👤",(j.experience||"-")+" / "+(j.education||"-")],["📄",j.employment],["🕒",j.workHours]];if(j.salary)r.push(["💰",j.salary]);return r}
+function fullText(j){return rows(j).map(([a,b])=>a+" "+b).join("\n")}
+function compactLine(s,max){const a=Array.from(String(s||"").replace(/\s+/g," ").trim());return a.length<=max?a.join(""):a.slice(0,max-1).join("").trimEnd()+"…"}
+function shortText(j){
+ // All 8 labels are retained. Long fields are summarized, never silently presented as the verbatim original.
+ const limits=[34,23,30,34,17,27,36,18];
+ const arr=rows(j).map(([icon,value],i)=>icon+" "+compactLine(value,limits[i]));
+ let result=arr.join("\n");
+ while(Array.from(result).length>200){
+  let idx=0,biggest=-1;
+  for(let i=0;i<arr.length;i++){
+   const v=Array.from(arr[i]).length;
+   if(v>biggest&&v>12){biggest=v;idx=i}
+  }
+  const chars=Array.from(arr[idx]);
+  if(chars.length<=12)break;
+  arr[idx]=chars.slice(0,chars.length-2).join("").replace(/…?$/,"")+"…";
+  result=arr.join("\n");
+ }
+ return result;
 }
-function read(){
- const v={};for(const id of ids)v[id]=text($(id).value);return v
-}
-function goLink(target){
- const u=new URL("job-open.html",location.href);
- u.searchParams.set("to",target.href);return u.href;
-}
-function fullDetailsLink(job,target){
- const data={...job,originalUrl:target.href};
- const bytes=new TextEncoder().encode(JSON.stringify(data));
- let binary="";for(const n of bytes)binary+=String.fromCharCode(n);
- const compact=btoa(binary).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
- const u=new URL("job-detail.html",location.href);
- u.searchParams.set("d",compact);
- if(u.href.length>3800)throw Error("상세 설명 길이가 너무 깁니다. 공고 내용을 조금 줄여 주세요.");
+function goLink(target){const u=new URL("job-open.html",location.href);u.searchParams.set("to",target.href);return u.href}
+function detailLink(j,target){
+ const bytes=new TextEncoder().encode(JSON.stringify({...j,originalUrl:target.href}));
+ let binary="";for(const b of bytes)binary+=String.fromCharCode(b);
+ const token=btoa(binary).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+ const u=new URL("job-detail.html",location.href);u.searchParams.set("d",token);
+ if(u.href.length>3800)throw Error("공고가 너무 길어 자세히 보기 주소를 만들 수 없습니다.");
  return u.href;
 }
 function render(){
- const j=read();
- $("viewTitle").textContent=j.title?"📢 "+j.title:"공고명을 입력해 주세요";
- const rows=[
- ["🏢",j.company||"기업명 미확인"],
- ["🛠️",j.duties||"담당업무 미확인"],
- ["📍",j.jobLocation||"근무지 미확인"],
- ["👤",(j.experience||"-")+" / "+(j.education||"-")],
- ["📄",j.employment||"근무형태 미확인"],
- ["🕒",j.workHours||"근무시간 미확인"]
- ];
- if(j.salary)rows.push(["💰",j.salary]);
- const list=$("viewRows");list.replaceChildren();
- for(const [ico,val] of rows){
-  const p=document.createElement("p");p.textContent=ico+" "+val;list.appendChild(p);
- }
- const target=safeUrl(j.originalUrl);
- $("checkSource").href=target?goLink(target):"#";
- $("checkSource").style.pointerEvents=target?"":"none";
- $("checkSource").style.opacity=target?"1":".4";
- btn.disabled=!(sdkReady&&coverReady&&target&&j.title);
- return {j,rows,target};
+ const j=read(), target=safeUrl(j.originalUrl),full=fullText(j),short=shortText(j);
+ $("full").textContent=full;
+ $("short").textContent=short;
+ $("count").textContent=Array.from(short).length+"자 / 200자";
+ $("source").href=target?goLink(target):"#";
+ $("source").style.opacity=target?"1":".4";
+ $("source").style.pointerEvents=target?"":"none";
+ button.disabled=!(ready&&target&&j.title);
+ return {j,target,short,full}
 }
 function init(){
- const key=String(window.GOODJOB_KAKAO_JS_KEY||"").trim();
- const sdk=window.Kakao;
- if(!key){notice("카카오 JavaScript 키 설정을 읽지 못했습니다.",true);return}
- if(!sdk||typeof sdk.init!=="function"){notice("카카오 SDK를 불러오지 못했습니다.",true);return}
+ const key=String(window.GOODJOB_KAKAO_JS_KEY||"").trim(),sdk=window.Kakao;
+ if(!key){msg("공용 JavaScript 키를 불러오지 못했어.",true);return}
+ if(!sdk||typeof sdk.init!=="function"){msg("카카오 SDK가 준비되지 않았어.",true);return}
  try{
   if(!sdk.isInitialized())sdk.init(key);
-  if(typeof sdk.Share?.sendDefault!=="function")throw Error("카카오 공유 모듈이 없습니다.");
-  sdkReady=true;
-  health.textContent="카카오 SDK 연결 정상 · 공유 대상은 각 상담사의 카카오 계정 기준";
-  if(coverReady)notice("준비 완료. 공유 버튼을 눌러 '나와의 채팅'으로 확인해 보세요.");
-  render();
- }catch(e){notice("카카오 SDK 초기화 오류: "+(e?.message||String(e)),true)}
+  if(typeof sdk.Share?.sendDefault!=="function")throw Error("Share 모듈이 없어.");
+  ready=true;render();msg("준비 완료. 글과 작은 원문 버튼을 공유할 수 있어.");
+ }catch(e){msg("카카오 초기화 오류: "+(e?.message||String(e)),true)}
 }
-img.addEventListener("load",()=>{
- coverReady=true;render();
- if(sdkReady)notice("준비 완료. 공유 버튼을 눌러 '나와의 채팅'으로 확인해 보세요.");
-});
-img.addEventListener("error",()=>{
- coverReady=false;btn.disabled=true;
- notice("새 카드 이미지 서버에서 이미지를 읽지 못했습니다. 공유 전에 이미지 연결을 확인해야 합니다.",true);
-});
-$("inputs").addEventListener("input",()=>{const previous=state.classList.contains("bad");render();if(previous&&sdkReady&&coverReady)notice("값을 수정했어. 원문 주소를 확인한 뒤 공유해 줘.");});
-btn.addEventListener("click",()=>{
- const {j,rows,target}=render();
- if(!sdkReady||!coverReady){notice("카카오 SDK 또는 카드 이미지가 준비되지 않았습니다.",true);return}
- if(!target){notice("고용24 등 허용된 채용사이트의 원문 URL을 입력해 주세요.",true);return}
- if(!j.title){notice("공고명을 입력해 주세요.",true);return}
- const link=goLink(target);
- const desc=rows.map(([icon,s])=>icon+" "+s).join("\n");
+$("inputs").addEventListener("input",render);
+button.addEventListener("click",()=>{
+ const {j,target,short}=render();
+ if(!ready||!target||!j.title){msg("공고 제목과 허용된 채용공고 원문 주소가 필요해.",true);return}
  try{
-  const detail=fullDetailsLink(j,target);
+  const detail=detailLink(j,target),source=goLink(target);
   window.Kakao.Share.sendDefault({
-   objectType:"feed",
-   content:{title:"📢 "+j.title,description:desc,imageUrl:banner,imageWidth:800,imageHeight:160,link:{mobileWebUrl:detail,webUrl:detail}},
-   buttons:[{title:"고용24 원문 공고 보기",link:{mobileWebUrl:link,webUrl:link}}]
+   objectType:"text",text:short,link:{mobileWebUrl:detail,webUrl:detail},
+   buttons:[{title:"고용24 원문 공고 보기",link:{mobileWebUrl:source,webUrl:source}}]
   });
-  notice("카카오 공유창을 열었어. 수신자 2명을 선택할 수 있는지도 확인해 봐. 기본 피드 카드에서 설명은 최대 4줄까지 보여.");
- }catch(e){notice("카카오 공유 요청 오류: "+(e?.message||String(e))+"\n제품 링크 관리의 웹 도메인 등록 여부도 확인해 주세요.",true)}
+  msg("카카오 공유창이 열리면 수신자를 선택해 줘. 메시지는 200자 이내의 8개 항목 요약이고 전체 내용은 글을 눌러 확인할 수 있어.");
+ }catch(e){msg("공유 요청 실패: "+(e?.message||String(e)),true)}
 });
-window.addEventListener("load",()=>{
- // Optional public job prefill for a future caller; no counselor or client identifying data.
- const p=new URLSearchParams(location.search);
- for(const id of ids)if(p.has(id))$(id).value=String(p.get(id)||"").slice(0,2500);
- render();init();
- if(img.complete&&img.naturalWidth>0){coverReady=true;render();if(sdkReady)notice("준비 완료. 공유 버튼을 눌러 나와의 채팅으로 확인해 보세요.");}else if(img.complete&&!img.naturalWidth){notice("카드 이미지를 불러오지 못했습니다.",true)}
-});
+window.addEventListener("load",()=>{render();init()});
 })();
 </script>
 </body></html>
