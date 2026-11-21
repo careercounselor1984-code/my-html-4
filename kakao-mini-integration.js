@@ -205,8 +205,70 @@ function directShareJob(doc){
       link:{mobileWebUrl:source,webUrl:source},
       buttons:[{title:"원문 공고 보기",link:{mobileWebUrl:source,webUrl:source}}]
     });
-    status(doc,"카카오톡 공유 대상 선택창이 열립니다. 상대방을 선택해서 전송해 주세요.");
+    status(doc,"카카오톡 공유 대상 선택창이 열립니다. 공유 성공 창은 카카오 화면에서 닫아 주세요. 실제 발송 메시지의 증빙은 ‘📷 발송 증빙 저장’으로 보관할 수 있어요.");
   }catch(err){status(doc,"카카오톡 직접 공유 실패: "+(err?.message||String(err)),true);}
+}
+
+
+// 발송 증빙은 PC 카카오톡에서 사용자가 직접 촬영한 이미지만 로컬에 저장한다.
+// Kakao SDK의 공유창이나 타 프로그램 화면을 브라우저가 몰래 캡처하지 않는다.
+function evidenceName(job){
+  const d=new Date(),z=n=>String(n).padStart(2,"0");
+  const stamp=d.getFullYear()+z(d.getMonth()+1)+z(d.getDate())+"_"+z(d.getHours())+z(d.getMinutes());
+  const title=String(job.title||"채용정보").replace(/[\\/:*?"<>|\u0000-\u001f]/g,"_").replace(/\s+/g," ").trim().slice(0,48)||"채용정보";
+  return stamp+"_"+title+"_카카오발송증빙";
+}
+function storeEvidence(doc,blob){
+  if(!blob||!["image/png","image/jpeg","image/webp"].includes(blob.type)){
+    status(doc,"PNG 또는 JPG 이미지로 캡처한 뒤 다시 붙여넣어 주세요.",true);return false;
+  }
+  // 수신자 식별정보를 서버로 보내지 않으며 파일은 해당 PC에 다운로드만 한다.
+  const job=currentJob(doc);
+  const ext=blob.type==="image/jpeg"?"jpg":blob.type==="image/webp"?"webp":"png";
+  const url=URL.createObjectURL(blob);
+  try{
+    const a=document.createElement("a");a.href=url;
+    a.download=evidenceName(job)+"."+ext;
+    a.style.display="none";document.body.appendChild(a);a.click();a.remove();
+    status(doc,"✓ 발송 증빙을 PC에 저장했어. 실제 내담자와 전송된 메시지가 보이는지 파일을 확인해 줘.");
+    return true;
+  }catch(error){
+    status(doc,"증빙 파일 저장 실패: "+(error?.message||String(error)),true);
+    return false;
+  }finally{setTimeout(()=>URL.revokeObjectURL(url),60000);}
+}
+async function evidenceFromClipboard(doc){
+  const hint=doc.getElementById("goodjobEvidencePaste");
+  if(hint){hint.hidden=false;hint.focus();}
+  if(typeof navigator.clipboard?.read!=="function"){
+    status(doc,"PC 카카오톡에서 Win+Shift+S로 캡처한 뒤 아래 입력칸에서 Ctrl+V 해 줘.");
+    return;
+  }
+  try{
+    const items=await navigator.clipboard.read();
+    for(const item of items){
+      const imageType=item.types.find(t=>["image/png","image/jpeg","image/webp"].includes(t));
+      if(imageType){
+        const blob=await item.getType(imageType);
+        storeEvidence(doc,blob);return;
+      }
+    }
+    status(doc,"클립보드에 이미지가 없어. PC 카카오톡에서 메시지를 캡처한 후 이 버튼을 다시 눌러 줘.",true);
+  }catch(err){
+    status(doc,"클립보드 자동 읽기가 차단됐어. 아래 입력칸에서 Ctrl+V로 붙여넣으면 PNG로 저장돼.",true);
+  }
+}
+function evidencePasteHandler(doc,event){
+  const items=event.clipboardData?.items||[];
+  for(const item of items){
+    if(item.kind==="file"&&/^image\/(png|jpeg|webp)$/.test(item.type)){
+      event.preventDefault();
+      storeEvidence(doc,item.getAsFile());
+      return;
+    }
+  }
+  event.preventDefault();
+  status(doc,"사진이 아닌 내용이야. PC 카카오톡 화면을 Win+Shift+S로 캡처한 다음 Ctrl+V 해 줘.",true);
 }
 
 function attach(){
@@ -237,14 +299,25 @@ function attach(){
   detail.type="button";detail.id="goodjobMiniDetailBtn";
   detail.textContent="② 기존 7항목 안내문 복사";
   detail.style.cssText="background:#dbeafe;border:0;border-radius:9px;padding:11px 15px;color:#1e40af;font-weight:700;cursor:pointer";
+  const proof=doc.createElement("button");
+  proof.type="button";proof.id="goodjobEvidenceButton";
+  proof.textContent="📷 발송 증빙 저장";
+  proof.style.cssText="background:#f1f5f9;border:1px solid #b9c7d5;border-radius:9px;padding:11px 15px;color:#34506b;font-weight:750;cursor:pointer";
+  const pasteBox=doc.createElement("textarea");
+  pasteBox.id="goodjobEvidencePaste";pasteBox.rows=2;pasteBox.hidden=true;
+  pasteBox.readOnly=true;
+  pasteBox.placeholder="PC 카카오톡에서 보낸 메시지가 보이게 캡처 → 여기를 클릭하고 Ctrl+V";
+  pasteBox.style.cssText="display:block;margin-top:10px;width:100%;box-sizing:border-box;border:1px dashed #91acc5;border-radius:8px;padding:12px;font:12px 'Malgun Gothic',sans-serif;resize:vertical";
   const help=doc.createElement("small");
-  help.textContent="노란색 ‘카카오톡 바로 공유’를 누르면 중간 페이지 없이 수신자 선택창이 열립니다. 기존 복사 버튼은 예비 기능으로 유지합니다.";
+  help.textContent="노란색 ‘카카오톡 바로 공유’는 수신자 선택창을 바로 엽니다. 발송 증빙: PC 카카오톡에서 실제 전송한 대화를 Win+Shift+S로 캡처한 다음 ‘발송 증빙 저장’을 누르거나 입력칸에 Ctrl+V로 붙여넣으세요. 파일은 서버가 아닌 이 PC에만 저장됩니다. 복사 버튼은 예비 기능입니다.";
   help.style.cssText="display:block;margin-top:8px;color:#64748b;line-height:1.55";
   const state=doc.createElement("div");
   state.id="goodjobMiniStatus";state.setAttribute("role","status");
   state.style.cssText="font-size:12px;margin-top:8px;min-height:16px";
-  controls.append(share,mini,detail);panel.append(header,controls,help,state);
+  controls.append(share,proof,mini,detail);panel.append(header,controls,help,state,pasteBox);
   share.addEventListener("click",()=>directShareJob(doc));
+  proof.addEventListener("click",()=>evidenceFromClipboard(doc));
+  pasteBox.addEventListener("paste",event=>evidencePasteHandler(doc,event));
   mini.addEventListener("click",()=>copyJob(doc,"mini"));
   detail.addEventListener("click",()=>copyJob(doc,"detail"));
   original.parentElement.insertAdjacentElement("afterend",panel);
