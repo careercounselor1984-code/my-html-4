@@ -106,7 +106,7 @@ async function copyJob(doc,mode){
     if(!(await writeClipboard(doc,message)))throw Error("클립보드 복사가 차단되었습니다.");
     status(doc,mode==="detail"?
       "✓ 상세 안내문과 미리보기 링크 복사 완료! 카카오톡 채팅창에 Ctrl + V로 붙여넣으세요.":
-      "✓ 미니카드 링크 복사 완료! 카카오톡 채팅창에 Ctrl + V로 붙여넣으세요. 카카오톡이 미리보기 카드를 생성합니다.");
+      "✓ 링크 하나만 복사했습니다. 카카오톡에 Ctrl + V로 붙여넣고 미리보기가 생성되는지 확인하세요. 표시 여부는 카카오톡에서 결정됩니다.");
   }catch(error){status(doc,"복사 실패: "+(error?.message||String(error)),true);}
   finally{buttons.forEach(b=>b.disabled=false);}
 }
@@ -128,14 +128,14 @@ function attach(){
   controls.style.cssText="display:flex;flex-wrap:wrap;gap:8px";
   const mini=doc.createElement("button");
   mini.type="button";mini.id="goodjobMiniPreviewBtn";
-  mini.textContent="① 미니카드 링크 복사";
+  mini.textContent="① 카드 미리보기용 링크만 복사";
   mini.style.cssText="background:#1d4ed8;border:0;border-radius:9px;padding:11px 15px;color:white;font-weight:700;cursor:pointer";
   const detail=doc.createElement("button");
   detail.type="button";detail.id="goodjobMiniDetailBtn";
-  detail.textContent="② 전체 안내문+카드 링크 복사";
+  detail.textContent="② 기존 7항목 안내문 복사";
   detail.style.cssText="background:#dbeafe;border:0;border-radius:9px;padding:11px 15px;color:#1e40af;font-weight:700;cursor:pointer";
   const help=doc.createElement("small");
-  help.textContent="①은 링크 미리보기 카드 중심, ②는 기존 7항목 안내문과 미리보기 링크를 함께 복사합니다. 새 창·카카오 키 입력은 필요 없습니다. 카카오톡의 링크 미리보기 지원 여부에 따라 카드 표시가 달라질 수 있습니다.";
+  help.textContent="①은 링크 하나만 복사하므로 카카오톡 미리보기 카드 확인에 사용하세요. ②는 기존처럼 7항목이 포함된 긴 텍스트 말풍선이 나옵니다. 미리보기 카드는 카카오톡이 링크를 인식할 때만 표시됩니다.";
   help.style.cssText="display:block;margin-top:8px;color:#64748b;line-height:1.55";
   const state=doc.createElement("div");
   state.id="goodjobMiniStatus";state.setAttribute("role","status");
