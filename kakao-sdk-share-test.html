@@ -1,107 +1,172 @@
-<!doctype html>
-<html lang="ko">
+<!doctype html><html lang="ko">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
-<title>좋은일자리 | 카카오톡 공식 카드 공유 테스트</title>
+<title>좋은일자리 | 카카오톡 카드 공유 최종 테스트</title>
 <style>
 *{box-sizing:border-box}
-:root{font-family:system-ui,-apple-system,"Malgun Gothic",sans-serif;background:#edf3f8;color:#163958}
-body{margin:0;padding:22px 14px}
-main{max-width:570px;margin:0 auto}
-.card{background:#fff;border-radius:20px;border:1px solid #dae6f0;padding:24px;box-shadow:0 10px 30px #193a5512}
-h1{margin:0;font-size:21px}
-.sub{font-size:13px;color:#657f99;line-height:1.6;margin:7px 0 22px}
-.header{border-top:5px solid #1e609d;background:#f8fbff;border:1px solid #e2ebf3;border-radius:14px;padding:19px;margin-bottom:18px}
-.eyebrow{font-size:12px;color:#1c669d;font-weight:800;letter-spacing:.02em}
-.header h2{font-size:19px;margin:11px 0}
-.detail{line-height:1.9;font-size:15px}
-.target{display:block;text-align:center;border-radius:9px;background:#e6eef8;color:#164e7e;font-size:14px;font-weight:800;padding:12px;margin-top:17px}
-button{width:100%;border:0;border-radius:12px;padding:17px;background:#fee500;color:#291f00;font-weight:800;font-size:17px;cursor:pointer}
-button:disabled{background:#e5e9ef;color:#8b949f;cursor:wait}
-#state{white-space:pre-wrap;color:#1b6948;font-size:13px;line-height:1.6;min-height:40px;margin-top:14px}
-#state.bad{color:#b12436}
-.note{font-size:12px;color:#667f93;line-height:1.75;margin:8px 0 0}
-code{font-size:11px;color:#295276;word-break:break-all;background:#f1f6fc;border-radius:5px;padding:2px 4px}
-@media(max-width:440px){.card{padding:18px}}
+:root{font-family:system-ui,-apple-system,"Malgun Gothic",sans-serif;background:#eef3f8;color:#17334f}
+body{margin:0;padding:28px 16px 50px}
+main{max-width:625px;margin:auto}
+h1{font-size:23px;margin:0 0 8px;letter-spacing:-.5px}
+.sub{font-size:13px;color:#647d94;line-height:1.7;margin:0 0 18px}
+.panel{padding:25px;background:#fff;border:1px solid #dce5ef;border-radius:20px;box-shadow:0 10px 33px #173a6012}
+.section-name{font-size:11px;font-weight:800;letter-spacing:.06em;color:#215c90;margin:4px 0 12px}
+.cover{display:block;width:100%;aspect-ratio:2/1;object-fit:cover;border-radius:13px;background:#17436a}
+.job{padding:17px 3px 12px}
+.job h2{font-size:20px;line-height:1.45;margin:3px 0 10px;overflow-wrap:anywhere;letter-spacing:-.3px}
+.job p{font-size:15px;line-height:1.75;margin:2px 0;overflow-wrap:anywhere}
+.cta-preview{background:#edf4fb;color:#175995;text-align:center;padding:13px;border-radius:10px;font-size:14px;font-weight:800;margin:8px 0 22px}
+.primary{width:100%;display:block;padding:18px 15px;border:0;border-radius:13px;background:#fee500;color:#241f00;font-size:18px;font-weight:800;cursor:pointer}
+.primary:disabled{background:#e8edf2;color:#8295a7;cursor:wait}
+#state{min-height:30px;color:#17653e;white-space:pre-wrap;font-size:13px;line-height:1.65;margin:14px 0 5px}
+#state.bad{color:#b12331}
+#health{color:#6a8196;font-size:11px;margin:0}
+.details{border-top:1px solid #e3e9f0;margin-top:22px;padding-top:15px}
+summary{font-size:14px;color:#235d92;font-weight:750;cursor:pointer;padding:7px 0}
+form{display:grid;gap:11px;margin-top:12px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+label{display:grid;gap:5px;color:#536b81;font-size:12px;font-weight:750}
+input{width:100%;border:1px solid #cbd9e7;border-radius:9px;padding:11px 12px;font:500 13px system-ui,"Malgun Gothic",sans-serif;color:#163653;background:#fff}
+input:focus{outline:2px solid #a5c8ee;outline-offset:1px}
+.note{font-size:12px;color:#607a90;line-height:1.8;margin-top:17px}
+a{color:#195b93}
+@media(max-width:500px){.panel{padding:18px}.grid{grid-template-columns:1fr}.job h2{font-size:18px}}
 </style>
 <script src="kakao-share-config.js?v=20261121-config" defer></script>
-<script id="kakao-official-sdk" src="https://t1.kakaocdn.net/kakao_js_sdk/2.8.5/kakao.min.js" integrity="sha384-v6JKY3z4FUkWq21oZDHZe74YvuPk/WUrVLrDHTBojHXClOSa3iXy7sCXPY1jkFbj" crossorigin="anonymous" defer></script>
-</head>
-<body>
-<main class="card">
-<h1>카카오톡 공식 카드 공유 · 독립 테스트</h1>
-<p class="sub">통합본과 채용정보 도우미는 변경하지 않습니다. 이 화면에서 전송이 되는지만 확인합니다.</p>
-<div class="header">
-<div class="eyebrow">GOOD JOB · 채용정보</div>
-<h2>생산직 사원 모집(주간)</h2>
-<div class="detail">🏢 (주)네오플라테크<br>📍 경북 구미시<br>💰 시급 10,320원</div>
-<div class="target">고용24 원문 공고 보기</div>
+<script id="sdk" src="https://t1.kakaocdn.net/kakao_js_sdk/2.8.5/kakao.min.js" integrity="sha384-v6JKY3z4FUkWq21oZDHZe74YvuPk/WUrVLrDHTBojHXClOSa3iXy7sCXPY1jkFbj" crossorigin="anonymous" defer></script>
+</head><body><main>
+<h1>카카오톡 채용공고 카드 공유</h1>
+<p class="sub">실제 울산 북구 고용24 채용공고로 확인하는 독립 테스트야. 통합본·확장프로그램에는 아직 적용하지 않았어.</p>
+<section class="panel">
+<div class="section-name">좋은일자리 북부센터 · 채용정보</div>
+<img class="cover" id="cover" alt="좋은일자리 채용정보 공통 카드 이미지, 파란 배경의 GOOD JOB" src="https://bowxlaiyjxknqccoughl.supabase.co/functions/v1/goodjob-kakao-cover?v=1">
+<div class="job">
+<h2 id="viewTitle"></h2>
+<div id="viewRows"></div>
 </div>
-<button id="share" type="button">카카오톡 공식 공유창 열기</button>
-<p id="state" role="status" aria-live="polite">공식 SDK를 정적 방식으로 불러오는 중입니다.</p><p id="diagnostics" class="note" aria-live="polite"></p><p class="note"><b>진단:</b> SDK 로딩 실패 시 크롬 시크릿 창(Ctrl+Shift+N)에서 테스트하세요. 시크릿 창에서 성공하면 기존 크롬의 확장프로그램 또는 캐시 등이 원인일 가능성이 있습니다.</p>
-<p class="note"><b>SDK 연결 확인:</b> <a href="https://t1.kakaocdn.net/kakao_js_sdk/2.8.5/kakao.min.js" target="_blank" rel="noopener noreferrer">카카오 SDK 원본 파일 직접 열기</a> · <a href="https://developers.kakao.com/tool/demo/message/kakaolink" target="_blank" rel="noopener noreferrer">카카오 공식 공유 데모</a><br>첫 번째 링크가 열리지 않으면 크롬·네트워크에서 카카오 CDN 접근이 막힌 것일 수 있습니다.</p>
-<p class="note">버튼을 누르면 카카오가 제공하는 공유 대상 선택창이 열립니다. 성공하면 <b>나와의 채팅</b>으로 전송한 뒤, 카드 이미지와 <b>고용24 원문 공고 보기</b> 버튼이 표시되는지 확인해 주세요. 긴 영문 URL은 메시지 본문에 넣지 않습니다.</p>
-<p class="note">SDK 도메인 오류가 발생하면 카카오디벨로퍼스 → 좋은일자리 채용정보 → 플랫폼 키 → JavaScript 키 → JavaScript SDK 도메인에 <code>https://careercounselor1984-code.github.io</code>를 추가해야 합니다. 전송 카드 링크는 기존 등록한 <code>square-water-31bb.careercounselor1984.workers.dev</code>를 사용합니다.</p>
-</main>
+<div class="cta-preview">고용24 원문 공고 보기</div>
+<button id="share" class="primary" type="button" disabled>카카오톡 카드 공유하기</button>
+<p id="state" role="status" aria-live="polite">카카오 공유 기능을 준비 중입니다.</p>
+<p id="health" aria-live="polite"></p>
+<details class="details"><summary>다른 채용공고로 테스트하기 · 내용 변경</summary>
+<form id="inputs" autocomplete="off">
+<label>공고명<input id="title" maxlength="160" required value="물류, 공정담당 관리자 모집 [울산동부고용센터 채용대행]"></label>
+<div class="grid">
+<label>기업명<input id="company" maxlength="90" value="(주)한빛케이에스이"></label>
+<label>근무지<input id="jobLocation" maxlength="120" value="울산 북구 중산산업1길 19"></label>
+</div>
+<label>담당업무<input id="duties" maxlength="160" value="물류·공정관리"></label>
+<div class="grid">
+<label>경력<input id="experience" maxlength="50" value="관계없음"></label>
+<label>학력<input id="education" maxlength="50" value="학력무관"></label>
+</div>
+<div class="grid">
+<label>근무형태<input id="employment" maxlength="100" value="기간의 정함이 없는 근로계약"></label>
+<label>근무시간<input id="workHours" maxlength="100" value="주 5일 · 08:00~17:00"></label>
+</div>
+<label>급여<input id="salary" maxlength="95" value="연봉 3,200만~3,600만원"></label>
+<label>고용24 원문 주소 (필수)<input id="originalUrl" inputmode="url" required value="https://www.work24.go.kr/wk/a/b/1500/empDetailAuthView.do?infoTypeCd=VALIDATION&amp;infoTypeGroup=tb_workinfoworknet&amp;wantedAuthNo=K131612611200008"></label>
+</form>
+</details>
+<p class="note">전송할 때는 PC 크롬의 카카오 계정으로 공유 대상을 선택해. 긴 영문 주소는 메시지에 표시되지 않고, <b>원문 공고 보기</b> 버튼에만 연결돼. 카드에는 공개된 채용정보만 넣어 줘.</p>
+<p class="note">원문 버튼이 연결되지 않으면 카카오디벨로퍼스의 <b>제품 링크 관리 → 웹 도메인</b>에 <code>https://careercounselor1984-code.github.io</code> 등록 상태를 확인해야 해. 화면에 나타난 링크를 직접 확인하려면 <a id="checkSource" target="_blank" rel="noopener noreferrer">원문 연결 주소 열어보기</a>를 눌러봐.</p>
+</section></main>
 <script>
 (function(){"use strict";
-const button=document.getElementById("share"),state=document.getElementById("state"),diag=document.getElementById("diagnostics");
-const link="https://square-water-31bb.careercounselor1984.workers.dev/?id=a11c20261121";
-const image="https://bowxlaiyjxknqccoughl.supabase.co/functions/v1/job-card-simple-image?v=2";
-let ready=false;
-button.disabled=true;
-function show(msg,bad=false){state.textContent=msg;state.classList.toggle("bad",bad);}
-function info(){
- const hasKey=!!String(window.GOODJOB_KAKAO_JS_KEY||"").trim();
- const kakao=window.Kakao;
- const hasSDK=!!(kakao && typeof kakao.init==="function" && typeof kakao.isInitialized==="function");
- const initialized=hasSDK&&kakao.isInitialized();
- const hasShare=typeof kakao?.Share?.sendDefault==="function";
- const version=String(kakao?.VERSION||kakao?.version||"표시 안 됨");
- diag.textContent="앱 JavaScript 키: "+(hasKey?"정상":"미로드")+" / SDK: "+(hasSDK?"정상":"불완전")+" / 초기화: "+(initialized?"완료":"미완료")+" / Share: "+(hasShare?"정상":"없음")+" / 버전: "+version;
- return {hasKey,hasSDK,initialized,hasShare};
-}
-function initialize(){
- const before=info();
- if(!before.hasKey){show("공용 JavaScript 키 설정 파일이 로드되지 않았습니다.",true);return;}
- if(!before.hasSDK){show("카카오 SDK 실행이 불완전합니다. init/isInitialized 함수가 있는지 확인해야 합니다.",true);return;}
+const $=id=>document.getElementById(id);
+const ids=["title","company","jobLocation","duties","experience","education","employment","workHours","salary","originalUrl"];
+const permitted=["work24.go.kr","work.go.kr","saramin.co.kr","jobkorea.co.kr","alba.co.kr"];
+const banner="https://bowxlaiyjxknqccoughl.supabase.co/functions/v1/goodjob-kakao-cover?v=1";
+const btn=$("share"),state=$("state"),health=$("health"),img=$("cover");
+let sdkReady=false,coverReady=false;
+function notice(s,err=false){state.textContent=s;state.classList.toggle("bad",err)}
+function text(s){return String(s||"").replace(/[\u0000-\u001f\u007f]/g," ").replace(/\s+/g," ").trim()}
+function safeUrl(raw){
  try{
-  // 일부 SDK 모듈은 Kakao.init() 이후에 등록되므로 반드시 먼저 초기화한다.
-  if(!window.Kakao.isInitialized())window.Kakao.init(String(window.GOODJOB_KAKAO_JS_KEY).trim());
-  const after=info();
-  if(!after.initialized){show("Kakao.init() 호출 후에도 초기화 상태가 확인되지 않습니다.",true);return;}
-  if(!after.hasShare){
-   const modules=Object.keys(window.Kakao||{}).filter(k=>/share|link|talk|auth|init|version/i.test(k)).join(", ");
-   diag.textContent+=" / 감지된 모듈: "+(modules||"없음");
-   show("초기화는 됐지만 Kakao.Share 모듈이 없습니다. 페이지에 카카오 SDK 2.x 전체 버전이 로드됐는지 확인해 주세요.",true);
-   return;
-  }
-  ready=true;button.disabled=false;
-  show("준비 완료! 버튼을 누르면 카카오 공식 공유창이 열립니다.");
- }catch(e){info();show("카카오 앱 초기화 오류: "+(e?.message||String(e)),true);}
+  if(!raw||raw.length>2500)return null;
+  const u=new URL(raw);
+  if(u.protocol!=="https:"||u.username||u.password||(u.port&&u.port!=="443"))return null;
+  if(!permitted.some(d=>u.hostname===d||u.hostname.endsWith("."+d)))return null;
+  return u;
+ }catch{return null}
 }
-const sdkScript=document.getElementById("kakao-official-sdk");
-sdkScript.addEventListener("error",()=>show("SDK 스크립트 로드 실패. Chrome 시크릿 창에서도 같은 오류가 나는지 확인해 주세요.",true));
-button.addEventListener("click",()=>{
- if(!ready)return;
+function read(){
+ const v={};for(const id of ids)v[id]=text($(id).value);return v
+}
+function goLink(target){
+ const u=new URL("job-open.html",location.href);
+ u.searchParams.set("to",target.href);return u.href;
+}
+function render(){
+ const j=read();
+ $("viewTitle").textContent=j.title||"공고명을 입력해 주세요";
+ const rows=[
+ ["🏢",j.company||"기업명 미확인"],
+ ["🛠️",j.duties||"담당업무 미확인"],
+ ["📍",j.jobLocation||"근무지 미확인"],
+ ["👤",(j.experience||"-")+" / "+(j.education||"-")],
+ ["📄",j.employment||"근무형태 미확인"],
+ ["🕒",j.workHours||"근무시간 미확인"]
+ ];
+ if(j.salary)rows.push(["💰",j.salary]);
+ const list=$("viewRows");list.replaceChildren();
+ for(const [ico,val] of rows){
+  const p=document.createElement("p");p.textContent=ico+" "+val;list.appendChild(p);
+ }
+ const target=safeUrl(j.originalUrl);
+ $("checkSource").href=target?goLink(target):"#";
+ $("checkSource").style.pointerEvents=target?"":"none";
+ $("checkSource").style.opacity=target?"1":".4";
+ btn.disabled=!(sdkReady&&coverReady&&target&&j.title);
+ return {j,rows,target};
+}
+function init(){
+ const key=String(window.GOODJOB_KAKAO_JS_KEY||"").trim();
+ const sdk=window.Kakao;
+ if(!key){notice("카카오 JavaScript 키 설정을 읽지 못했습니다.",true);return}
+ if(!sdk||typeof sdk.init!=="function"){notice("카카오 SDK를 불러오지 못했습니다.",true);return}
+ try{
+  if(!sdk.isInitialized())sdk.init(key);
+  if(typeof sdk.Share?.sendDefault!=="function")throw Error("카카오 공유 모듈이 없습니다.");
+  sdkReady=true;
+  health.textContent="카카오 SDK 연결 정상 · 공유 대상은 각 상담사의 카카오 계정 기준";
+  if(coverReady)notice("준비 완료. 공유 버튼을 눌러 '나와의 채팅'으로 확인해 보세요.");
+  render();
+ }catch(e){notice("카카오 SDK 초기화 오류: "+(e?.message||String(e)),true)}
+}
+img.addEventListener("load",()=>{
+ coverReady=true;render();
+ if(sdkReady)notice("준비 완료. 공유 버튼을 눌러 '나와의 채팅'으로 확인해 보세요.");
+});
+img.addEventListener("error",()=>{
+ coverReady=false;btn.disabled=true;
+ notice("새 카드 이미지 서버에서 이미지를 읽지 못했습니다. 공유 전에 이미지 연결을 확인해야 합니다.",true);
+});
+$("inputs").addEventListener("input",()=>{const previous=state.classList.contains("bad");render();if(previous&&sdkReady&&coverReady)notice("값을 수정했어. 원문 주소를 확인한 뒤 공유해 줘.");});
+btn.addEventListener("click",()=>{
+ const {j,rows,target}=render();
+ if(!sdkReady||!coverReady){notice("카카오 SDK 또는 카드 이미지가 준비되지 않았습니다.",true);return}
+ if(!target){notice("고용24 등 허용된 채용사이트의 원문 URL을 입력해 주세요.",true);return}
+ if(!j.title){notice("공고명을 입력해 주세요.",true);return}
+ const link=goLink(target);
+ const desc=rows.map(([icon,s])=>icon+" "+s).join("\n");
  try{
   window.Kakao.Share.sendDefault({
    objectType:"feed",
-   content:{
-    title:"생산직 사원 모집(주간)",
-    description:"🏢 (주)네오플라테크\n📍 경북 구미시\n💰 시급 10,320원",
-    imageUrl:image,
-    link:{mobileWebUrl:link,webUrl:link}
-   },
+   content:{title:j.title,description:desc.slice(0,590),imageUrl:banner,imageWidth:800,imageHeight:400,link:{mobileWebUrl:link,webUrl:link}},
    buttons:[{title:"고용24 원문 공고 보기",link:{mobileWebUrl:link,webUrl:link}}]
   });
-  show("카카오 공식 공유창에서 '나와의 채팅'을 선택해 전송해 주세요.");
- }catch(e){show("공유 요청 실패: "+(e?.message||String(e))+"\n앱 SDK 도메인 등록 여부를 확인해 주세요.",true);}
+  notice("카카오 공유창을 열었어. '나와의 채팅' 또는 수신자를 선택해 전송한 뒤 원문 버튼까지 확인해 줘.");
+ }catch(e){notice("카카오 공유 요청 오류: "+(e?.message||String(e))+"\n제품 링크 관리의 웹 도메인 등록 여부도 확인해 주세요.",true)}
 });
-window.addEventListener("load",initialize);
+window.addEventListener("load",()=>{
+ // Optional public job prefill for a future caller; no counselor or client identifying data.
+ const p=new URLSearchParams(location.search);
+ for(const id of ids)if(p.has(id))$(id).value=String(p.get(id)||"").slice(0,2500);
+ render();init();
+ if(img.complete&&!img.naturalWidth){notice("카드 이미지를 불러오지 못했습니다.",true)}
+});
 })();
 </script>
-</body>
-</html>
+</body></html>
