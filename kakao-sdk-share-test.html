@@ -69,7 +69,7 @@ a{color:#195b93}
 <label>고용24 원문 주소 (필수)<input id="originalUrl" inputmode="url" required value="https://www.work24.go.kr/wk/a/b/1500/empDetailAuthView.do?infoTypeCd=VALIDATION&amp;infoTypeGroup=tb_workinfoworknet&amp;wantedAuthNo=K171252611200014"></label>
 </form>
 </details>
-<p class="note"><b>카카오 표시 제한:</b> 위 8개 항목은 공유 요청에 모두 포함하지만, 카카오 기본 피드 카드는 제목과 설명을 합쳐 <b>최대 4줄</b>만 보여줘. 전체 정보가 실제 대화창에 모두 보이는 건 아니야.</p>
+<p class="note"><b>카카오 표시 제한:</b> 위 8개 항목은 공유 요청에 모두 포함하지만, 카카오 기본 피드 카드는 제목과 설명을 합쳐 <b>최대 4줄</b>만 보여줘. 카드 이미지나 제목을 누르면 8개 항목 전체를 볼 수 있고, 아래 원문 공고 버튼을 누르면 고용24로 이동해.</p>
 <p class="note"><b>여러 명 전송:</b> 공유창에서 2명 이상 선택해 봐. 카카오 공식 공유의 기본 한도는 최대 10개 대상이지만, 앱 권한과 사용 환경에 따라 선택 화면은 달라질 수 있어.</p>
 <p class="note">전송할 때는 PC 크롬의 카카오 계정으로 공유 대상을 선택해. 긴 영문 주소는 메시지에 표시되지 않고, <b>원문 공고 보기</b> 버튼에만 연결돼. 카드에는 공개된 채용정보만 넣어 줘.</p>
 <p class="note">원문 버튼이 연결되지 않으면 카카오디벨로퍼스의 <b>제품 링크 관리 → 웹 도메인</b>에 <code>https://careercounselor1984-code.github.io</code> 등록 상태를 확인해야 해. 화면에 나타난 링크를 직접 확인하려면 <a id="checkSource" target="_blank" rel="noopener noreferrer">원문 연결 주소 열어보기</a>를 눌러봐.</p>
@@ -99,6 +99,16 @@ function read(){
 function goLink(target){
  const u=new URL("job-open.html",location.href);
  u.searchParams.set("to",target.href);return u.href;
+}
+function fullDetailsLink(job,target){
+ const data={...job,originalUrl:target.href};
+ const bytes=new TextEncoder().encode(JSON.stringify(data));
+ let binary="";for(const n of bytes)binary+=String.fromCharCode(n);
+ const compact=btoa(binary).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+ const u=new URL("job-detail.html",location.href);
+ u.searchParams.set("d",compact);
+ if(u.href.length>3800)throw Error("상세 설명 길이가 너무 깁니다. 공고 내용을 조금 줄여 주세요.");
+ return u.href;
 }
 function render(){
  const j=read();
@@ -154,9 +164,10 @@ btn.addEventListener("click",()=>{
  const link=goLink(target);
  const desc=rows.map(([icon,s])=>icon+" "+s).join("\n");
  try{
+  const detail=fullDetailsLink(j,target);
   window.Kakao.Share.sendDefault({
    objectType:"feed",
-   content:{title:"📢 "+j.title,description:desc,imageUrl:banner,imageWidth:800,imageHeight:160,link:{mobileWebUrl:link,webUrl:link}},
+   content:{title:"📢 "+j.title,description:desc,imageUrl:banner,imageWidth:800,imageHeight:160,link:{mobileWebUrl:detail,webUrl:detail}},
    buttons:[{title:"고용24 원문 공고 보기",link:{mobileWebUrl:link,webUrl:link}}]
   });
   notice("카카오 공유창을 열었어. 수신자 2명을 선택할 수 있는지도 확인해 봐. 기본 피드 카드에서 설명은 최대 4줄까지 보여.");
