@@ -12,8 +12,8 @@
   function validatedUrl(raw) {
     try {
       var url = new URL(String(raw || '').trim());
-      if (url.protocol !== 'https:' || url.hostname !== 'notebooklm.google.com') return '';
-      if (!/^\/notebook\/[A-Za-z0-9_-]+\/?$/.test(url.pathname)) return '';
+      if (url.protocol !== 'https:' || !['notebooklm.google.com', 'notebook.google.com'].includes(url.hostname)) return '';
+      if (!/^\/notebook\/[A-Za-z0-9_-]+(?:\/preview)?\/?$/.test(url.pathname)) return '';
       url.hash = '';
       return url.toString();
     } catch (_) { return ''; }
