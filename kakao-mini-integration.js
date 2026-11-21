@@ -110,6 +110,105 @@ async function copyJob(doc,mode){
   }catch(error){status(doc,"복사 실패: "+(error?.message||String(error)),true);}
   finally{buttons.forEach(b=>b.disabled=false);}
 }
+
+// 공식 카카오 공유창을 원래 상담일지 화면에서 직접 연다.
+// 스크립트와 공용 JavaScript 플랫폼 키를 페이지 로드 시 미리 준비한다.
+// SDK가 준비되지 않았으면 자동 팝업을 강행하지 않고 오류를 안내한다.
+const KAKAO_SDK_URL="https://t1.kakaocdn.net/kakao_js_sdk/2.8.5/kakao.min.js";
+const KAKAO_SDK_SRI="sha384-v6JKY3z4FUkWq21oZDHZe74YvuPk/WUrVLrDHTBojHXClOSa3iXy7sCXPY1jkFbj";
+let sdkLoader=null;
+function loadJs(url,sri){
+  return new Promise((resolve,reject)=>{
+    const script=document.createElement("script");
+    script.src=url;
+    script.async=true;
+    if(sri){script.integrity=sri;script.crossOrigin="anonymous";}
+    script.onload=()=>resolve();
+    script.onerror=()=>reject(Error("카카오 공유 스크립트를 불러오지 못했습니다."));
+    document.head.appendChild(script);
+  });
+}
+function ensureKakaoReady(){
+  if(sdkLoader)return sdkLoader;
+  sdkLoader=Promise.all([
+    window.GOODJOB_KAKAO_JS_KEY?Promise.resolve():loadJs(new URL("./kakao-share-config.js",window.location.href).href),
+    window.Kakao?.Share?Promise.resolve():loadJs(KAKAO_SDK_URL,KAKAO_SDK_SRI)
+  ]).then(()=>{
+    const key=String(window.GOODJOB_KAKAO_JS_KEY||"").trim();
+    const sdk=window.Kakao;
+    if(!key)throw Error("센터 공용 카카오 JavaScript 키가 설정되지 않았습니다.");
+    if(!sdk||typeof sdk.init!=="function"||typeof sdk.isInitialized!=="function")
+      throw Error("카카오 SDK 초기화 함수를 찾을 수 없습니다.");
+    if(!sdk.isInitialized())sdk.init(key);
+    if(typeof sdk.Share?.sendDefault!=="function")
+      throw Error("카카오 공유 기능이 준비되지 않았습니다.");
+    return sdk;
+  }).catch(error=>{sdkLoader=null;throw error});
+  return sdkLoader;
+}
+function directShareText(job){
+  const fields=[
+    ["📢",job.title||"미확인"],
+    ["🏢",job.company||"미확인"],
+    ["🛠️",job.duties||"미확인"],
+    ["📍",job.location||"-"],
+    ["👤",(job.experience||"-")+" / "+(job.education||"-")],
+    ["📄",job.employment||"미확인"],
+    ["🕒",job.workHours||"미확인"],
+    ["💰",job.salary||"미확인"]
+  ];
+  // 기본 텍스트형 템플릿의 200자 제한에 맞춰 분야별 내용을 균형 있게 요약
+  const cap=[36,24,31,30,17,27,28,17];
+  const lines=fields.map(([ico,v],i)=>{
+    let cleanValue=clean(v);
+    if(Array.from(cleanValue).length>cap[i])
+      cleanValue=Array.from(cleanValue).slice(0,cap[i]-1).join("").trimEnd()+"…";
+    return ico+" "+cleanValue;
+  });
+  let output=lines.join("\n"),guard=0;
+  while(output.length>198&&guard++<450){
+    const eligible=lines.map((v,i)=>({i,len:v.length})).filter(x=>x.len>9).sort((a,b)=>b.len-a.len);
+    if(!eligible.length)break;
+    const i=eligible[0].i;
+    let chars=Array.from(lines[i]);
+    const suffix=chars[chars.length-1]==="…"?"…":"";
+    if(suffix)chars.pop();
+    chars=chars.slice(0,-1);
+    lines[i]=chars.join("").trimEnd()+"…";
+    output=lines.join("\n");
+  }
+  if(output.length>200)throw Error("공고 내용을 200자 이하로 줄일 수 없습니다.");
+  return output;
+}
+function directShareJob(doc){
+  const job=currentJob(doc);
+  if(!job.title){status(doc,"공고명을 먼저 입력해 주세요.",true);return;}
+  if(!approvedUrl(job.url)){
+    status(doc,"고용24·사람인·잡코리아·알바천국의 HTTPS 원문 공고 링크가 필요합니다.",true);return;
+  }
+  const sdk=window.Kakao;
+  if(!sdk||!sdk.isInitialized?.()||typeof sdk.Share?.sendDefault!=="function"){
+    status(doc,"카카오 공유 기능을 준비 중입니다. 잠시 후 버튼을 다시 눌러 주세요.",true);
+    ensureKakaoReady().catch(err=>status(doc,"카카오 공유 준비 실패: "+(err?.message||String(err)),true));
+    return;
+  }
+  const target=new URL("./job-open.html",window.location.href);
+  target.searchParams.set("to",job.url);
+  const source=target.href;
+  let text;
+  try{text=directShareText(job);}
+  catch(err){status(doc,err?.message||"공유 문구를 생성하지 못했습니다.",true);return;}
+  try{
+    sdk.Share.sendDefault({
+      objectType:"text",
+      text,
+      link:{mobileWebUrl:source,webUrl:source},
+      buttons:[{title:"원문 공고 보기",link:{mobileWebUrl:source,webUrl:source}}]
+    });
+    status(doc,"카카오톡 공유 대상 선택창이 열립니다. 상대방을 선택해서 전송해 주세요.");
+  }catch(err){status(doc,"카카오톡 직접 공유 실패: "+(err?.message||String(err)),true);}
+}
+
 function attach(){
   const frame=document.getElementById("frame");
   if(!frame)return;
@@ -126,6 +225,10 @@ function attach(){
   header.style.cssText="font-size:15px;font-weight:800;color:#1d4e7d;margin-bottom:9px";
   const controls=doc.createElement("div");
   controls.style.cssText="display:flex;flex-wrap:wrap;gap:8px";
+  const share=doc.createElement("button");
+  share.type="button";share.id="goodjobDirectKakaoBtn";
+  share.textContent="💬 카카오톡 바로 공유";
+  share.style.cssText="background:#fee500;border:0;border-radius:9px;padding:11px 15px;color:#282207;font-weight:800;cursor:pointer";
   const mini=doc.createElement("button");
   mini.type="button";mini.id="goodjobMiniPreviewBtn";
   mini.textContent="① 카드 미리보기용 링크만 복사";
@@ -135,12 +238,13 @@ function attach(){
   detail.textContent="② 기존 7항목 안내문 복사";
   detail.style.cssText="background:#dbeafe;border:0;border-radius:9px;padding:11px 15px;color:#1e40af;font-weight:700;cursor:pointer";
   const help=doc.createElement("small");
-  help.textContent="①은 링크 하나만 복사하므로 카카오톡 미리보기 카드 확인에 사용하세요. ②는 기존처럼 7항목이 포함된 긴 텍스트 말풍선이 나옵니다. 미리보기 카드는 카카오톡이 링크를 인식할 때만 표시됩니다.";
+  help.textContent="노란색 ‘카카오톡 바로 공유’를 누르면 중간 페이지 없이 수신자 선택창이 열립니다. 기존 복사 버튼은 예비 기능으로 유지합니다.";
   help.style.cssText="display:block;margin-top:8px;color:#64748b;line-height:1.55";
   const state=doc.createElement("div");
   state.id="goodjobMiniStatus";state.setAttribute("role","status");
   state.style.cssText="font-size:12px;margin-top:8px;min-height:16px";
-  controls.append(mini,detail);panel.append(header,controls,help,state);
+  controls.append(share,mini,detail);panel.append(header,controls,help,state);
+  share.addEventListener("click",()=>directShareJob(doc));
   mini.addEventListener("click",()=>copyJob(doc,"mini"));
   detail.addEventListener("click",()=>copyJob(doc,"detail"));
   original.parentElement.insertAdjacentElement("afterend",panel);
@@ -148,6 +252,7 @@ function attach(){
 function start(){
   const frame=document.getElementById("frame");
   if(!frame)return;
+  ensureKakaoReady().catch(err=>console.warn("[goodjob Kakao] SDK 사전 로드 실패:",err?.message||err));
   frame.addEventListener("load",attach);attach();
   const parent=frame.parentElement;
   if(parent)new MutationObserver(()=>attach()).observe(parent,{childList:true});
