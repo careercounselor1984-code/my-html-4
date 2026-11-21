@@ -1,0 +1,36 @@
+<!doctype html><html lang="ko"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; frame-ancestors 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'">
+<title>채용공고 원문으로 이동 · 좋은일자리</title>
+<style>
+:root{font-family:system-ui,"Malgun Gothic",sans-serif;color:#173857;background:#f2f6fa}
+body{margin:0;padding:12vh 16px}main{max-width:560px;margin:0 auto;background:#fff;padding:28px;border-radius:18px;border:1px solid #dae5ed;text-align:center;box-shadow:0 8px 36px #244b7512}
+h1{font-size:21px}p{line-height:1.7;color:#607991;font-size:14px}a{display:inline-block;margin-top:15px;padding:13px 25px;border-radius:10px;background:#175d9c;color:white;font-weight:700;text-decoration:none}
+small{color:#7d92a5} .error{color:#b52332}
+</style></head><body><main>
+<h1>고용24 채용공고로 이동 중</h1>
+<p id="message" role="status">원문 채용공고 주소를 확인하고 있습니다.</p>
+<a id="open" hidden rel="noreferrer noopener">원문 공고 직접 열기</a>
+<p><small>좋은일자리 북부센터 채용정보 안내</small></p>
+</main><script>
+(function(){"use strict";
+const message=document.getElementById("message"),open=document.getElementById("open");
+const permitted=["work24.go.kr","work.go.kr","saramin.co.kr","jobkorea.co.kr","alba.co.kr"];
+function verified(raw){
+ try{
+  if(!raw||raw.length>2500)return null;
+  const u=new URL(raw);
+  if(u.protocol!=="https:"||u.username||u.password||(u.port&&u.port!=="443"))return null;
+  if(!permitted.some(d=>u.hostname===d||u.hostname.endsWith("."+d)))return null;
+  return u;
+ }catch{return null;}
+}
+const u=verified(new URLSearchParams(location.search).get("to"));
+if(!u){message.textContent="허용되지 않은 주소이거나 원문 채용공고 주소가 없습니다. 상담사에게 문의해 주세요.";message.className="error";return;}
+open.href=u.href;open.hidden=false;
+message.textContent="검증된 채용공고 주소로 연결합니다. 자동 이동하지 않으면 아래 버튼을 눌러주세요.";
+try{location.replace(u.href)}catch{message.textContent="자동으로 이동하지 못했습니다. 아래 버튼을 눌러주세요."}
+})();
+</script></body></html>
