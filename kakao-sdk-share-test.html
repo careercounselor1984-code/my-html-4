@@ -40,7 +40,7 @@ code{font-size:11px;color:#295276;word-break:break-all;background:#f1f6fc;border
 <div class="target">고용24 원문 공고 보기</div>
 </div>
 <button id="share" type="button">카카오톡 공식 공유창 열기</button>
-<p id="state" role="status" aria-live="polite">카카오 공식 SDK와 기존 센터 앱 설정을 확인 중입니다.</p><p id="diagnostics" class="note" aria-live="polite"></p>
+<p id="state" role="status" aria-live="polite">카카오 공식 SDK와 기존 센터 앱 설정을 확인 중입니다.</p><p id="diagnostics" class="note" aria-live="polite"></p><p class="note"><b>SDK 연결 확인:</b> <a href="https://t1.kakaocdn.net/kakao_js_sdk/2.8.5/kakao.min.js" target="_blank" rel="noopener noreferrer">카카오 SDK 원본 파일 직접 열기</a> · <a href="https://developers.kakao.com/tool/demo/message/kakaolink" target="_blank" rel="noopener noreferrer">카카오 공식 공유 데모</a><br>첫 번째 링크가 열리지 않으면 크롬·네트워크에서 카카오 CDN 접근이 막힌 것일 수 있습니다.</p>
 <p class="note">버튼을 누르면 카카오가 제공하는 공유 대상 선택창이 열립니다. 성공하면 <b>나와의 채팅</b>으로 전송한 뒤, 카드 이미지와 <b>고용24 원문 공고 보기</b> 버튼이 표시되는지 확인해 주세요. 긴 영문 URL은 메시지 본문에 넣지 않습니다.</p>
 <p class="note">SDK 도메인 오류가 발생하면 카카오디벨로퍼스 → 좋은일자리 채용정보 → 플랫폼 키 → JavaScript 키 → JavaScript SDK 도메인에 <code>https://careercounselor1984-code.github.io</code>를 추가해야 합니다. 전송 카드 링크는 기존 등록한 <code>square-water-31bb.careercounselor1984.workers.dev</code>를 사용합니다.</p>
 </main>
@@ -79,7 +79,7 @@ function activate(){
 function attempt(index){
  if(index>=srcs.length){
   diagnostic("두 버전 모두 로드 실패: "+failures.join(" → "));
-  show("카카오 SDK 파일이 브라우저에서 차단되거나 다운로드되지 않았습니다. F12 → 콘솔에서 kakao.min.js 관련 오류를 확인해 주세요.",true);
+  show("카카오 SDK 두 버전을 불러오지 못했습니다. 아래 ‘카카오 SDK 원본 파일 직접 열기’를 눌러 접속되는지 확인해 주세요.",true);
   return;
  }
  const source=srcs[index];
