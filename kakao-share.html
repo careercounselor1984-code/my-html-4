@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>좋은일자리 · 채용정보 공유</title>
+<style>
+:root{font-family:system-ui,-apple-system,"Malgun Gothic",sans-serif;color:#172e4a;background:#edf3f9}
+*{box-sizing:border-box}
+body{margin:0;padding:22px 14px 45px}
+main{max-width:650px;margin:auto}
+.card{background:#fff;border:1px solid #dbe6f3;border-radius:21px;box-shadow:0 7px 26px #173e6312;padding:25px 24px}
+h1{margin:0 0 5px;font-size:21px;color:#153f69} .sub{font-size:13px;color:#597087;margin:0 0 20px}
+.job{display:grid;gap:12px;margin:22px 0}.item{display:flex;gap:13px;align-items:flex-start;font-size:17px;line-height:1.5;overflow-wrap:anywhere}
+.emoji{flex:none;width:22px;text-align:center}
+.action{display:flex;flex-wrap:wrap;gap:9px;margin-top:24px}
+button,a.btn{appearance:none;border:0;border-radius:11px;padding:13px 17px;font:700 15px system-ui;cursor:pointer;text-decoration:none;text-align:center}
+.primary{background:#fee500;color:#2d2d2d}.secondary{background:#eaf1fb;color:#174a78}
+.a-btn{background:#f3f7fc;color:#174a78}
+#status{min-height:28px;margin:11px 0 0;font-size:13px;color:#17623e;white-space:pre-line;line-height:1.5}
+#status.error{color:#ae2531}
+small{color:#647c93;line-height:1.5}
+@media(max-width:500px){.card{padding:21px 17px}.action button,.action a{width:100%}}
+</style>
+<script src="kakao-share-config.js"></script>
+<script src="https://t1.kakaocdn.net/kakao_js_sdk/2.8.5/kakao.min.js" integrity="sha384-v6JKY3z4FUkWq21oZDHZe74YvuPk/WUrVLrDHTBojHXClOSa3iXy7sCXPY1jkFbj" crossorigin="anonymous"></script>
+</head>
+<body>
+<main><section class="card">
+<h1>채용정보 공유</h1>
+<p class="sub">좋은일자리 북부센터 · 상담사 공유용</p>
+<div id="job" class="job"></div>
+<div class="action">
+<button type="button" class="primary" id="send">카카오톡으로 공유</button>
+<button type="button" class="secondary" id="copy">안내문과 링크 복사</button>
+<a class="btn a-btn" id="original" href="#" target="_blank" rel="noopener noreferrer">원문 공고 확인</a>
+</div>
+<p id="status" role="status" aria-live="polite"></p>
+<small id="help">휴대전화에서는 공유 대상을 선택할 수 있습니다. PC에서 공유창을 지원하지 않으면 안내문과 링크가 복사됩니다. 카카오톡 대화창에 붙여넣으세요.</small>
+</section></main>
+<script>
+(function(){
+"use strict";
+const q=new URLSearchParams(location.search);
+const trim=(key,max=160)=>String(q.get(key)||"").replace(/[\u0000-\u001f\u007f]/g," ").replace(/\s+/g," ").trim().slice(0,max);
+const id=trim("id",12);
+const valid=/^[a-f0-9]{12}$/.test(id);
+const title=trim("title",130)||"공고 제목 미확인";
+const company=trim("company",80)||"미확인";
+const duties=trim("duties",250)||"미확인";
+const loc=trim("location",130)||"-";
+const experience=trim("experience",90)||"-";
+const education=trim("education",90)||"-";
+const employment=trim("employment",100)||"미확인";
+const workHours=trim("workHours",120)||"미확인";
+const salary=trim("salary",90);
+const rows=[
+ ["📢",title],["🏢",company],["🛠️",duties],["📍",loc],
+ ["👤",experience+" / "+education],["📄",employment],["🕒",workHours]
+];
+if(salary)rows.push(["💰",salary]);
+const preview=valid?"https://square-water-31bb.careercounselor1984.workers.dev/?id="+encodeURIComponent(id):"";
+const container=document.getElementById("job"),status=document.getElementById("status");
+function notice(msg,error=false){status.textContent=msg;status.classList.toggle("error",!!error)}
+for(const [emoji,label] of rows){
+ const line=document.createElement("div");line.className="item";
+ const ico=document.createElement("span");ico.className="emoji";ico.textContent=emoji;
+ const value=document.createElement("span");value.textContent=label;
+ line.append(ico,value);container.append(line);
+}
+const original=document.getElementById("original");
+original.href=preview||"https://www.work24.go.kr";
+if(!preview){original.removeAttribute("href");original.style.opacity=".4";original.style.pointerEvents="none";notice("유효한 공고 링크가 없어 공유할 수 없습니다.",true);}
+const body=rows.map(([emoji,value])=>emoji+" "+value).join("\n");
+const message=body+(preview?"\n\n🔗 "+preview:"");
+async function copyText(text){
+ if(navigator.clipboard?.writeText){try{await navigator.clipboard.writeText(text);return true}catch{}}
+ const area=document.createElement("textarea");area.value=text;area.style.position="fixed";area.style.opacity="0";document.body.append(area);area.select();
+ let copied=false;try{copied=document.execCommand("copy")}catch{}area.remove();return copied;
+}
+document.getElementById("copy").addEventListener("click",async()=>{
+ const done=await copyText(message);
+ notice(done?"복사 완료. 카카오톡 대화창에 붙여넣으세요.":"자동 복사가 실패했습니다. 브라우저의 복사 권한을 확인해 주세요.",!done);
+});
+document.getElementById("send").addEventListener("click",async()=>{
+ if(!preview){notice("유효한 공고 링크가 없습니다.",true);return;}
+ const jsKey=String(window.GOODJOB_KAKAO_JS_KEY||"").trim();
+ if(jsKey&&window.Kakao?.Share?.sendDefault){
+  try{
+   if(!Kakao.isInitialized())Kakao.init(jsKey);
+   Kakao.Share.sendDefault({
+    objectType:"text",
+    text:body.slice(0,850),
+    link:{mobileWebUrl:preview,webUrl:preview},
+    buttonTitle:"원문 채용공고 보기"
+   });
+   notice("카카오톡 공유창에서 대화 상대를 선택해 주세요.");
+   return;
+  }catch(err){notice("공식 공유 요청에 실패해 일반 공유 방식으로 전환합니다. "+(err?.message||""),true);}
+ }
+ if(navigator.share){
+  try{await navigator.share({title:title,text:body,url:preview});notice("공유 요청이 완료되었습니다.");return}
+  catch(e){if(e?.name==="AbortError"){notice("공유를 취소했습니다.");return}}
+ }
+ const copied=await copyText(message);
+ notice(copied?"카카오톡 공유창을 열 수 없어 안내문과 링크를 복사했습니다.\nPC 카카오톡 대화창에 붙여넣으세요.":"이 브라우저에서는 공유와 복사가 지원되지 않습니다. '안내문과 링크 복사'를 다시 시도해 주세요.",!copied);
+});
+})();
+</script>
+</body>
+</html>
