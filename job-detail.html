@@ -1,0 +1,72 @@
+<!doctype html><html lang="ko"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive"><meta name="referrer" content="no-referrer">
+<title>채용공고 상세 안내 | 좋은일자리 북부센터</title>
+<style>
+*{box-sizing:border-box}:root{font-family:system-ui,-apple-system,"Malgun Gothic",sans-serif;background:#f2f6fa;color:#173650}
+body{margin:0;padding:18px 14px 38px}main{max-width:630px;margin:auto}
+article{padding:25px 24px;background:white;border:1px solid #dce7f2;border-radius:18px;box-shadow:0 8px 28px #1a4b7410}
+header{font-size:12px;font-weight:800;color:#1a6298;border-bottom:3px solid #e1edf8;padding-bottom:14px;margin-bottom:20px}
+h1{font-size:23px;line-height:1.5;letter-spacing:-.3px;margin:0 0 20px;overflow-wrap:anywhere}
+.row{display:flex;gap:9px;align-items:flex-start;line-height:1.8;font-size:15px;padding:9px 0;border-bottom:1px solid #edf2f6;overflow-wrap:anywhere}
+.ico{width:26px;flex:none} .value{flex:1;white-space:pre-wrap}
+a.button{display:block;text-decoration:none;text-align:center;background:#205c97;color:#fff;font-weight:750;border-radius:11px;padding:17px;margin-top:25px}
+.note{font-size:12px;line-height:1.7;color:#72869b;margin:15px 0 0}
+#error{color:#a52c35}
+</style></head><body>
+<main><article>
+<header>좋은일자리 북부센터 · 채용정보 안내</header>
+<h1 id="title">채용공고 정보를 읽는 중입니다.</h1>
+<div id="rows"></div><p id="error" role="alert"></p>
+<a id="open" class="button" hidden rel="noreferrer noopener">고용24 원문 공고 보기</a>
+<p class="note">채용정보는 공고 게시 기관의 원문을 기준으로 확인해 주세요. 접수 마감·조건은 변경될 수 있습니다.</p>
+</article></main>
+<script>
+(function(){"use strict";
+const keyList=["title","company","duties","jobLocation","experience","education","employment","workHours","salary","originalUrl"];
+const permitted=["work24.go.kr","work.go.kr","saramin.co.kr","jobkorea.co.kr","alba.co.kr"];
+const $=id=>document.getElementById(id);
+function urlChecked(value){
+ try{
+  const x=new URL(String(value||""));
+  if(x.protocol!=="https:"||x.username||x.password||(x.port&&x.port!=="443"))return null;
+  return permitted.some(d=>x.hostname===d||x.hostname.endsWith("."+d))?x:null;
+ }catch{return null}
+}
+function decode(value){
+ if(!value||value.length>6400||!/^[A-Za-z0-9_-]+$/.test(value))return null;
+ try{
+  const standard=value.replace(/-/g,"+").replace(/_/g,"/");
+  const binary=atob(standard.padEnd(Math.ceil(standard.length/4)*4,"="));
+  const bytes=Uint8Array.from(binary,c=>c.charCodeAt(0));
+  const obj=JSON.parse(new TextDecoder().decode(bytes));
+  if(!obj||typeof obj!=="object"||Array.isArray(obj))return null;
+  for(const id of keyList){if(typeof obj[id]!=="string"||obj[id].length>2800)return null}
+  return obj;
+ }catch{return null}
+}
+const j=decode(new URLSearchParams(location.search).get("d"));
+const target=urlChecked(j?.originalUrl);
+if(!j||!target||!j.title){
+ $("title").textContent="공고 정보를 확인할 수 없습니다.";
+ $("error").textContent="정보가 유효하지 않습니다. 채용정보를 보낸 상담사에게 원문 공고 주소를 문의해 주세요.";
+ return;
+}
+$("title").textContent="📢 "+j.title;
+const lines=[
+ ["🏢",j.company],["🛠️",j.duties],["📍",j.jobLocation],
+ ["👤",j.experience+" / "+j.education],["📄",j.employment],
+ ["🕒",j.workHours],["💰",j.salary]
+];
+for(const [ico,value] of lines){
+ if(!value)continue;
+ const line=document.createElement("div");line.className="row";
+ const icon=document.createElement("span");icon.className="ico";icon.textContent=ico;
+ const label=document.createElement("span");label.className="value";label.textContent=value;
+ line.append(icon,label);$("rows").appendChild(line);
+}
+const button=$("open");
+const u=new URL("job-open.html",location.href);u.searchParams.set("to",target.href);
+button.href=u.href;button.hidden=false;
+})();
+</script></body></html>
