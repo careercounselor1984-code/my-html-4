@@ -8,6 +8,17 @@ dashboardModule.src='./job-share-dashboard.js?v=20261121-phase2';
 dashboardModule.async=true;document.head.appendChild(dashboardModule);
 const fields=['company','title','duties','location','employment','education','experience','workHours','salary','deadline','url','source'];
 const statuses={matched:1,api_only:1,page_only:1,conflict:1,unverified:1,manual:1,page_selected:1,api_selected:1};
+// 카카오맵 연결: 공개 채용공고 근무지 정보만 전달하며 내담자 정보는 제외합니다.
+function openJobMap(address,company){
+ const where=String(address||'').trim().slice(0,180);
+ if(!where){window.alert('근무지 주소를 먼저 입력해 주세요.');return}
+ const url=new URL('./kakao-job-map.html',window.location.href);
+ url.searchParams.set('q',where);
+ if(company)url.searchParams.set('label',String(company).trim().slice(0,120));
+ const win=window.open(url.href,'goodjob_workplace_kakao_map');
+ if(win)win.focus();
+ else window.alert('지도 창이 차단되었습니다. 브라우저 팝업 허용을 확인해 주세요.');
+}
 const panels=new WeakMap();
 const str=(v,n=1000)=>String(v||'').trim().slice(0,n);
 function cleanVerification(v){
@@ -68,6 +79,17 @@ function mount(frame){
  if(!d?.getElementById('c_task')||!d.getElementById('historyList'))return;
  if(panels.has(d))return panels.get(d);
  styles(d);
+ // 채용공고 입력 화면: 기존 근무지 값에서 바로 지도 검색
+ const addressInput=d.getElementById('c_address');
+ if(addressInput&&!d.getElementById('gjaKakaoMapButton')){
+  const mapBtn=d.createElement('button');
+  mapBtn.id='gjaKakaoMapButton';mapBtn.type='button';
+  mapBtn.textContent='📍 근무지 지도·길찾기';
+  mapBtn.title='입력된 근무지를 카카오맵 API로 확인';
+  mapBtn.style.cssText='display:inline-block;margin:7px 0 0;background:#fff8d7;color:#725400;border:1px solid #efd775;border-radius:8px;padding:8px 11px;font-size:12px;font-weight:800;cursor:pointer';
+  mapBtn.addEventListener('click',()=>openJobMap(addressInput.value,d.getElementById('c_name')?.value||''));
+  addressInput.insertAdjacentElement('afterend',mapBtn);
+ }
  const anchor=d.getElementById('historyList').parentElement,box=d.createElement('section');
  box.className='gja';box.id='jobArchivePanel';box.setAttribute('aria-label','채용공고 보관함');
  box.innerHTML=
@@ -148,6 +170,7 @@ function mount(frame){
    const actions=d.createElement('div');actions.className='gja-bottom';
    actions.append(button('불러오기',()=>load(j),'gja-load'));
    if(j.url&&/^https?:\/\//i.test(j.url)){const a=d.createElement('a');a.textContent='원문';a.href=j.url;a.target='_blank';a.rel='noopener noreferrer';actions.append(a)}
+   if(str(j.location))actions.append(button('📍 지도',()=>openJobMap(j.location,j.company||j.title),'gja-map'));
    item.append(actions);list.append(item);
   }
   if(!visible.length){const empty=d.createElement('div');empty.className='gja-empty';empty.textContent=term?'검색된 공고가 없습니다.':'보관된 공고가 없습니다.';list.append(empty)}
