@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="ko"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><meta name="referrer" content="strict-origin-when-cross-origin">
+<title>면접장소 찾아가기 · 좋은일자리</title>
+<style>
+:root{font-family:system-ui,-apple-system,"Malgun Gothic",sans-serif;color:#163452}*{box-sizing:border-box}
+body{margin:0;background:#f3f7fb}.wrap{max-width:520px;margin:0 auto;padding:28px 15px 55px}.brand{font-size:12px;color:#386a9b;font-weight:900;letter-spacing:.09em}
+h1{font-size:26px;letter-spacing:-.5px;margin:10px 0 14px}.card{background:#fff;border:1px solid #dce6ef;box-shadow:0 9px 30px #15496c0e;border-radius:18px;padding:24px 18px;margin-bottom:15px}
+.eyebrow{font-size:12px;font-weight:800;color:#416c99}.name{font-size:20px;font-weight:800;margin:7px 0;overflow-wrap:anywhere}.addr{font-size:14px;line-height:1.7;color:#637d96;overflow-wrap:anywhere}
+button,a.action{display:flex;align-items:center;justify-content:center;width:100%;border-radius:12px;padding:15px 12px;min-height:52px;border:0;font:800 15px/1.4 inherit;text-decoration:none;cursor:pointer;margin-top:10px;text-align:center}
+button.primary{background:#275f96;color:white}a.action.alt{border:1px solid #cbdbea;background:#edf4fb;color:#255b8a}a.action.yellow{background:#fee500;color:#2f2c13}
+.note{font-size:12px;color:#6d8295;line-height:1.7;margin:15px 0}.status{font-size:13px;line-height:1.7;color:#24644b;min-height:24px;margin-top:12px}.status.error{color:#b03342}
+.grid{display:grid;gap:10px;margin-top:10px}.foot{text-align:center;font-size:12px;line-height:1.7;color:#8292a3}
+</style></head><body><main class="wrap">
+<div class="brand">GOOD JOB · LOCATION GUIDE</div><h1>📍 면접장소 찾아가기</h1>
+<section class="card">
+<div class="eyebrow">목적지</div>
+<div id="placeName" class="name">장소 정보를 확인하는 중입니다</div>
+<div id="placeAddress" class="addr"></div>
+<p class="note">면접 장소와 실제 근무지가 다를 수 있어요. 안내받은 장소와 주소를 다시 확인해 주세요.</p>
+</section>
+<section class="card">
+<div class="eyebrow">길찾기</div>
+<button class="primary" id="transitBtn" type="button">🚌 내 위치에서 버스·대중교통 길찾기</button>
+<a class="action yellow" id="manualBtn" target="_blank" rel="noopener noreferrer">🚏 출발지 직접 선택하기</a>
+<a class="action alt" id="mapBtn" target="_blank" rel="noopener noreferrer">🗺️ 목적지 위치 보기</a>
+<div class="status" id="status" role="status" aria-live="polite"></div>
+<p class="note">현재 위치 사용을 허용하면 카카오맵에서 출발지→목적지 대중교통 경로를 열 수 있어요. 허용하지 않아도 ‘출발지 직접 선택하기’를 사용할 수 있습니다. 현재 위치는 이 안내 페이지에 저장하지 않습니다.</p>
+</section>
+<footer class="foot">좋은일자리 북부센터<br>카카오맵에서 보여주는 버스·도보 경로와 시간은 교통 사정에 따라 달라질 수 있습니다.</footer>
+</main>
+<script>
+(function(){
+"use strict";
+const q=new URLSearchParams(location.search);
+const safe=(v,n=180)=>String(v||"").replace(/[\u0000-\u001f\u007f]/g," ").trim().slice(0,n);
+const address=safe(q.get("q")),label=safe(q.get("label"),100);
+const lat=Number(q.get("lat")),lng=Number(q.get("lng"));
+const valid=!!address&&q.has("lat")&&q.has("lng")&&Number.isFinite(lat)&&Number.isFinite(lng)&&lat>=33&&lat<=39&&lng>=124&&lng<=132;
+const $=id=>document.getElementById(id);
+const toPart=(name,y,x)=>encodeURIComponent(name.replace(/[,/]/g," ")) + "," + y.toFixed(7) + "," + x.toFixed(7);
+const search="https://map.kakao.com/link/search/"+encodeURIComponent(address||label||"좋은일자리 북부센터");
+const dest=valid?"https://map.kakao.com/link/to/"+toPart(label||address,lat,lng):search;
+$("placeName").textContent=label||address||"장소 정보 없음";
+$("placeAddress").textContent=label&&address?address:"";
+$("manualBtn").href=dest;
+$("mapBtn").href=valid?"https://map.kakao.com/link/map/"+toPart(label||address,lat,lng):search;
+function status(text,error){$("status").textContent=text;$("status").classList.toggle("error",!!error)}
+if(!valid)status("위치 좌표를 확인하지 못했어요. '출발지 직접 선택하기'를 통해 카카오맵에서 목적지를 검색해 주세요.",true);
+$("transitBtn").addEventListener("click",()=>{
+ if(!valid){status("지도 검색 후 출발지와 버스·대중교통을 직접 선택해 주세요.",true);return}
+ if(!navigator.geolocation){status("이 기기에서는 현재 위치를 이용할 수 없어요. 출발지를 직접 선택해 주세요.",true);return}
+ const b=$("transitBtn");b.disabled=true;b.textContent="현재 위치 확인 중…";
+ navigator.geolocation.getCurrentPosition(
+  position=>{
+   b.disabled=false;b.textContent="🚌 내 위치에서 버스·대중교통 길찾기";
+   const startLat=position.coords.latitude,startLng=position.coords.longitude;
+   if(!Number.isFinite(startLat)||!Number.isFinite(startLng)){status("위치를 확인하지 못했어요. 출발지를 직접 선택해 주세요.",true);return}
+   const route="https://map.kakao.com/link/by/traffic/"+toPart("현재 위치",startLat,startLng)+"/"+toPart(label||address,lat,lng);
+   location.assign(route);
+  },
+  ()=>{b.disabled=false;b.textContent="🚌 내 위치에서 버스·대중교통 길찾기";status("위치 사용이 허용되지 않았어요. 아래의 ‘출발지 직접 선택하기’를 눌러 출발지를 정해 주세요.",true)},
+  {enableHighAccuracy:false,timeout:10000,maximumAge:60000}
+ );
+});
+})();
+</script></body></html>
