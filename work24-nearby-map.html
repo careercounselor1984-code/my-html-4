@@ -22,7 +22,7 @@
 .stat strong{font-size:16px;color:#1e4669}.list{overflow:auto;flex:1;max-height:510px;padding:7px}.item{border:1px solid #e1e8f0;border-radius:9px;padding:12px 10px;margin-bottom:7px;cursor:pointer;background:#fff}
 .item:hover,.item.active{border-color:#5595d0;background:#f5faff}.item strong{font-size:13px;line-height:1.4;display:block;color:#234666}.item .meta{font-size:11px;line-height:1.55;color:#658097;margin-top:5px;overflow-wrap:anywhere}
 .item .pay{font-size:12px;color:#396480;margin-top:5px}.item button{border:1px solid #c9ddee;border-radius:7px;color:#245c91;background:#eff7ff;font-size:11px;padding:5px 8px;margin-top:7px;font-weight:750}
-.empty{font-size:12px;line-height:1.7;color:#6c839b;margin:17px 11px}
+.empty{font-size:12px;line-height:1.7;color:#6c839b;margin:17px 11px}.group-title{font-size:12px;font-weight:800;background:#eff5fb;color:#355d80;padding:10px;margin:12px 0 8px;border-radius:8px}.item.unverified{background:#fafbfd;border-style:dashed;cursor:default}.item.unverified .meta{color:#7b8b9b}.item.unverified strong{color:#4b6279}
 #loadMore{display:block;width:calc(100% - 18px);margin:8px 9px 10px}.bar{border-top:1px solid var(--border);padding:10px 13px;font-size:12px;line-height:1.7;color:#526e85;background:#f8fbfe}
 #status{color:#315c7c;font-size:12px;line-height:1.5;min-height:24px;margin:8px 0}#status.error{color:#b32632}
 .foot{margin-top:13px;font-size:11px;line-height:1.65;color:#73879a}.foot a{color:#2d618e}
@@ -41,9 +41,9 @@
 </form>
 <div id="status" role="status" aria-live="polite">지도와 상담사 로그인 정보를 확인하고 있습니다.</div>
 <section class="layout">
-<div class="map-pane"><div id="map" aria-label="내담자 기준 주소 주변 채용공고 지도" role="region">카카오맵을 불러오는 중입니다…</div><div class="bar">🔵 기준 위치 / 📍 채용공고 위치 · 거리: 직선거리 (버스 이동시간 아님)<div>⚠️ 고용24 근무지 주소가 건물까지 특정되지 않으면 지도에 표시하지 않습니다.</div></div></div>
+<div class="map-pane"><div id="map" aria-label="내담자 기준 주소 주변 채용공고 지도" role="region">카카오맵을 불러오는 중입니다…</div><div class="bar">🔵 기준 위치 / 📍 채용공고 위치 · 거리: 직선거리 (버스 이동시간 아님)<div>⚠️ 지도 마커는 정확한 주소가 확인된 공고만 표시됩니다. 주소 미확인 공고는 오른쪽 목록에서 별도로 확인하세요.</div></div></div>
 <div class="list-pane">
-<div class="stat"><strong id="matchCount">0건</strong> · 반경 내 위치 확인 공고<br><span id="statsMeta">검색 전</span></div>
+<div class="stat"><strong id="matchCount">0건</strong> · 반경 내 위치 확인 공고<br><span id="statsMeta">검색 전</span><div style="margin-top:5px;color:#687f96">아래 ‘주소 미확인’ 공고도 실제 구인공고입니다. 다만 반경 내인지는 판단할 수 없습니다.</div></div>
 <div id="jobsList" class="list"><p class="empty">내담자 기준 주소를 입력하고 ‘공고 지도검색’을 눌러 주세요.</p></div>
 <button class="btn secondary" id="loadMore" type="button" hidden>최근 공고 60건 더 조회</button>
 </div>
@@ -57,7 +57,7 @@ const ORIGIN=location.origin,API="https://bowxlaiyjxknqccoughl.supabase.co/funct
 const $=id=>document.getElementById(id);
 const clean=(v,n=200)=>String(v||"").trim().slice(0,n);
 let token="",map=null,geo=null,cluster=null,centerMarker=null,centerPoint=null;
-let jobs=[],located=[],page=0,total=0,run=0,busy=false,loaded=false,centerText="";
+let jobs=[],located=[],page=0,total=0,lastPageSize=0,run=0,busy=false,loaded=false,centerText="";
 let infoWindow=null,activeMarker=null,sdkFailed=false;
 const pins=[];
 function status(t,isError=false){$("status").textContent=t;$("status").classList.toggle("error",!!isError)}
@@ -91,16 +91,24 @@ function setCenter(ll,address){centerPoint=coords(ll);centerText=address;
  if(window._gjCenterOverlay)window._gjCenterOverlay.setMap(null);
  overlay.setMap(map);window._gjCenterOverlay=overlay;
 }
-function precise(addr){const s=clean(addr);
- if(!s||s.length<8||!/\\d/.test(s))return false;
- // 구·군·동·읍·면만 있거나 주소 숫자가 없는 공고는 지도 핀을 표시하지 않습니다.
- return !/^(.*(시|도)\\s+)?[^\\s]+(구|군|시)(\\s+[^\\s]+(동|읍|면))?\\s*\\d{0,1}$/.test(s);
+function precise(addr){
+ const s=clean(addr,420).replace(/^\(?\d{5}\)?[\s,]+/,"").replace(/\s+/g," ");
+ if(!s||s.length<8)return false;
+ // 번지/도로명 건물번호가 있는 경우만 정확한 근무지로 판단합니다.
+ // 동·읍·면만 있는 주소나 우편번호만 있는 주소를 지도의 실제 위치로 오인하지 않습니다.
+ return /(?:대로|로|길)\s*\d{1,5}(?:-\d{1,5})?/.test(s)||
+        /(?:동|읍|면|리)\s+\d{1,5}(?:-\d{1,5})?/.test(s);
+}
+function addressesFor(j){
+ const basic=clean(j.basicAddr,250),detail=clean(j.detailAddr,180);
+ const all=[detail&&basic?[basic,detail].join(" "):"",basic];
+ return [...new Set(all.filter(Boolean).filter(precise))];
 }
 function clearPins(){
  if(cluster){cluster.clear()}
  pins.forEach(x=>x.setMap(null));pins.length=0;
  if(infoWindow)infoWindow.close();
- located=[];jobs=[];page=0;total=0;activeMarker=null;
+ located=[];jobs=[];page=0;total=0;lastPageSize=0;activeMarker=null;
  $("jobsList").replaceChildren();$("matchCount").textContent="0건";$("statsMeta").textContent="검색 중…";$("loadMore").hidden=true;
 }
 function card(j,idx){
@@ -112,6 +120,18 @@ function card(j,idx){
  const url=safeLink(j);
  if(url){const a=document.createElement("a");a.href=url;a.target="_blank";a.rel="noopener noreferrer";a.style.cssText="display:inline-block;color:#225c94;text-decoration:underline;font-size:12px;margin-top:7px";a.textContent="고용24 원문 공고";a.addEventListener("click",e=>e.stopPropagation());node.append(a)}
  node.addEventListener("click",()=>selectJob(idx));return node;
+}
+function unverifiedCard(j){
+ const node=document.createElement("article");node.className="item unverified";
+ const name=document.createElement("strong");name.textContent=(j.company||"기업명 미확인")+" · "+(j.title||"채용공고");
+ const address=document.createElement("div");address.className="meta";
+ address.textContent="📍 "+(j.basicAddr||j.region||"근무지 주소 미제공")+" · 지도 위치 미확인";
+ node.append(name,address);
+ if(j.pay){const pay=document.createElement("div");pay.className="pay";pay.textContent="급여 "+j.pay;node.append(pay)}
+ const due=document.createElement("div");due.className="meta";due.textContent="마감 "+(j.closeDate||"원문 확인");node.append(due);
+ const url=safeLink(j);
+ if(url){const a=document.createElement("a");a.href=url;a.target="_blank";a.rel="noopener noreferrer";a.textContent="고용24 원문에서 근무지 확인 ↗";a.style.cssText="display:inline-block;font-size:12px;color:#245e92;text-decoration:underline;margin-top:7px";node.append(a)}
+ return node;
 }
 function selectJob(idx){
  const j=located[idx];if(!j)return;
@@ -130,24 +150,36 @@ function selectJob(idx){
 function render(){
  const radius=Number($("radius").value);
  const visible=located.filter(j=>j.distance<=radius).sort((a,b)=>a.distance-b.distance);
+ const locatedIds=new Set(located.map(j=>j.wantedAuthNo));
+ const unknown=jobs.filter(j=>!locatedIds.has(j.wantedAuthNo));
  const box=$("jobsList");box.replaceChildren();
- visible.forEach((j,i)=>{const original=located.indexOf(j);box.append(card(j,original))});
- if(!visible.length){const p=document.createElement("p");p.className="empty";p.textContent=jobs.length?"이번에 조회한 공고 중 반경 내에서 정확한 근무지 주소가 확인된 공고가 없습니다. 반경을 늘리거나 ‘60건 더 조회’를 눌러 주세요.":"표시할 공고가 없습니다.";box.append(p)}
+ if(visible.length){
+  const label=document.createElement("div");label.className="group-title";label.textContent="📍 반경 "+radius+"km 내 위치 확인 공고 "+visible.length+"건";box.append(label);
+  visible.forEach(j=>box.append(card(j,located.indexOf(j))));
+ }else{
+  const p=document.createElement("p");p.className="empty";p.textContent=jobs.length?"이번 조회에서 반경 내 정확한 주소를 확인한 공고가 없습니다. 아래 주소 미확인 공고도 꼭 살펴보세요.":"조회된 채용공고가 없습니다.";box.append(p);
+ }
+ if(unknown.length){
+  const label=document.createElement("div");label.className="group-title";label.textContent="📄 고용24 공고 · 지도 위치 확인 필요 "+unknown.length+"건";box.append(label);
+  for(const j of unknown)box.append(unverifiedCard(j));
+ }
  if(cluster){cluster.clear();const shown=visible.map(j=>j.marker);cluster.addMarkers(shown)}
  $("matchCount").textContent=visible.length+"건";
- const unresolved=jobs.length-located.length;
- $("statsMeta").textContent="고용24 조회 "+jobs.length+"건 · 위치 확인 "+located.length+"건 · 주소 미확인 "+unresolved+"건 · 최근 공고 일부";
- $("loadMore").hidden=page>=10||(total>0&&page*60>=total)||(page>0&&jobs.length%60!==0);
+ $("statsMeta").textContent="고용24 조회 "+jobs.length+"건 · 위치 확인 "+located.length+"건 · 주소 미확인 "+unknown.length+"건 · 최근 공고 일부";
+ $("loadMore").hidden=page>=10||(total>0&&page*60>=total)||(page>0&&lastPageSize<60);
  if(!busy)$("loadMore").disabled=false;
 }
 async function geocodeJobs(batch,currentRun){
  let next=0,done=0,unverified=0;
  const pool=Array.from({length:4},async()=>{
    while(next<batch.length&&currentRun===run){
-     const i=next++,j=batch[i],address=j.basicAddr;
-     if(!precise(address)){done++;unverified++;continue}
+     const i=next++,j=batch[i],candidates=addressesFor(j);
+     if(!candidates.length){done++;unverified++;continue}
      let point=null;
-     try{point=await geocode(address)}catch{}
+     for(const address of candidates){
+       try{point=await geocode(address)}catch{}
+       if(point||currentRun!==run)break;
+     }
      if(currentRun!==run)return;
      if(point){const item={...j,...point,distance:haversine(centerPoint,point)};
        const marker=new kakao.maps.Marker({position:new kakao.maps.LatLng(point.lat,point.lng),title:j.company+" · "+j.title});
@@ -177,12 +209,14 @@ async function more(){
    const d=await resp.json().catch(()=>({}));
    if(!resp.ok||!d.ok)throw new Error(d.error||"고용24 조회 실패 ("+resp.status+")");
    page=requestPage;total=Number(d.total)||0;
+   const raw=Array.isArray(d.jobs)?d.jobs:[];
+   lastPageSize=raw.length;
    const known=new Set(jobs.map(j=>j.wantedAuthNo));
-   const batch=(Array.isArray(d.jobs)?d.jobs:[]).filter(j=>j.wantedAuthNo&&!known.has(j.wantedAuthNo));
+   const batch=raw.filter(j=>j.wantedAuthNo&&!known.has(j.wantedAuthNo));
    jobs.push(...batch);
    await geocodeJobs(batch,current);
    if(current!==run)return;
-   status("고용24 공고 "+jobs.length+"건 중 지도에 표시 가능한 위치 "+located.length+"건을 확인했어요.");
+   status("고용24 공고 "+jobs.length+"건 조회 · 지도 위치 확인 "+located.length+"건 · 주소 미확인 공고도 아래 목록에 표시합니다.");
    render();
  }catch(err){if(current===run){const message=String(err?.message||"조회 오류");status("조회 실패: "+message,true)}}
  finally{if(current===run){busy=false;$("searchBtn").disabled=false;$("loadMore").disabled=false;render()}}
