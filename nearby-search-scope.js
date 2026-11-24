@@ -39,7 +39,8 @@ function inferArea(address){
 function matchArea(job,area){
  const needle=norm(area);
  if(!needle||!/(\uad6c|\uad70|\uc2dc)$/.test(needle))return false;
- const address=norm([job?.basicAddr,job?.region,job?.detailAddr].filter(Boolean).join(" "));
+ // 실제 근무지 기본주소를 우선합니다. 공고의 광역 지역명으로 다른 구 공고를 포함하지 않습니다.
+ const address=norm(job?.basicAddr||job?.region||"").replace(/,/g," ");
  return address===needle||address.startsWith(needle+" ")||address.includes(" "+needle+" ");
 }
 function regionForArea(area){
