@@ -12,7 +12,7 @@
 .head h1{font-size:23px;margin:4px 0 4px;letter-spacing:-.5px}.sub{font-size:12px;line-height:1.55;color:var(--muted);margin:0}.eyebrow{font-weight:850;color:#336d9c;letter-spacing:.08em;font-size:11px}
 .chip{border:1px solid var(--border);background:#fff;border-radius:99px;padding:6px 10px;font-size:11px;font-weight:750;color:#426380;white-space:nowrap}
 .controls{background:#fff;border:1px solid var(--border);border-radius:13px;padding:14px;display:grid;grid-template-columns:minmax(210px,2fr) minmax(130px,1fr) minmax(135px,1fr) 92px 120px;gap:9px;align-items:end;margin-bottom:12px}
-.field{display:grid;gap:5px;min-width:0}.scope-area{grid-column:1/3}.scope-area[hidden]{display:none!important}.district-pickers{display:grid;grid-template-columns:1fr 1fr;gap:8px}.transit-link{display:inline-flex;align-items:center;gap:3px;margin:8px 0 0 6px;padding:7px 10px;background:#fff5da;border:1px solid #f0d28d;color:#805800;border-radius:7px;text-decoration:none;font-size:12px;font-weight:850}.transit-link:hover{background:#fff0c5}.scope-note{grid-column:1/-1;color:#617e94;font-size:11px;line-height:1.5;padding:1px 3px 0}.import-btn{border:1px solid #b6d4e9;background:#eaf5ff;color:#15598e;padding:7px 10px;border-radius:7px;font-weight:850;font-size:12px;cursor:pointer;margin-top:8px}.import-btn:disabled{opacity:.45}.field label{font-size:11px;font-weight:800;color:#526c83}.field input,.field select{min-width:0;width:100%;border:1px solid #cbd9e7;border-radius:8px;padding:10px;font-size:13px;height:42px;background:white;color:#1b3c57}
+.field{display:grid;gap:5px;min-width:0}.scope-area{grid-column:1/3}.scope-area[hidden]{display:none!important}.district-pickers{display:grid;grid-template-columns:1fr 1fr;gap:8px}.transit-link{display:inline-flex;align-items:center;gap:3px;margin:8px 0 0 6px;padding:7px 10px;background:#fff5da;border:1px solid #f0d28d;color:#805800;border-radius:7px;text-decoration:none;font-size:12px;font-weight:850}.transit-link:hover{background:#fff0c5}.share-transit-btn{display:inline-flex;align-items:center;gap:4px;margin:8px 0 0 6px;padding:7px 10px;border:1px solid #b6d4e9;background:#e8f4ff;color:#185b8a;border-radius:7px;font-size:12px;font-weight:850;cursor:pointer}.share-transit-btn:hover{background:#d9ecff}.scope-note{grid-column:1/-1;color:#617e94;font-size:11px;line-height:1.5;padding:1px 3px 0}.import-btn{border:1px solid #b6d4e9;background:#eaf5ff;color:#15598e;padding:7px 10px;border-radius:7px;font-weight:850;font-size:12px;cursor:pointer;margin-top:8px}.import-btn:disabled{opacity:.45}.field label{font-size:11px;font-weight:800;color:#526c83}.field input,.field select{min-width:0;width:100%;border:1px solid #cbd9e7;border-radius:8px;padding:10px;font-size:13px;height:42px;background:white;color:#1b3c57}
 .btn{height:42px;background:var(--navy);color:#fff;border:0;border-radius:8px;padding:0 12px;font-size:13px;font-weight:800;white-space:nowrap}
 .btn.secondary{background:#eaf2fa;color:#235684}.btn:disabled{opacity:.55;cursor:not-allowed}
 .layout{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(325px,.85fr);gap:12px;min-height:570px}
@@ -121,6 +121,58 @@ function addTransit(target,job){
  a.addEventListener("click",e=>e.stopPropagation());
  target.append(a);
 }
+function transitShareMessage(job){
+ const route=transitHref(job);
+ if(!route)return "";
+ const lines=[
+  "[좋은일자리 북부센터] 채용정보 · 버스 노선 안내",
+  "🏢 기업명: "+clean(job.company||"원문 확인",160),
+  "💼 공고명: "+clean(job.title||"채용공고",240),
+  "📍 근무지: "+clean([job.basicAddr,job.detailAddr].filter(Boolean).join(" ")||job.region||"원문 확인",360),
+  "🚌 버스·대중교통 길찾기 (입력한 기준 위치 → 근무지)",
+  route
+ ];
+ const official=safeLink(job);
+ if(official)lines.push("📄 고용24 채용공고 원문",official);
+ lines.push("※ 길찾기 링크에는 출발 위치가 포함됩니다. 버스 노선·시간과 실제 면접 장소는 다시 확인해 주세요.");
+ return lines.join("\n");
+}
+async function copyTransitText(text){
+ try{
+  if(navigator.clipboard?.writeText){
+   await navigator.clipboard.writeText(text);
+   return true;
+  }
+ }catch{}
+ // 일부 상담실 PC 또는 iframe에서 Clipboard API를 차단할 수 있습니다.
+ const field=document.createElement("textarea");
+ field.value=text;field.setAttribute("readonly","");
+ field.style.cssText="position:fixed;left:-10000px;top:0;opacity:0";
+ document.body.append(field);field.focus();field.select();
+ let copied=false;
+ try{copied=document.execCommand("copy")}catch{}
+ field.remove();
+ return copied;
+}
+function addClientShare(target,job){
+ const text=transitShareMessage(job);
+ if(!text)return;
+ const button=document.createElement("button");
+ button.type="button";button.className="share-transit-btn";
+ button.textContent="📋 내담자 안내문 복사";
+ button.title="기업명·근무지·고용24 공고 링크·버스 노선 링크를 함께 복사합니다. 출발 위치가 포함되므로 수신자를 확인해 주세요.";
+ button.addEventListener("click",async e=>{
+  e.stopPropagation();
+  const copied=await copyTransitText(transitShareMessage(job));
+  if(copied){
+   status("내담자 교통안내 문구와 채용공고·버스 노선 링크를 복사했습니다. 카카오톡 대화창에 붙여넣어 보내세요.");
+  }else{
+   status("자동 복사가 차단되었습니다. 안내문을 선택해 직접 복사해 주세요.",true);
+   window.prompt("Ctrl+C로 안내문을 복사해 주세요",transitShareMessage(job));
+  }
+ });
+ target.append(button);
+}
 function requestImport(job){
  if(importing||!job||!/^[A-Z0-9-]{5,48}$/i.test(String(job.wantedAuthNo||"")))return;
  if(window.parent===window){status("상담일지 통합본의 채용정보&알선 메뉴에서 이 기능을 이용해 주세요.",true);return}
@@ -193,6 +245,7 @@ function card(j,idx){
  const url=safeLink(j);
  if(url){const a=document.createElement("a");a.href=url;a.target="_blank";a.rel="noopener noreferrer";a.style.cssText="display:inline-block;color:#225c94;text-decoration:underline;font-size:12px;margin-top:7px";a.textContent="고용24 원문 공고";a.addEventListener("click",e=>e.stopPropagation());node.append(a)}
  addTransit(node,j);
+ addClientShare(node,j);
  const importButton=document.createElement("button");importButton.className="import-btn";importButton.type="button";
  importButton.textContent="↳ 채용정보&알선 불러오기";
  importButton.addEventListener("click",e=>{e.stopPropagation();requestImport(j)});
@@ -226,6 +279,7 @@ function selectJob(idx){
  const t=document.createElement("div");t.textContent=j.title+" · "+j.distance.toFixed(1)+"km";body.append(t);
  const url=safeLink(j);if(url){const a=document.createElement("a");a.href=url;a.rel="noopener noreferrer";a.target="_blank";a.textContent="고용24 원문 열기";a.style.color="#225c94";body.append(a)}
  addTransit(body,j);
+ addClientShare(body,j);
  const importButton=document.createElement("button");importButton.type="button";importButton.textContent="채용정보&알선 불러오기";
  importButton.className="import-btn";importButton.addEventListener("click",()=>requestImport(j));body.append(importButton);
  infoWindow=new kakao.maps.InfoWindow({content:body,removable:true});
