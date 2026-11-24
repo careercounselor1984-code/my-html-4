@@ -25,6 +25,7 @@ jobs:
           node tests/kakao-compact.test.cjs
           node tests/nearby-map-address.test.cjs
           node tests/nearby-map-import.test.cjs
+          node tests/nearby-scope.test.cjs
           node tests/initial-easy-mode.test.cjs
           node tests/initial-opinion-summary.test.cjs
           node tests/initial-brief-record.test.cjs
