@@ -188,9 +188,9 @@ function selectJob(idx){
 }
 function render(){
  const radius=Number($("radius").value);
- const visible=located.filter(j=>j.distance<=radius).sort((a,b)=>a.distance-b.distance);
+ const visible=located.filter(j=>j.distance<=radius&&allowedArea(j)).sort((a,b)=>a.distance-b.distance);
  const locatedIds=new Set(located.map(j=>j.wantedAuthNo));
- const unknown=jobs.filter(j=>!locatedIds.has(j.wantedAuthNo));
+ const unknown=jobs.filter(j=>!locatedIds.has(j.wantedAuthNo)&&allowedArea(j));
  const box=$("jobsList");box.replaceChildren();
  if(visible.length){
   const label=document.createElement("div");label.className="group-title";label.textContent="📍 반경 "+radius+"km 내 위치 확인 공고 "+visible.length+"건";box.append(label);
@@ -242,7 +242,7 @@ async function more(){
    const ac=new AbortController();const timer=setTimeout(()=>ac.abort(),25000);
    let resp;
    try{
-     resp=await fetch(API,{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+token},body:JSON.stringify({page:requestPage,region:$("region").value,keyword:$("keyword").value.trim()}),signal:ac.signal,cache:"no-store"});
+     resp=await fetch(API,{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+token},body:JSON.stringify({page:requestPage,region:activeRegions,keyword:activeKeyword}),signal:ac.signal,cache:"no-store"});
    }finally{clearTimeout(timer)}
    if(current!==run)return;
    const d=await resp.json().catch(()=>({}));
@@ -275,7 +275,32 @@ async function start(e){
  try{point=await geocode(target)}catch{}
  if(current!==run)return;
  if(!point){status("기준 주소를 찾지 못했습니다. ‘울산 북구 화봉동’처럼 다시 입력해 주세요.",true);$("searchBtn").disabled=false;return}
+ const currentMode=$("searchMode").value;
+ let codes=[],currentArea="";
+ try{
+  if(currentMode==="admin"){
+   currentArea=scope.norm($("areaText").value);
+   if(!currentArea||!/(구|군|시)$/.test(currentArea)){
+    status("제한할 지역을 ‘울산 북구’처럼 시·군·구까지 입력해 주세요.",true);
+    $("searchBtn").disabled=false;return;
+   }
+   const code=scope.regionForArea(currentArea);
+   if(!code)throw Error("선택한 지역의 고용24 검색코드를 찾지 못했습니다.");
+   codes=[code];
+  }else{
+   status("반경 안에 걸치는 시·도를 확인하는 중입니다…");
+   codes=await scope.planRegions(geo,point,Number($("radius").value),target);
+  }
+ }catch(err){
+  if(current===run){status("검색지역 확인 실패: "+String(err?.message||err),true);$("searchBtn").disabled=false}
+  return;
+ }
+ if(current!==run)return;
+ activeRegions=codes.join("|");activeKeyword=keyword;
+ activeMode=currentMode;activeArea=currentArea;
  clearPins();setCenter(new kakao.maps.LatLng(point.lat,point.lng),target);
+ $("regionHint").textContent=(activeMode==="admin"?"지정 지역: "+activeArea:"거리 기준 · 경계 무시 · 수집 시도: "+codes.map(scope.label).join("·"))
+  +" · 최근 고용24 공고 일부를 불러와 실제 주소·거리를 확인합니다.";
  $("searchBtn").disabled=false;
  await more();
 }
@@ -314,10 +339,21 @@ function setupMap(){
  document.head.appendChild(s);
 }
 $("searchForm").addEventListener("submit",start);
-$("address").addEventListener("input",autoRegion);
-$("address").addEventListener("change",autoRegion);
-autoRegion();
-$("radius").addEventListener("change",render);
+$("address").addEventListener("input",updateScope);
+$("address").addEventListener("change",updateScope);
+$("searchMode").addEventListener("change",()=>{
+ updateScope();
+ if(page>0)status("검색 범위를 변경했어요. 새 조건으로 ‘공고 지도검색’을 다시 눌러 주세요.");
+});
+$("areaText").addEventListener("input",()=>{
+ areaTouched=true;
+ if(page>0)status("제한 지역을 변경했어요. 새 조건으로 다시 검색해 주세요.");
+});
+updateScope();
+$("radius").addEventListener("change",()=>{
+ render();
+ if(page>0)status("반경을 변경했어요. 인접 시·도를 다시 수집하려면 검색을 다시 눌러 주세요.");
+});
 $("loadMore").addEventListener("click",more);
 $("searchBtn").disabled=true;
 setupMap();sendReady();setTimeout(sendReady,600);
