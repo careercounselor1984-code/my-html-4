@@ -29,7 +29,7 @@
 @media(max-width:1000px){.controls{grid-template-columns:repeat(3,1fr)}.controls .first{grid-column:span 2}.layout{grid-template-columns:1fr}.list{max-height:380px}#map{height:440px}.list-pane{min-height:200px}}
 @media(max-width:600px){.wrap{padding:10px}.head h1{font-size:19px}.controls{grid-template-columns:1fr 1fr}.controls .first{grid-column:span 2}.controls .region{grid-column:span 1}.controls .keyword{grid-column:span 1}.controls .action{grid-column:span 2}.layout{display:flex;flex-direction:column}#map{height:52vh;min-height:320px}.list{max-height:370px}}
 </style>
-<script src="./kakao-share-config.js"></script></head><body>
+<script src="./kakao-map-config.js"></script></head><body>
 <main class="wrap">
 <header class="head"><div><div class="eyebrow">GOOD JOB · WORK24 × KAKAO MAP</div><h1>📍 내 주변 채용지도</h1><p class="sub">내담자 기준 주소는 조회할 때만 사용하며 서버에 저장하지 않습니다.</p></div><div class="chip">상담사 로그인 전용</div></header>
 <form id="searchForm" class="controls">
@@ -213,13 +213,13 @@ function mapFailure(message){
  const box=document.createElement("div");box.style.cssText="max-width:470px;padding:22px;background:white;border:1px solid #bfd4e4;border-radius:13px;color:#234b6b;line-height:1.75;text-align:left";
  const title=document.createElement("strong");title.textContent="⚠️ 지도 API 연결을 확인해 주세요";title.style.fontSize="16px";
  const p=document.createElement("p");p.textContent=message+" 카카오톡 공유용 '제품 링크 관리' 등록과 지도용 'JavaScript SDK 도메인' 등록은 서로 다른 설정입니다.";p.style.cssText="font-size:13px;margin:10px 0;color:#536c84";
- const guide=document.createElement("p");guide.textContent="① 기존 '좋은일자리 채용정보' 앱 → 카카오맵 → 사용 설정 ON   ② 앱 → 플랫폼 키 → JavaScript 키 → JavaScript SDK 도메인에 https://careercounselor1984-code.github.io 등록";guide.style.cssText="font-size:12px;white-space:pre-wrap;margin:10px 0";
+ const guide=document.createElement("p");guide.textContent="① '취업상담 통근거리 분석' 앱 → 카카오맵 → 사용 설정 ON   ② 앱 → 플랫폼 키 → JavaScript 키 → JavaScript SDK 도메인에 https://careercounselor1984-code.github.io 등록";guide.style.cssText="font-size:12px;white-space:pre-wrap;margin:10px 0";
  const link=document.createElement("a");link.href="https://developers.kakao.com/console/app";link.target="_blank";link.rel="noopener noreferrer";link.textContent="카카오 디벨로퍼스 앱 설정 열기 ↗";link.style.cssText="display:inline-block;margin-top:4px;background:#e9f3fb;border-radius:8px;padding:10px;color:#24598b;font-size:12px;font-weight:800;text-decoration:none";
  const retry=document.createElement("button");retry.type="button";retry.textContent="설정 완료 후 지도 다시 시도";retry.style.cssText="border:0;border-radius:8px;padding:10px;margin:8px 0 0 6px;background:#235b92;color:white;font-size:12px;font-weight:800;cursor:pointer";retry.addEventListener("click",()=>location.reload());
  box.append(title,p,guide,link,retry);root.append(box);
 }
 function setupMap(){
- const key=clean(window.GOODJOB_KAKAO_JS_KEY,80);
+ const key=clean(window.GOODJOB_KAKAO_MAP_JS_KEY,80);
  if(!key){mapFailure("JavaScript 키를 읽지 못했습니다.");return}
  const s=document.createElement("script");
  s.src="https://dapi.kakao.com/v2/maps/sdk.js?autoload=false&libraries=services,clusterer&appkey="+encodeURIComponent(key);
