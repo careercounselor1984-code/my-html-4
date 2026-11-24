@@ -15,7 +15,7 @@ const getAutoRegion=scopeWindow.GoodjobNearbyScope.province;
 for(const [q,wanted] of [
   ['울산광역시 북구 호계로 309-20','31000'],['부산 해운대구','26000'],
   ['경상북도 경주시','47000'],['경상남도 양산시','48000'],['경기도 수원시','41000'],
-  ['충청북도 청주시','43000'],['충청남도 천안시','44000'],['서울시 서초구','']
+  ['충청북도 청주시','43000'],['충청남도 천안시','44000'],['서울시 서초구','11000']
 ])assert.equal(getAutoRegion(q),wanted,'autoselect Work24 region: '+q);
 assert.match(map,/id="regionHint"/,'scope explanation visible');
 assert.match(map,/type:"GJ_NEARBY_MAP_IMPORT"/,'map sends import request');
