@@ -9,8 +9,9 @@ const extract=(source,a,b)=>{
   return source.slice(start,end);
 };
 const clean=(v,n=200)=>String(v||'').trim().slice(0,n);
-const autoPart=extract(map,'function getAutoRegion(address){','function requestImport(job){');
-const getAutoRegion=new Function('clean',autoPart+';return getAutoRegion')(clean);
+const scopeCode=fs.readFileSync(path.join(root,'nearby-search-scope.js'),'utf8');
+const scopeWindow={};new Function('window',scopeCode)(scopeWindow);
+const getAutoRegion=scopeWindow.GoodjobNearbyScope.province;
 for(const [q,wanted] of [
   ['울산광역시 북구 호계로 309-20','31000'],['부산 해운대구','26000'],
   ['경상북도 경주시','47000'],['경상남도 양산시','48000'],['경기도 수원시','41000'],
