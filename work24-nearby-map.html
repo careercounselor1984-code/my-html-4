@@ -192,6 +192,7 @@ function card(j,idx){
  const extra=document.createElement("div");extra.className="meta";extra.textContent="마감 "+(j.closeDate||"원문 확인");node.append(extra);
  const url=safeLink(j);
  if(url){const a=document.createElement("a");a.href=url;a.target="_blank";a.rel="noopener noreferrer";a.style.cssText="display:inline-block;color:#225c94;text-decoration:underline;font-size:12px;margin-top:7px";a.textContent="고용24 원문 공고";a.addEventListener("click",e=>e.stopPropagation());node.append(a)}
+ addTransit(node,j);
  const importButton=document.createElement("button");importButton.className="import-btn";importButton.type="button";
  importButton.textContent="↳ 채용정보&알선 불러오기";
  importButton.addEventListener("click",e=>{e.stopPropagation();requestImport(j)});
@@ -224,6 +225,7 @@ function selectJob(idx){
  const heading=document.createElement("strong");heading.textContent=j.company;body.append(heading);
  const t=document.createElement("div");t.textContent=j.title+" · "+j.distance.toFixed(1)+"km";body.append(t);
  const url=safeLink(j);if(url){const a=document.createElement("a");a.href=url;a.rel="noopener noreferrer";a.target="_blank";a.textContent="고용24 원문 열기";a.style.color="#225c94";body.append(a)}
+ addTransit(body,j);
  const importButton=document.createElement("button");importButton.type="button";importButton.textContent="채용정보&알선 불러오기";
  importButton.className="import-btn";importButton.addEventListener("click",()=>requestImport(j));body.append(importButton);
  infoWindow=new kakao.maps.InfoWindow({content:body,removable:true});
@@ -322,9 +324,9 @@ async function start(e){
  let codes=[],currentArea="";
  try{
   if(currentMode==="admin"){
-   currentArea=scope.norm($("areaText").value);
-   if(!currentArea||!/(구|군|시)$/.test(currentArea)){
-    status("제한할 지역을 ‘울산 북구’처럼 시·군·구까지 입력해 주세요.",true);
+   currentArea=selectedScope();
+   if(!currentArea){
+    status("시·도를 선택하고, 이어서 시·군·구도 선택해 주세요.",true);
     $("searchBtn").disabled=false;return;
    }
    const code=scope.regionForArea(currentArea);
@@ -384,13 +386,18 @@ function setupMap(){
 $("searchForm").addEventListener("submit",start);
 $("address").addEventListener("input",updateScope);
 $("address").addEventListener("change",updateScope);
+for(const province of Object.keys(districtData))addOption($("provinceSelect"),province,province);
+$("provinceSelect").addEventListener("change",()=>{
+ populateDistricts();
+ updateScope();
+ if(page>0)status("시·도를 변경했어요. ‘공고 지도검색’을 다시 눌러 주세요.");
+});
+$("districtSelect").addEventListener("change",()=>{
+ if(page>0)status("시·군·구를 변경했어요. ‘공고 지도검색’을 다시 눌러 주세요.");
+});
 $("searchMode").addEventListener("change",()=>{
  updateScope();
  if(page>0)status("검색 범위를 변경했어요. 새 조건으로 ‘공고 지도검색’을 다시 눌러 주세요.");
-});
-$("areaText").addEventListener("input",()=>{
- areaTouched=true;
- if(page>0)status("제한 지역을 변경했어요. 새 조건으로 다시 검색해 주세요.");
 });
 updateScope();
 $("radius").addEventListener("change",()=>{
