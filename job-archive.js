@@ -19,6 +19,48 @@ function openJobMap(address,company){
  if(win)win.focus();
  else window.alert('지도 창이 차단되었습니다. 브라우저 팝업 허용을 확인해 주세요.');
 }
+// 고용24 주변 채용지도: 상담일지 통합본 안에서 열고 로그인 토큰은 화면 메모리로만 전달합니다.
+let nearbyModal=null;
+function closeNearbyMap(){
+ if(!nearbyModal)return;
+ nearbyModal.hidden=true;nearbyModal.style.display='none';
+ nearbyModal.querySelector('iframe').src='about:blank';
+}
+function openNearbyMap(){
+ if(!nearbyModal){
+  const box=document.createElement('div');
+  box.id='gjaNearbyModal';
+  box.style.cssText='position:fixed;inset:0;z-index:2147483000;background:rgba(13,31,53,.68);padding:clamp(6px,2vw,20px);display:flex;align-items:stretch;justify-content:center';
+  box.hidden=true;box.style.display='none';
+  const pane=document.createElement('div');pane.style.cssText='background:#fff;border-radius:14px;overflow:hidden;display:flex;flex-direction:column;width:min(1500px,100%);max-height:100%;box-shadow:0 18px 65px #0d203788';
+  const bar=document.createElement('div');bar.style.cssText='display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 15px;border-bottom:1px solid #dce7ef;font:800 14px/1.3 "Malgun Gothic",sans-serif;color:#23476a';
+  const text=document.createElement('strong');text.textContent='📍 고용24 내 주변 채용지도';
+  const close=document.createElement('button');close.type='button';close.textContent='닫기 ✕';close.style.cssText='border:1px solid #cbd7e4;background:#f4f7fb;color:#365a78;padding:8px 13px;border-radius:8px;cursor:pointer;font-weight:750';
+  close.onclick=closeNearbyMap;bar.append(text,close);
+  const frame=document.createElement('iframe');frame.title='내담자 기준 주소 주변 고용24 채용지도';frame.allow='';frame.style.cssText='width:100%;height:min(88vh,1000px);min-height:350px;border:0;flex:1';
+  pane.append(bar,frame);box.append(pane);
+  box.addEventListener('click',e=>{if(e.target===box)closeNearbyMap()});
+  window.addEventListener('keydown',e=>{if(e.key==='Escape'&&!box.hidden)closeNearbyMap()});
+  window.addEventListener('message',async e=>{
+   if(box.hidden||e.origin!==window.location.origin||e.source!==frame.contentWindow||e.data?.type!=='GJ_NEARBY_MAP_READY')return;
+   let token='';
+   try{
+    const client=window.clgJobArchiveClient?.();
+    if(client){
+     const user=await client.auth.getUser();
+     const session=await client.auth.getSession();
+     if(!user.error&&user.data?.user?.id&&session.data?.session?.access_token)token=session.data.session.access_token;
+    }
+   }catch(err){console.warn('근처 채용지도 인증 확인:',err?.message||err)}
+   if(!box.hidden&&e.source===frame.contentWindow)frame.contentWindow.postMessage({type:'GJ_NEARBY_MAP_AUTH',token},window.location.origin);
+  });
+  document.body.append(box);nearbyModal=box;
+ }
+ const frame=nearbyModal.querySelector('iframe');
+ nearbyModal.hidden=false;nearbyModal.style.display='flex';
+ frame.src=new URL('./work24-nearby-map.html',window.location.href).href;
+}
+
 const panels=new WeakMap();
 const str=(v,n=1000)=>String(v||'').trim().slice(0,n);
 function cleanVerification(v){
@@ -106,6 +148,13 @@ function mount(frame){
  for(const node of Array.from(anchor.children))legacy.append(node);
  anchor.append(box,legacy);
  const q=s=>box.querySelector(s);
+ // 지도 검색은 일반 공고 작성·저장과 독립적으로 동작합니다.
+ const nearbyButton=d.createElement('button');
+ nearbyButton.type='button';nearbyButton.textContent='📍 내 주변 채용지도';
+ nearbyButton.title='내담자 주소를 기준으로 고용24 주변 채용공고 찾기';
+ nearbyButton.style.cssText='border:1px solid #bfddf4;background:#e8f4ff;color:#145183;border-radius:8px;padding:8px 11px;cursor:pointer;font-size:12px;font-weight:850;white-space:nowrap';
+ nearbyButton.addEventListener('click',openNearbyMap);
+ box.querySelector('.gja-head')?.append(nearbyButton);
  let rows=[],uid='',page=0,busy=false,epoch=0,visible=[],loadedJob=null;
  const checked=new Set(),batch=100;
  const today=()=>new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Seoul'}).format(new Date());
