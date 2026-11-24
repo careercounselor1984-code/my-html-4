@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="ko"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><meta name="referrer" content="no-referrer">
+<title>채용기업 버스 길찾기 · 좋은일자리</title>
+<style>
+:root{font-family:system-ui,-apple-system,"Malgun Gothic",sans-serif;color:#163a5c}
+*{box-sizing:border-box}body{background:#f3f7fc;margin:0}.wrap{max-width:600px;margin:auto;padding:22px 14px 45px}
+small.brand{font-size:11px;letter-spacing:.09em;font-weight:900;color:#3473ae}
+h1{font-size:24px;line-height:1.4;margin:10px 0 18px}
+.card{background:white;border:1px solid #dce7f1;border-radius:15px;padding:18px;margin:12px 0}
+label{display:block;font-size:12px;font-weight:850;color:#406385;margin:12px 0 6px}
+input{width:100%;min-height:43px;border:1px solid #c9d8e8;border-radius:8px;padding:10px;font:inherit;font-size:14px}
+.name{font-weight:800;font-size:18px}.sub{font-size:12px;color:#6b7e91;line-height:1.7}
+.btn{display:flex;justify-content:center;align-items:center;width:100%;padding:13px;border-radius:9px;border:0;margin-top:10px;font:800 14px/1.4 inherit;text-decoration:none;cursor:pointer}
+.btn.primary{background:#235d96;color:white}.btn.secondary{background:#edf4fa;color:#315b80;border:1px solid #c8d9e8}.btn:disabled{opacity:.5;cursor:not-allowed}
+.status{font-size:12px;min-height:24px;line-height:1.6;color:#2e6b64;margin:12px 0}.status.error{color:#ab3544}
+footer{font-size:11px;line-height:1.7;color:#74879a;text-align:center;margin-top:15px}
+</style>
+<script src="./kakao-map-config.js"></script></head>
+<body><main class="wrap">
+<small class="brand">GOOD JOB · TRANSIT GUIDE</small><h1>🚌 채용기업 버스·대중교통 길찾기</h1>
+<section class="card"><div id="company" class="name">채용기업 확인 중</div><div id="job" class="sub"></div>
+<label for="start">출발 위치 (동네 또는 가까운 정류장)</label>
+<input id="start" maxlength="160" autocomplete="off" placeholder="예: 울산 북구 화봉동">
+<label for="dest">근무지 주소</label>
+<input id="dest" maxlength="200" autocomplete="off" placeholder="예: 울산 북구 송내4길 14">
+<p class="sub">입력된 출발지와 근무지의 위치를 확인한 뒤 카카오맵 버스 경로로 연결합니다. 주소가 불명확하면 실제 근무지 주소를 다시 확인해 주세요.</p>
+<button id="find" class="btn primary" type="button">🚌 카카오맵에서 버스 노선 보기</button>
+<a id="fallback" class="btn secondary" target="_blank" rel="noopener noreferrer">📍 근무지 직접 검색하기</a>
+<p id="status" class="status" role="status" aria-live="polite"></p></section>
+<footer>좋은일자리 북부센터 · 출발 위치와 근무지는 이 페이지에 저장하지 않습니다.<br>이 링크에는 입력한 출발 위치가 포함될 수 있습니다. 버스 운행·환승·소요시간은 카카오맵 최신 정보를 확인해 주세요.</footer>
+</main>
+<script>
+(function(){
+"use strict";
+const $=id=>document.getElementById(id),query=new URLSearchParams(location.search);
+const clean=(s,n=200)=>String(s||"").replace(/[\u0000-\u001f\u007f]/g," ").trim().slice(0,n);
+const start=clean(query.get("from"),160),dest=clean(query.get("to"),200);
+const company=clean(query.get("company"),120),job=clean(query.get("job"),150);
+$("start").value=start;$("dest").value=dest;
+$("company").textContent=company||"채용기업 길찾기";
+$("job").textContent=job;
+let sdk=null,services=null;
+function status(msg,isError=false){$("status").textContent=msg;$("status").classList.toggle("error",!!isError)}
+function placePart(name,p){return encodeURIComponent(name.replace(/[,/]/g," ").slice(0,90))+","+p.lat.toFixed(7)+","+p.lng.toFixed(7)}
+function mapSearch(value){return "https://map.kakao.com/link/search/"+encodeURIComponent(value)}
+function updateFallback(){$("fallback").href=mapSearch($("dest").value.trim()||company||"근무지")}
+$("dest").addEventListener("input",updateFallback);updateFallback();
+function findAddress(txt){
+ return new Promise(resolve=>{
+  services.addressSearch(txt,(list,result)=>{
+   if(result===kakao.maps.services.Status.OK&&list?.length){
+    const p={lat:Number(list[0].y),lng:Number(list[0].x)};
+    if(Number.isFinite(p.lat)&&Number.isFinite(p.lng)){resolve(p);return}
+   }
+   // Addresses sometimes include an apartment name after a valid street/lot number.
+   const shortened=txt.replace(/\([^)]*\)/g," ").replace(/\s+/g," ").trim();
+   const tail=shortened.match(/^(.+?(?:대로|로|길)\s*\d+(?:-\d+)?|.+?(?:동|읍|면|리)\s+\d+(?:-\d+)?)(?:\s+.*)?$/);
+   if(!tail||tail[1]===txt){resolve(null);return}
+   services.addressSearch(tail[1],(arr,res)=>{
+    if(res===kakao.maps.services.Status.OK&&arr?.length){
+     const p={lat:Number(arr[0].y),lng:Number(arr[0].x)};
+     resolve(Number.isFinite(p.lat)&&Number.isFinite(p.lng)?p:null);
+    }else resolve(null);
+   });
+  });
+ });
+}
+function sdkLoad(){
+ if(sdk)return sdk;
+ sdk=new Promise((resolve,reject)=>{
+  const key=window.GOODJOB_KAKAO_MAP_JS_KEY;
+  if(!key){reject(Error("지도 설정키를 확인할 수 없습니다."));return}
+  const tag=document.createElement("script");
+  tag.src="https://dapi.kakao.com/v2/maps/sdk.js?autoload=false&libraries=services&appkey="+encodeURIComponent(key);
+  tag.onload=()=>{
+   if(!window.kakao?.maps?.load){reject(Error("카카오 지도 모듈을 실행할 수 없습니다."));return}
+   kakao.maps.load(()=>{
+    if(!kakao.maps?.services?.Geocoder){reject(Error("주소 검색 모듈을 실행할 수 없습니다."));return}
+    services=new kakao.maps.services.Geocoder();resolve(services);
+   });
+  };
+  tag.onerror=()=>reject(Error("카카오맵 SDK를 불러오지 못했습니다."));
+  document.head.append(tag);
+ });
+ return sdk;
+}
+$("find").addEventListener("click",async()=>{
+ const from=$("start").value.trim(),to=$("dest").value.trim();
+ if(from.length<3||to.length<5){status("출발지와 근무지 주소를 입력해 주세요.",true);return}
+ // City/district names alone are not an accurate workplace location.
+ if(!/(?:대로|로|길)\s*\d+|(?:동|읍|면|리)\s+\d+/.test(to)){
+  status("정확한 버스 노선을 보려면 도로명 건물번호 또는 지번까지 포함된 근무지 주소가 필요합니다.",true);return
+ }
+ const button=$("find");button.disabled=true;status("출발지와 근무지 위치를 확인하고 있습니다…");
+ try{
+  await sdkLoad();
+  const [a,b]=await Promise.all([findAddress(from),findAddress(to)]);
+  if(!a||!b)throw Error(!a?"출발 위치를 찾지 못했습니다. 동네·도로명 주소를 다시 입력해 주세요.":"근무지의 정확한 주소를 찾지 못했습니다. 공고 원문을 확인해 주세요.");
+  const url="https://map.kakao.com/link/by/traffic/"+placePart(from,a)+"/"+placePart(company||to,b);
+  window.location.assign(url);
+ }catch(e){status(e.message||"버스 길찾기 연결에 실패했습니다.",true)}
+ finally{button.disabled=false}
+});
+if(!start||!dest)status("출발지와 근무지를 확인한 뒤 버스 노선보기 버튼을 눌러 주세요.");
+})();
+</script></body></html>
