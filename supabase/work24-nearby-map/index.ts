@@ -8,7 +8,7 @@ const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
 const db = createClient(supabaseUrl, serviceKey);
 const XML_URL = "https://www.work24.go.kr/cm/openApi/call/wk/callOpenApiSvcInfo210L01.do";
 const ALLOWED_ORIGIN = "https://careercounselor1984-code.github.io";
-const REGIONS = new Set(["31000", "31200", "26000", "48000", "47000", "41000", "43000", "44000"]);
+const REGIONS = new Set(["11000","12000","26000","27000","28000","30000","31000","31200","36000","41000","43000","44000","45000","47000","48000","50000","51000"]);
 // Work24 supports multivalued 'region' parameters delimited by '|'; no geographic filtering is performed by the API.
 function validatedRegion(raw: unknown) {
  const tokens = String(raw ?? "").split("|").map(t=>t.trim()).filter(Boolean);
