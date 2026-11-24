@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="ko"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<title>좋은일자리 · 내 주변 채용지도</title>
+<style>
+:root{font-family:system-ui,-apple-system,"Malgun Gothic",sans-serif;color:#1d3651;--navy:#123c63;--border:#d9e4ef;--muted:#658098}
+*{box-sizing:border-box}body{margin:0;background:#f3f7fb}button,input,select{font:inherit}button{cursor:pointer}
+.wrap{max-width:1480px;margin:auto;padding:18px}
+.head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:12px}
+.head h1{font-size:23px;margin:4px 0 4px;letter-spacing:-.5px}.sub{font-size:12px;line-height:1.55;color:var(--muted);margin:0}.eyebrow{font-weight:850;color:#336d9c;letter-spacing:.08em;font-size:11px}
+.chip{border:1px solid var(--border);background:#fff;border-radius:99px;padding:6px 10px;font-size:11px;font-weight:750;color:#426380;white-space:nowrap}
+.controls{background:#fff;border:1px solid var(--border);border-radius:13px;padding:14px;display:grid;grid-template-columns:minmax(210px,2fr) minmax(130px,1fr) minmax(135px,1fr) 92px 120px;gap:9px;align-items:end;margin-bottom:12px}
+.field{display:grid;gap:5px;min-width:0}.field label{font-size:11px;font-weight:800;color:#526c83}.field input,.field select{min-width:0;width:100%;border:1px solid #cbd9e7;border-radius:8px;padding:10px;font-size:13px;height:42px;background:white;color:#1b3c57}
+.btn{height:42px;background:var(--navy);color:#fff;border:0;border-radius:8px;padding:0 12px;font-size:13px;font-weight:800;white-space:nowrap}
+.btn.secondary{background:#eaf2fa;color:#235684}.btn:disabled{opacity:.55;cursor:not-allowed}
+.layout{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(325px,.85fr);gap:12px;min-height:570px}
+.map-pane,.list-pane{background:white;border:1px solid var(--border);border-radius:14px;overflow:hidden}
+#map{height:580px;min-height:420px;background:#ebf2f8;display:flex;align-items:center;justify-content:center;color:#7890a5;text-align:center;font-size:13px;padding:12px}
+.list-pane{display:flex;flex-direction:column;min-width:0}.stat{padding:13px 14px 8px;font-size:12px;color:#3d607d;border-bottom:1px solid var(--border);line-height:1.6}
+.stat strong{font-size:16px;color:#1e4669}.list{overflow:auto;flex:1;max-height:510px;padding:7px}.item{border:1px solid #e1e8f0;border-radius:9px;padding:12px 10px;margin-bottom:7px;cursor:pointer;background:#fff}
+.item:hover,.item.active{border-color:#5595d0;background:#f5faff}.item strong{font-size:13px;line-height:1.4;display:block;color:#234666}.item .meta{font-size:11px;line-height:1.55;color:#658097;margin-top:5px;overflow-wrap:anywhere}
+.item .pay{font-size:12px;color:#396480;margin-top:5px}.item button{border:1px solid #c9ddee;border-radius:7px;color:#245c91;background:#eff7ff;font-size:11px;padding:5px 8px;margin-top:7px;font-weight:750}
+.empty{font-size:12px;line-height:1.7;color:#6c839b;margin:17px 11px}
+#loadMore{display:block;width:calc(100% - 18px);margin:8px 9px 10px}.bar{border-top:1px solid var(--border);padding:10px 13px;font-size:12px;line-height:1.7;color:#526e85;background:#f8fbfe}
+#status{color:#315c7c;font-size:12px;line-height:1.5;min-height:24px;margin:8px 0}#status.error{color:#b32632}
+.foot{margin-top:13px;font-size:11px;line-height:1.65;color:#73879a}.foot a{color:#2d618e}
+@media(max-width:1000px){.controls{grid-template-columns:repeat(3,1fr)}.controls .first{grid-column:span 2}.layout{grid-template-columns:1fr}.list{max-height:380px}#map{height:440px}.list-pane{min-height:200px}}
+@media(max-width:600px){.wrap{padding:10px}.head h1{font-size:19px}.controls{grid-template-columns:1fr 1fr}.controls .first{grid-column:span 2}.controls .region{grid-column:span 1}.controls .keyword{grid-column:span 1}.controls .action{grid-column:span 2}.layout{display:flex;flex-direction:column}#map{height:52vh;min-height:320px}.list{max-height:370px}}
+</style>
+<script src="./kakao-share-config.js"></script></head><body>
+<main class="wrap">
+<header class="head"><div><div class="eyebrow">GOOD JOB · WORK24 × KAKAO MAP</div><h1>📍 내 주변 채용지도</h1><p class="sub">내담자 기준 주소는 조회할 때만 사용하며 서버에 저장하지 않습니다.</p></div><div class="chip">상담사 로그인 전용</div></header>
+<form id="searchForm" class="controls">
+<div class="field first"><label for="address">내담자 기준 주소·동네 (이름 등 개인정보 제외)</label><input id="address" placeholder="예: 울산 북구 화봉동" value="울산 북구 화봉동" maxlength="120" required autocomplete="off"></div>
+<div class="field region"><label for="region">고용24 검색 지역</label><select id="region"><option value="31000">울산</option><option value="48000">경남</option><option value="47000">경북</option><option value="26000">부산</option><option value="41000">경기</option><option value="43000">충북</option><option value="44000">충남</option></select></div>
+<div class="field keyword"><label for="keyword">직종·공고 키워드 (선택)</label><input id="keyword" maxlength="60" placeholder="예: 생산, 사무"></div>
+<div class="field"><label for="radius">검색 반경</label><select id="radius"><option value="3">3km</option><option value="5" selected>5km</option><option value="10">10km</option><option value="20">20km</option><option value="30">30km</option><option value="50">50km</option></select></div>
+<button class="btn action" type="submit" id="searchBtn">공고 지도검색</button>
+</form>
+<div id="status" role="status" aria-live="polite">지도와 상담사 로그인 정보를 확인하고 있습니다.</div>
+<section class="layout">
+<div class="map-pane"><div id="map" aria-label="내담자 기준 주소 주변 채용공고 지도" role="region">카카오맵을 불러오는 중입니다…</div><div class="bar">🔵 기준 위치 / 📍 채용공고 위치 · 거리: 직선거리 (버스 이동시간 아님)<div>⚠️ 고용24 근무지 주소가 건물까지 특정되지 않으면 지도에 표시하지 않습니다.</div></div></div>
+<div class="list-pane">
+<div class="stat"><strong id="matchCount">0건</strong> · 반경 내 위치 확인 공고<br><span id="statsMeta">검색 전</span></div>
+<div id="jobsList" class="list"><p class="empty">내담자 기준 주소를 입력하고 ‘공고 지도검색’을 눌러 주세요.</p></div>
+<button class="btn secondary" id="loadMore" type="button" hidden>최근 공고 60건 더 조회</button>
+</div>
+</section>
+<footer class="foot">자료 출처: 고용노동부 고용24 채용정보 API. 조회한 최근 공고의 일부만 표시하며 전체 구인 공고가 아닙니다. 기업 위치는 고용24의 근무지 주소를 카카오맵으로 변환한 결과이며 실제 근무지는 원문에서 확인하세요. 각 공고의 ‘고용24 원문’을 눌러 최신 모집 여부를 확인할 수 있습니다. <a href="https://www.work24.go.kr/" target="_blank" rel="noopener noreferrer">고용24</a></footer>
+</main>
+<script>
+(function(){
+"use strict";
+const ORIGIN=location.origin,API="https://bowxlaiyjxknqccoughl.supabase.co/functions/v1/work24-nearby-map";
+const $=id=>document.getElementById(id);
+const clean=(v,n=200)=>String(v||"").trim().slice(0,n);
+let token="",map=null,geo=null,cluster=null,centerMarker=null,centerPoint=null;
+let jobs=[],located=[],page=0,total=0,run=0,busy=false,loaded=false,centerText="";
+let infoWindow=null,activeMarker=null;
+const pins=[];
+function status(t,isError=false){$("status").textContent=t;$("status").classList.toggle("error",!!isError)}
+function safeLink(j){if(!/^[A-Z0-9-]{5,48}$/i.test(j.wantedAuthNo||""))return null;
+ return "https://www.work24.go.kr/wk/a/b/1500/empDetailAuthView.do?wantedAuthNo="+encodeURIComponent(j.wantedAuthNo)+"&infoTypeCd=VALIDATION&infoTypeGroup=tb_workinfoworknet";}
+function sendReady(){if(window.parent!==window)window.parent.postMessage({type:"GJ_NEARBY_MAP_READY"},ORIGIN)}
+window.addEventListener("message",e=>{
+ if(e.source!==window.parent||e.origin!==ORIGIN||e.data?.type!=="GJ_NEARBY_MAP_AUTH")return;
+ const t=clean(e.data?.token,3500);
+ if(!t){status("상담사 로그인 정보가 없습니다. 상담일지 통합본에서 다시 열어 주세요.",true);return}
+ token=t;
+ status(loaded?"검색 준비 완료. 내담자 기준 주소를 입력해 주세요.":"지도 API 준비 중입니다…");
+ if(loaded)$("searchBtn").disabled=false;
+});
+function haversine(a,b){const rad=Math.PI/180,dlat=(b.lat-a.lat)*rad,dlng=(b.lng-a.lng)*rad;
+ const z=Math.sin(dlat/2)**2+Math.cos(a.lat*rad)*Math.cos(b.lat*rad)*Math.sin(dlng/2)**2;
+ return 6371*2*Math.atan2(Math.sqrt(z),Math.sqrt(1-z))}
+function coords(ll){return {lat:ll.getLat(),lng:ll.getLng()}}
+function geocode(text){return new Promise(resolve=>{
+ geo.addressSearch(text,(rows,result)=>{
+  if(result===kakao.maps.services.Status.OK&&rows?.[0]){const r=rows[0],lat=Number(r.y),lng=Number(r.x);resolve(Number.isFinite(lat)&&Number.isFinite(lng)?{lat,lng}:null)}
+  else resolve(null);
+ })
+})}
+function setCenter(ll,address){centerPoint=coords(ll);centerText=address;
+ map.setCenter(ll);map.setLevel(7);
+ if(centerMarker)centerMarker.setMap(null);
+ centerMarker=new kakao.maps.Marker({position:ll,map,title:"기준 위치"});
+ const content=document.createElement("div");content.style.cssText="background:white;border:1px solid #82aed0;border-radius:7px;padding:5px 7px;font-size:11px;font-weight:800;color:#19578a";content.textContent="기준 위치";
+ const overlay=new kakao.maps.CustomOverlay({position:ll,content,yAnchor:2.3});
+ if(window._gjCenterOverlay)window._gjCenterOverlay.setMap(null);
+ overlay.setMap(map);window._gjCenterOverlay=overlay;
+}
+function precise(addr){const s=clean(addr);
+ if(!s||s.length<8||!/\\d/.test(s))return false;
+ // 구·군·동·읍·면만 있거나 주소 숫자가 없는 공고는 지도 핀을 표시하지 않습니다.
+ return !/^(.*(시|도)\\s+)?[^\\s]+(구|군|시)(\\s+[^\\s]+(동|읍|면))?\\s*\\d{0,1}$/.test(s);
+}
+function clearPins(){
+ if(cluster){cluster.clear()}
+ pins.forEach(x=>x.setMap(null));pins.length=0;
+ if(infoWindow)infoWindow.close();
+ located=[];jobs=[];page=0;total=0;activeMarker=null;
+ $("jobsList").replaceChildren();$("matchCount").textContent="0건";$("statsMeta").textContent="검색 중…";$("loadMore").hidden=true;
+}
+function card(j,idx){
+ const node=document.createElement("article");node.className="item";node.dataset.idx=String(idx);
+ const title=document.createElement("strong");title.textContent=j.company+" · "+j.title;node.append(title);
+ const meta=document.createElement("div");meta.className="meta";meta.textContent=(j.basicAddr||j.region||"근무지 미확인")+" · 직선거리 "+j.distance.toFixed(1)+"km";node.append(meta);
+ if(j.pay){const pay=document.createElement("div");pay.className="pay";pay.textContent="급여 "+j.pay;node.append(pay)}
+ const extra=document.createElement("div");extra.className="meta";extra.textContent="마감 "+(j.closeDate||"원문 확인");node.append(extra);
+ const url=safeLink(j);
+ if(url){const a=document.createElement("a");a.href=url;a.target="_blank";a.rel="noopener noreferrer";a.style.cssText="display:inline-block;color:#225c94;text-decoration:underline;font-size:12px;margin-top:7px";a.textContent="고용24 원문 공고";a.addEventListener("click",e=>e.stopPropagation());node.append(a)}
+ node.addEventListener("click",()=>selectJob(idx));return node;
+}
+function selectJob(idx){
+ const j=located[idx];if(!j)return;
+ map.panTo(new kakao.maps.LatLng(j.lat,j.lng));
+ if(j.marker)j.marker.setMap(map);
+ document.querySelectorAll(".item").forEach(x=>x.classList.toggle("active",x.dataset.idx===String(idx)));
+ const b=$("jobsList").querySelector('[data-idx="'+idx+'"]');b?.scrollIntoView({block:"nearest",behavior:"smooth"});
+ if(infoWindow)infoWindow.close();
+ const body=document.createElement("div");body.style.cssText="padding:10px;max-width:240px;font-size:12px;line-height:1.5";
+ const heading=document.createElement("strong");heading.textContent=j.company;body.append(heading);
+ const t=document.createElement("div");t.textContent=j.title+" · "+j.distance.toFixed(1)+"km";body.append(t);
+ const url=safeLink(j);if(url){const a=document.createElement("a");a.href=url;a.rel="noopener noreferrer";a.target="_blank";a.textContent="고용24 원문 열기";a.style.color="#225c94";body.append(a)}
+ infoWindow=new kakao.maps.InfoWindow({content:body,removable:true});
+ infoWindow.open(map,j.marker);
+}
+function render(){
+ const radius=Number($("radius").value);
+ const visible=located.filter(j=>j.distance<=radius).sort((a,b)=>a.distance-b.distance);
+ const box=$("jobsList");box.replaceChildren();
+ visible.forEach((j,i)=>{const original=located.indexOf(j);box.append(card(j,original))});
+ if(!visible.length){const p=document.createElement("p");p.className="empty";p.textContent=jobs.length?"이번에 조회한 공고 중 반경 내에서 정확한 근무지 주소가 확인된 공고가 없습니다. 반경을 늘리거나 ‘60건 더 조회’를 눌러 주세요.":"표시할 공고가 없습니다.";box.append(p)}
+ if(cluster){cluster.clear();const shown=visible.map(j=>j.marker);cluster.addMarkers(shown)}
+ $("matchCount").textContent=visible.length+"건";
+ const unresolved=jobs.length-located.length;
+ $("statsMeta").textContent="고용24 조회 "+jobs.length+"건 · 위치 확인 "+located.length+"건 · 주소 미확인 "+unresolved+"건 · 최근 공고 일부";
+ $("loadMore").hidden=page>=10||(total>0&&page*60>=total)||(page>0&&jobs.length%60!==0);
+ if(!busy)$("loadMore").disabled=false;
+}
+async function geocodeJobs(batch,currentRun){
+ let next=0,done=0,unverified=0;
+ const pool=Array.from({length:4},async()=>{
+   while(next<batch.length&&currentRun===run){
+     const i=next++,j=batch[i],address=j.basicAddr;
+     if(!precise(address)){done++;unverified++;continue}
+     let point=null;
+     try{point=await geocode(address)}catch{}
+     if(currentRun!==run)return;
+     if(point){const item={...j,...point,distance:haversine(centerPoint,point)};
+       const marker=new kakao.maps.Marker({position:new kakao.maps.LatLng(point.lat,point.lng),title:j.company+" · "+j.title});
+       item.marker=marker;pins.push(marker);
+       kakao.maps.event.addListener(marker,"click",()=>selectJob(located.indexOf(item)));
+       located.push(item);
+     }else unverified++;
+     done++;
+     if(done%10===0)status("고용24 공고 위치 확인 중… "+done+"/"+batch.length+"건 (주소가 불명확한 공고는 제외)");
+   }
+ });
+ await Promise.all(pool);
+ return unverified;
+}
+async function more(){
+ if(!token||!loaded||busy||!centerPoint){status("로그인 후 기준 주소를 먼저 검색해 주세요.",true);return}
+ busy=true;$("searchBtn").disabled=true;$("loadMore").disabled=true;
+ const current=run,requestPage=page+1;
+ try{
+   status("고용24 최근 채용공고 "+requestPage+"페이지를 조회 중입니다…");
+   const ac=new AbortController();const timer=setTimeout(()=>ac.abort(),25000);
+   let resp;
+   try{
+     resp=await fetch(API,{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+token},body:JSON.stringify({page:requestPage,region:$("region").value,keyword:$("keyword").value.trim()}),signal:ac.signal,cache:"no-store"});
+   }finally{clearTimeout(timer)}
+   if(current!==run)return;
+   const d=await resp.json().catch(()=>({}));
+   if(!resp.ok||!d.ok)throw new Error(d.error||"고용24 조회 실패 ("+resp.status+")");
+   page=requestPage;total=Number(d.total)||0;
+   const known=new Set(jobs.map(j=>j.wantedAuthNo));
+   const batch=(Array.isArray(d.jobs)?d.jobs:[]).filter(j=>j.wantedAuthNo&&!known.has(j.wantedAuthNo));
+   jobs.push(...batch);
+   await geocodeJobs(batch,current);
+   if(current!==run)return;
+   status("고용24 공고 "+jobs.length+"건 중 지도에 표시 가능한 위치 "+located.length+"건을 확인했어요.");
+   render();
+ }catch(err){if(current===run){const message=String(err?.message||"조회 오류");status("조회 실패: "+message,true)}}
+ finally{if(current===run){busy=false;$("searchBtn").disabled=false;$("loadMore").disabled=false;render()}}
+}
+async function start(e){
+ e?.preventDefault();
+ if(!loaded){status("카카오맵을 준비하고 있습니다. API 활성화 설정을 확인해 주세요.",true);return}
+ if(!token){status("상담일지 통합본에서 로그인한 뒤 이 메뉴를 이용해 주세요.",true);return}
+ const target=clean($("address").value,120);
+ if(target.length<3){status("내담자 기준 주소를 3글자 이상 입력해 주세요.",true);return}
+ const keyword=clean($("keyword").value,60);
+ if(keyword&&keyword.length<2){status("직종 키워드는 2글자 이상 입력하거나 비워 주세요.",true);return}
+ const current=++run;busy=false;
+ $("searchBtn").disabled=true;
+ status("입력한 기준 주소를 지도에서 찾는 중입니다…");
+ let point;
+ try{point=await geocode(target)}catch{}
+ if(current!==run)return;
+ if(!point){status("기준 주소를 찾지 못했습니다. ‘울산 북구 화봉동’처럼 다시 입력해 주세요.",true);$("searchBtn").disabled=false;return}
+ clearPins();setCenter(new kakao.maps.LatLng(point.lat,point.lng),target);
+ $("searchBtn").disabled=false;
+ await more();
+}
+function setupMap(){
+ const key=clean(window.GOODJOB_KAKAO_JS_KEY,80);
+ if(!key){status("카카오 JavaScript 키가 설정되지 않았습니다.",true);$("map").textContent="카카오맵 키 미설정";return}
+ const s=document.createElement("script");
+ s.src="https://dapi.kakao.com/v2/maps/sdk.js?autoload=false&libraries=services,clusterer&appkey="+encodeURIComponent(key);
+ s.onerror=()=>{status("카카오맵 SDK를 불러오지 못했습니다. 카카오맵 API 활성화와 웹 도메인을 확인해 주세요.",true);$("map").textContent="카카오맵 SDK 로딩 실패"};
+ s.onload=()=>{
+  if(!window.kakao?.maps){status("카카오맵 SDK 초기화 실패",true);return}
+  kakao.maps.load(()=>{
+   try{
+    $("map").textContent="";
+    map=new kakao.maps.Map($("map"),{center:new kakao.maps.LatLng(35.5822,129.3620),level:7});
+    geo=new kakao.maps.services.Geocoder();
+    cluster=new kakao.maps.MarkerClusterer({map,averageCenter:true,minLevel:5,disableClickZoom:false});
+    loaded=true;
+    status(token?"검색 준비 완료. 주소를 입력하고 검색하세요.":"지도 준비 완료. 상담사 로그인 인증 대기 중…");
+    $("searchBtn").disabled=!token;
+   }catch(err){status("지도 초기화 실패: "+String(err?.message||err),true)}
+  })
+ };
+ document.head.appendChild(s);
+}
+$("searchForm").addEventListener("submit",start);
+$("radius").addEventListener("change",render);
+$("loadMore").addEventListener("click",more);
+$("searchBtn").disabled=true;
+setupMap();sendReady();setTimeout(sendReady,600);
+})();
+</script></body></html>
