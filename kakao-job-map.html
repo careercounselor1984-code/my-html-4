@@ -21,7 +21,7 @@ button{background:#245e97;color:white}a.btn{background:#fee500;color:#372f11}a.b
 footer{font-size:12px;color:#718399;line-height:1.6;padding:6px 2px}.heading{font-size:12px;font-weight:800;color:#32669b;letter-spacing:.05em}
 @media(max-width:520px){.wrap{padding:14px 10px}h1{font-size:20px}.card{padding:12px}.controls{flex-wrap:wrap}.controls button{width:100%}#map{min-height:300px;height:53vh}}
 </style>
-<script src="./kakao-share-config.js"></script>
+<script src="./kakao-map-config.js"></script>
 </head>
 <body><main class="wrap">
 <header><div><div class="heading">GOOD JOB · KAKAO MAP API</div><h1>채용공고 근무지 확인</h1><p class="sub" id="jobTitle">근무지를 지도에서 확인하고 길찾기 링크를 열 수 있습니다.</p></div><div class="pill">카카오맵 API</div></header>
@@ -85,7 +85,7 @@ function search(term){
  });
 }
 function boot(){
- const key=String(window.GOODJOB_KAKAO_JS_KEY||"").trim();
+ const key=String(window.GOODJOB_KAKAO_MAP_JS_KEY||"").trim();
  if(!key){showError("JavaScript 키가 설정되지 않았습니다. 카카오 디벨로퍼스 설정을 확인해 주세요.");return}
  const s=document.createElement("script");
  s.src="https://dapi.kakao.com/v2/maps/sdk.js?autoload=false&libraries=services&appkey="+encodeURIComponent(key);
