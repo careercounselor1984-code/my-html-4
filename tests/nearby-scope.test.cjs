@@ -57,6 +57,25 @@ assert.equal(helper.label('47000'),'경북');
  assert.ok(transit.includes('35.7200000,129.3000000'),'company coordinates encoded');
  assert.ok(html.includes('addTransit(node,j)'),'job list has transit link');
  assert.ok(html.includes('addTransit(body,j)'),'map popup has transit link');
+ assert.ok(html.includes('addClientShare(node,j)'),'job listing includes client-share button');
+ assert.ok(html.includes('addClientShare(body,j)'),'map popup includes client-share button');
+ assert.ok(html.includes('navigator.clipboard?.writeText'),'clipboard is available when permitted');
+ assert.ok(html.includes('document.execCommand("copy")'),'clipboard fallback exists for PC iframe');
+ const msgStart=html.indexOf('function transitShareMessage(job){');
+ const msgEnd=html.indexOf('async function copyTransitText(',msgStart);
+ assert.ok(msgStart>=0&&msgEnd>msgStart,'client-share message builder exists');
+ const messageFn=new Function('transitHref','clean','safeLink',
+   html.slice(msgStart,msgEnd)+';return transitShareMessage')(
+   ()=>'https://map.kakao.com/link/by/traffic/START,35.6300000,129.3500000/DEST,35.7200000,129.3000000',
+   (v,n=200)=>String(v||'').trim().slice(0,n),
+   j=>'https://www.work24.go.kr/wk/a/b/1500/empDetailAuthView.do?wantedAuthNo='+encodeURIComponent(j.wantedAuthNo)
+ );
+ const copied=messageFn({company:'시험기업',title:'생산직 채용',basicAddr:'울산 북구 호계로 309-20',wantedAuthNo:'K123456'});
+ assert.ok(copied.includes('시험기업'),'company included in client text');
+ assert.ok(copied.includes('생산직 채용'),'job title included in client text');
+ assert.ok(copied.includes('https://map.kakao.com/link/by/traffic/'),'bus link included');
+ assert.ok(copied.includes('https://www.work24.go.kr/'),'original Work24 link included');
+ assert.ok(copied.includes('출발 위치가 포함됩니다'),'client address privacy note included');
  assert.ok(html.includes('↳ 채용정보&알선 불러오기'),'existing import connection preserved');
  console.log('PASS: district-only vs cross-border radius, multi-province Work24 API, UI scope defaults and job import');
 })().catch(error=>{console.error(error);process.exitCode=1});
