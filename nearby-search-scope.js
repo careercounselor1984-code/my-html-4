@@ -15,7 +15,7 @@ const norm=(value)=>{
  return s.replace(/서울특별시/g,"서울").replace(/부산광역시/g,"부산")
   .replace(/대구광역시/g,"대구").replace(/인천광역시/g,"인천")
   .replace(/광주광역시/g,"광주").replace(/대전광역시/g,"대전").replace(/울산광역시/g,"울산")
-  .replace(/세종특별자치시/g,"세종").replace(/경기도/g,"경기")
+  .replace(/세종특별자치시/g,"세종").replace(/^세종시(?=\s|$)/,"세종").replace(/경기도/g,"경기")
   .replace(/경상북도/g,"경북").replace(/경상남도/g,"경남")
   .replace(/충청북도/g,"충북").replace(/충청남도/g,"충남")
   .replace(/전라남도/g,"전남").replace(/전라북도|전북특별자치도/g,"전북")
