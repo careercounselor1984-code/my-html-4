@@ -8,7 +8,13 @@ const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
 const db = createClient(supabaseUrl, serviceKey);
 const XML_URL = "https://www.work24.go.kr/cm/openApi/call/wk/callOpenApiSvcInfo210L01.do";
 const ALLOWED_ORIGIN = "https://careercounselor1984-code.github.io";
-const REGIONS = new Set(["31000", "26000", "48000", "47000", "41000", "43000", "44000"]);
+const REGIONS = new Set(["31000", "31200", "26000", "48000", "47000", "41000", "43000", "44000"]);
+// Work24 supports multivalued 'region' parameters delimited by '|'; no geographic filtering is performed by the API.
+function validatedRegion(raw: unknown) {
+ const tokens = String(raw ?? "").split("|").map(t=>t.trim()).filter(Boolean);
+ const unique = [...new Set(tokens)];
+ return unique.length > 0 && unique.length <= 5 && unique.every(code=>REGIONS.has(code)) ? unique.join("|") : "";
+}
 const parser = new XMLParser({ ignoreAttributes: false, trimValues: true, parseTagValue: false });
 const str = (v: unknown, max = 250) => String(v ?? "").trim().slice(0, max);
 const arr = (v: unknown): any[] => Array.isArray(v) ? v : v == null ? [] : [v];
@@ -97,8 +103,8 @@ Deno.serve(async (req) => {
  }
  try {
    const body = await req.json().catch(() => ({}));
-   const region = str(body.region || "31000", 10);
-   if (!REGIONS.has(region)) return response({ ok: false, error: "지원하지 않는 검색 지역입니다." }, 400, origin);
+   const region = validatedRegion(body.region);
+   if (!region) return response({ ok: false, error: "지원하지 않는 지역코드 또는 지역 수입니다." }, 400, origin);
    const keyword = str(body.keyword, 60);
    const page = Math.floor(Number(body.page ?? 1));
    if (!Number.isFinite(page) || page < 1 || page > 10 || (keyword && keyword.length < 2)) {
@@ -109,7 +115,7 @@ Deno.serve(async (req) => {
    return response({
      ok: true, source: "고용24 채용정보 목록 API", region, keyword, page, pageSize: count,
      total: result.total, returned: result.jobs.length, jobs: result.jobs,
-     note: "최근 공고 일부를 페이지 단위로 조회합니다. 표시 범위 밖의 공고도 존재합니다. 근무지 주소가 불분명한 공고는 지도에 표시하지 않습니다. 반드시 고용24 원문을 확인하세요."
+     note: "여러 시·도의 최근 공고 일부를 페이지 단위로 조회합니다. 행정구역 제한과 거리 필터는 화면에서 적용합니다. 조회하지 않은 공고도 존재하며, 반경 내 모든 공고를 보장하지 않습니다. 반드시 고용24 원문을 확인하세요."
    }, 200, origin);
  } catch (e) {
    return response({ ok: false, error: str((e as Error)?.message || e) }, 502, origin);
