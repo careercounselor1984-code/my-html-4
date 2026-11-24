@@ -25,7 +25,7 @@ footer{font-size:11px;line-height:1.7;color:#74879a;text-align:center;margin-top
 <input id="start" maxlength="160" autocomplete="off" placeholder="예: 울산 북구 화봉동">
 <label for="dest">근무지 주소</label>
 <input id="dest" maxlength="200" autocomplete="off" placeholder="예: 울산 북구 송내4길 14">
-<p class="sub">입력된 출발지와 근무지의 위치를 확인한 뒤 카카오맵 버스 경로로 연결합니다. 주소가 불명확하면 실제 근무지 주소를 다시 확인해 주세요.</p>
+<p class="sub">입력된 출발지와 근무지의 위치를 확인한 뒤 카카오맵 버스 경로로 연결합니다. 정류장을 출발지로 쓸 때는 중복 검색을 피하도록 시·군·구를 함께 입력하세요. 주소가 불명확하면 실제 근무지 주소를 다시 확인해 주세요.</p>
 <button id="find" class="btn primary" type="button">🚌 카카오맵에서 버스 노선 보기</button>
 <a id="fallback" class="btn secondary" target="_blank" rel="noopener noreferrer">📍 근무지 직접 검색하기</a>
 <p id="status" class="status" role="status" aria-live="polite"></p></section>
@@ -41,14 +41,23 @@ const company=clean(query.get("company"),120),job=clean(query.get("job"),150);
 $("start").value=start;$("dest").value=dest;
 $("company").textContent=company||"채용기업 길찾기";
 $("job").textContent=job;
-let sdk=null,services=null;
+let sdk=null,services=null,places=null;
 function status(msg,isError=false){$("status").textContent=msg;$("status").classList.toggle("error",!!isError)}
 function placePart(name,p){return encodeURIComponent(name.replace(/[,/]/g," ").slice(0,90))+","+p.lat.toFixed(7)+","+p.lng.toFixed(7)}
 function mapSearch(value){return "https://map.kakao.com/link/search/"+encodeURIComponent(value)}
 function updateFallback(){$("fallback").href=mapSearch($("dest").value.trim()||company||"근무지")}
 $("dest").addEventListener("input",updateFallback);updateFallback();
-function findAddress(txt){
+function findAddress(txt,allowKeyword=false){
  return new Promise(resolve=>{
+  function fallbackKeyword(){
+   if(!allowKeyword||!places){resolve(null);return}
+   places.keywordSearch(txt,(list,code)=>{
+    if(code===kakao.maps.services.Status.OK&&list?.length){
+     const p={lat:Number(list[0].y),lng:Number(list[0].x)};
+     resolve(Number.isFinite(p.lat)&&Number.isFinite(p.lng)?p:null);
+    }else resolve(null);
+   });
+  }
   services.addressSearch(txt,(list,result)=>{
    if(result===kakao.maps.services.Status.OK&&list?.length){
     const p={lat:Number(list[0].y),lng:Number(list[0].x)};
@@ -57,12 +66,12 @@ function findAddress(txt){
    // Addresses sometimes include an apartment name after a valid street/lot number.
    const shortened=txt.replace(/\([^)]*\)/g," ").replace(/\s+/g," ").trim();
    const tail=shortened.match(/^(.+?(?:대로|로|길)\s*\d+(?:-\d+)?|.+?(?:동|읍|면|리)\s+\d+(?:-\d+)?)(?:\s+.*)?$/);
-   if(!tail||tail[1]===txt){resolve(null);return}
+   if(!tail||tail[1]===txt){fallbackKeyword();return}
    services.addressSearch(tail[1],(arr,res)=>{
     if(res===kakao.maps.services.Status.OK&&arr?.length){
      const p={lat:Number(arr[0].y),lng:Number(arr[0].x)};
      resolve(Number.isFinite(p.lat)&&Number.isFinite(p.lng)?p:null);
-    }else resolve(null);
+    }else fallbackKeyword();
    });
   });
  });
@@ -78,7 +87,7 @@ function sdkLoad(){
    if(!window.kakao?.maps?.load){reject(Error("카카오 지도 모듈을 실행할 수 없습니다."));return}
    kakao.maps.load(()=>{
     if(!kakao.maps?.services?.Geocoder){reject(Error("주소 검색 모듈을 실행할 수 없습니다."));return}
-    services=new kakao.maps.services.Geocoder();resolve(services);
+    services=new kakao.maps.services.Geocoder();places=new kakao.maps.services.Places();resolve(services);
    });
   };
   tag.onerror=()=>reject(Error("카카오맵 SDK를 불러오지 못했습니다."));
@@ -96,7 +105,7 @@ $("find").addEventListener("click",async()=>{
  const button=$("find");button.disabled=true;status("출발지와 근무지 위치를 확인하고 있습니다…");
  try{
   await sdkLoad();
-  const [a,b]=await Promise.all([findAddress(from),findAddress(to)]);
+  const [a,b]=await Promise.all([findAddress(from,true),findAddress(to,false)]);
   if(!a||!b)throw Error(!a?"출발 위치를 찾지 못했습니다. 동네·도로명 주소를 다시 입력해 주세요.":"근무지의 정확한 주소를 찾지 못했습니다. 공고 원문을 확인해 주세요.");
   const url="https://map.kakao.com/link/by/traffic/"+placePart(from,a)+"/"+placePart(company||to,b);
   window.location.assign(url);
