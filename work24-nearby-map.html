@@ -58,7 +58,7 @@ const $=id=>document.getElementById(id);
 const clean=(v,n=200)=>String(v||"").trim().slice(0,n);
 let token="",map=null,geo=null,cluster=null,centerMarker=null,centerPoint=null;
 let jobs=[],located=[],page=0,total=0,run=0,busy=false,loaded=false,centerText="";
-let infoWindow=null,activeMarker=null;
+let infoWindow=null,activeMarker=null,sdkFailed=false;
 const pins=[];
 function status(t,isError=false){$("status").textContent=t;$("status").classList.toggle("error",!!isError)}
 function safeLink(j){if(!/^[A-Z0-9-]{5,48}$/i.test(j.wantedAuthNo||""))return null;
@@ -69,7 +69,7 @@ window.addEventListener("message",e=>{
  const t=clean(e.data?.token,3500);
  if(!t){status("상담사 로그인 정보가 없습니다. 상담일지 통합본에서 다시 열어 주세요.",true);return}
  token=t;
- status(loaded?"검색 준비 완료. 내담자 기준 주소를 입력해 주세요.":"지도 API 준비 중입니다…");
+ if(!sdkFailed)status(loaded?"검색 준비 완료. 내담자 기준 주소를 입력해 주세요.":"지도 API 준비 중입니다…");
  if(loaded)$("searchBtn").disabled=false;
 });
 function haversine(a,b){const rad=Math.PI/180,dlat=(b.lat-a.lat)*rad,dlng=(b.lng-a.lng)*rad;
@@ -206,14 +206,26 @@ async function start(e){
  $("searchBtn").disabled=false;
  await more();
 }
+function mapFailure(message){
+ sdkFailed=true;$("searchBtn").disabled=true;
+ status("카카오맵 SDK 연결 실패 · 카카오 디벨로퍼스에서 '카카오맵 → 사용 설정 ON' 및 JavaScript SDK 도메인을 확인해 주세요.",true);
+ const root=$("map");root.replaceChildren();
+ const box=document.createElement("div");box.style.cssText="max-width:470px;padding:22px;background:white;border:1px solid #bfd4e4;border-radius:13px;color:#234b6b;line-height:1.75;text-align:left";
+ const title=document.createElement("strong");title.textContent="⚠️ 지도 API 연결을 확인해 주세요";title.style.fontSize="16px";
+ const p=document.createElement("p");p.textContent=message+" 카카오톡 공유용 '제품 링크 관리' 등록과 지도용 'JavaScript SDK 도메인' 등록은 서로 다른 설정입니다.";p.style.cssText="font-size:13px;margin:10px 0;color:#536c84";
+ const guide=document.createElement("p");guide.textContent="① 기존 '좋은일자리 채용정보' 앱 → 카카오맵 → 사용 설정 ON   ② 앱 → 플랫폼 키 → JavaScript 키 → JavaScript SDK 도메인에 https://careercounselor1984-code.github.io 등록";guide.style.cssText="font-size:12px;white-space:pre-wrap;margin:10px 0";
+ const link=document.createElement("a");link.href="https://developers.kakao.com/console/app";link.target="_blank";link.rel="noopener noreferrer";link.textContent="카카오 디벨로퍼스 앱 설정 열기 ↗";link.style.cssText="display:inline-block;margin-top:4px;background:#e9f3fb;border-radius:8px;padding:10px;color:#24598b;font-size:12px;font-weight:800;text-decoration:none";
+ const retry=document.createElement("button");retry.type="button";retry.textContent="설정 완료 후 지도 다시 시도";retry.style.cssText="border:0;border-radius:8px;padding:10px;margin:8px 0 0 6px;background:#235b92;color:white;font-size:12px;font-weight:800;cursor:pointer";retry.addEventListener("click",()=>location.reload());
+ box.append(title,p,guide,link,retry);root.append(box);
+}
 function setupMap(){
  const key=clean(window.GOODJOB_KAKAO_JS_KEY,80);
- if(!key){status("카카오 JavaScript 키가 설정되지 않았습니다.",true);$("map").textContent="카카오맵 키 미설정";return}
+ if(!key){mapFailure("JavaScript 키를 읽지 못했습니다.");return}
  const s=document.createElement("script");
  s.src="https://dapi.kakao.com/v2/maps/sdk.js?autoload=false&libraries=services,clusterer&appkey="+encodeURIComponent(key);
- s.onerror=()=>{status("카카오맵 SDK를 불러오지 못했습니다. 카카오맵 API 활성화와 웹 도메인을 확인해 주세요.",true);$("map").textContent="카카오맵 SDK 로딩 실패"};
+ s.onerror=()=>mapFailure("카카오맵 JavaScript SDK를 불러오지 못했습니다. 지도 API 비활성화·등록 도메인 불일치·브라우저 차단 또는 쿼터 제한 가능성이 있습니다.");
  s.onload=()=>{
-  if(!window.kakao?.maps){status("카카오맵 SDK 초기화 실패",true);return}
+  if(!window.kakao?.maps){mapFailure("지도 SDK를 불러왔지만 카카오맵 객체가 없습니다.");return}
   kakao.maps.load(()=>{
    try{
     $("map").textContent="";
@@ -223,7 +235,7 @@ function setupMap(){
     loaded=true;
     status(token?"검색 준비 완료. 주소를 입력하고 검색하세요.":"지도 준비 완료. 상담사 로그인 인증 대기 중…");
     $("searchBtn").disabled=!token;
-   }catch(err){status("지도 초기화 실패: "+String(err?.message||err),true)}
+   }catch(err){mapFailure("지도 초기화 실패: "+String(err?.message||err))}
   })
  };
  document.head.appendChild(s);
