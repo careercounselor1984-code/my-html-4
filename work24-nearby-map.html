@@ -12,7 +12,7 @@
 .head h1{font-size:23px;margin:4px 0 4px;letter-spacing:-.5px}.sub{font-size:12px;line-height:1.55;color:var(--muted);margin:0}.eyebrow{font-weight:850;color:#336d9c;letter-spacing:.08em;font-size:11px}
 .chip{border:1px solid var(--border);background:#fff;border-radius:99px;padding:6px 10px;font-size:11px;font-weight:750;color:#426380;white-space:nowrap}
 .controls{background:#fff;border:1px solid var(--border);border-radius:13px;padding:14px;display:grid;grid-template-columns:minmax(210px,2fr) minmax(130px,1fr) minmax(135px,1fr) 92px 120px;gap:9px;align-items:end;margin-bottom:12px}
-.field{display:grid;gap:5px;min-width:0}.scope-note{grid-column:1/-1;color:#617e94;font-size:11px;line-height:1.5;padding:1px 3px 0}.import-btn{border:1px solid #b6d4e9;background:#eaf5ff;color:#15598e;padding:7px 10px;border-radius:7px;font-weight:850;font-size:12px;cursor:pointer;margin-top:8px}.import-btn:disabled{opacity:.45}.field label{font-size:11px;font-weight:800;color:#526c83}.field input,.field select{min-width:0;width:100%;border:1px solid #cbd9e7;border-radius:8px;padding:10px;font-size:13px;height:42px;background:white;color:#1b3c57}
+.field{display:grid;gap:5px;min-width:0}.scope-area{grid-column:1/3}.scope-area[hidden]{display:none!important}.scope-note{grid-column:1/-1;color:#617e94;font-size:11px;line-height:1.5;padding:1px 3px 0}.import-btn{border:1px solid #b6d4e9;background:#eaf5ff;color:#15598e;padding:7px 10px;border-radius:7px;font-weight:850;font-size:12px;cursor:pointer;margin-top:8px}.import-btn:disabled{opacity:.45}.field label{font-size:11px;font-weight:800;color:#526c83}.field input,.field select{min-width:0;width:100%;border:1px solid #cbd9e7;border-radius:8px;padding:10px;font-size:13px;height:42px;background:white;color:#1b3c57}
 .btn{height:42px;background:var(--navy);color:#fff;border:0;border-radius:8px;padding:0 12px;font-size:13px;font-weight:800;white-space:nowrap}
 .btn.secondary{background:#eaf2fa;color:#235684}.btn:disabled{opacity:.55;cursor:not-allowed}
 .layout{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(325px,.85fr);gap:12px;min-height:570px}
@@ -29,16 +29,16 @@
 @media(max-width:1000px){.controls{grid-template-columns:repeat(3,1fr)}.controls .first{grid-column:span 2}.layout{grid-template-columns:1fr}.list{max-height:380px}#map{height:440px}.list-pane{min-height:200px}}
 @media(max-width:600px){.wrap{padding:10px}.head h1{font-size:19px}.controls{grid-template-columns:1fr 1fr}.controls .first{grid-column:span 2}.controls .region{grid-column:span 1}.controls .keyword{grid-column:span 1}.controls .action{grid-column:span 2}.layout{display:flex;flex-direction:column}#map{height:52vh;min-height:320px}.list{max-height:370px}}
 </style>
-<script src="./kakao-map-config.js"></script></head><body>
+<script src="./kakao-map-config.js"></script><script src="./nearby-search-scope.js"></script></head><body>
 <main class="wrap">
 <header class="head"><div><div class="eyebrow">GOOD JOB · WORK24 × KAKAO MAP</div><h1>📍 내 주변 채용지도</h1><p class="sub">내담자 기준 주소는 조회할 때만 사용하며 서버에 저장하지 않습니다.</p></div><div class="chip">상담사 로그인 전용</div></header>
 <form id="searchForm" class="controls">
 <div class="field first"><label for="address">내담자 기준 주소·동네 (이름 등 개인정보 제외)</label><input id="address" placeholder="예: 울산 북구 화봉동" value="울산 북구 화봉동" maxlength="120" required autocomplete="off"></div>
-<div class="field region"><label for="region" title="고용24에서 공고를 가져올 시·도입니다. 내담자 기준 주소와는 별개 조건입니다.">공고 수집지역 (주소 따라 자동)</label><select id="region"><option value="31000">울산</option><option value="48000">경남</option><option value="47000">경북</option><option value="26000">부산</option><option value="41000">경기</option><option value="43000">충북</option><option value="44000">충남</option></select></div>
+<div class="field region"><label for="searchMode">검색 범위</label><select id="searchMode"><option value="distance" selected>거리만 · 시도 경계 무시</option><option value="admin">특정 시·군·구만</option></select></div><div class="field scope-area" id="areaField" hidden><label for="areaText">제한할 근무지역</label><input id="areaText" value="울산 북구" maxlength="80" placeholder="예: 울산 북구"></div>
 <div class="field keyword"><label for="keyword">직종·공고 키워드 (선택)</label><input id="keyword" maxlength="60" placeholder="예: 생산, 사무"></div>
 <div class="field"><label for="radius">검색 반경</label><select id="radius"><option value="3">3km</option><option value="5" selected>5km</option><option value="10">10km</option><option value="20">20km</option><option value="30">30km</option><option value="50">50km</option></select></div>
 <button class="btn action" type="submit" id="searchBtn">공고 지도검색</button>
-<div class="scope-note" id="regionHint">📌 기준 주소 = 지도 중심·거리 계산 / 공고 수집지역 = 고용24 검색 범위. 시·도 경계에 가까우면 옆 지역을 선택해 다시 조회하세요.</div>
+<div class="scope-note" id="regionHint">📌 거리만 검색은 행정구역 경계를 넘어서 공고를 찾습니다. 특정 시·군·구만 선택하면 그 지역 공고에만 반경을 적용합니다.</div>
 </form>
 <div id="status" role="status" aria-live="polite">지도와 상담사 로그인 정보를 확인하고 있습니다.</div>
 <section class="layout">
@@ -59,25 +59,25 @@ const $=id=>document.getElementById(id);
 const clean=(v,n=200)=>String(v||"").trim().slice(0,n);
 let token="",map=null,geo=null,cluster=null,centerMarker=null,centerPoint=null;
 let jobs=[],located=[],page=0,total=0,lastPageSize=0,run=0,busy=false,loaded=false,centerText="";
-let infoWindow=null,activeMarker=null,sdkFailed=false,importing=false;
+let infoWindow=null,activeMarker=null,sdkFailed=false,importing=false,activeRegions="31000",activeKeyword="",activeMode="distance",activeArea="",areaTouched=false;
 const pins=[];
 function status(t,isError=false){$("status").textContent=t;$("status").classList.toggle("error",!!isError)}
 function safeLink(j){if(!/^[A-Z0-9-]{5,48}$/i.test(j.wantedAuthNo||""))return null;
  return "https://www.work24.go.kr/wk/a/b/1500/empDetailAuthView.do?wantedAuthNo="+encodeURIComponent(j.wantedAuthNo)+"&infoTypeCd=VALIDATION&infoTypeGroup=tb_workinfoworknet";}
 function sendReady(){if(window.parent!==window)window.parent.postMessage({type:"GJ_NEARBY_MAP_READY"},ORIGIN)}
-function getAutoRegion(address){
- const text=clean(address,120).replace(/\s+/g," ");
- for(const [rx,code] of [
-  [/울산/, "31000"], [/경상남도|경남/, "48000"], [/경상북도|경북/, "47000"],
-  [/부산/, "26000"], [/경기도|경기/, "41000"], [/충청북도|충북/, "43000"], [/충청남도|충남/, "44000"]
- ])if(rx.test(text))return code;
- return "";
+const scope=window.GoodjobNearbyScope;
+function updateScope(){
+ const restricted=$("searchMode").value==="admin";
+ $("areaField").hidden=!restricted;
+ if(restricted&&!areaTouched){
+  const inferred=scope.inferArea($("address").value);
+  if(inferred)$("areaText").value=inferred;
+ }
+ $("regionHint").textContent=restricted
+  ?"📌 제한 지역(예: 울산 북구) 안의 공고만 표시하고 거리 반경도 함께 적용합니다."
+  :"📌 시·도 경계를 무시하고 거리만 적용합니다. 울산 북구 50km라면 경주·양산 지역도 검색 대상입니다.";
 }
-function autoRegion(){
- const next=getAutoRegion($("address").value);
- if(next&&next!==$("region").value)$("region").value=next;
- $("regionHint").textContent="📌 기준 주소는 지도 중심·거리 계산 / 공고 수집지역은 고용24 시·도 조회 범위입니다. 인접 지역의 공고는 수집지역을 변경해 재검색하세요.";
-}
+function allowedArea(job){return activeMode!=="admin"||scope.matchArea(job,activeArea)}
 function requestImport(job){
  if(importing||!job||!/^[A-Z0-9-]{5,48}$/i.test(String(job.wantedAuthNo||"")))return;
  if(window.parent===window){status("상담일지 통합본의 채용정보&알선 메뉴에서 이 기능을 이용해 주세요.",true);return}
