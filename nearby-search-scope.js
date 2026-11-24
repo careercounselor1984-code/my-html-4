@@ -38,7 +38,7 @@ function inferArea(address){
 }
 function matchArea(job,area){
  const needle=norm(area);
- if(!needle||!/(\uad6c|\uad70|\uc2dc)$/.test(needle))return false;
+ if(!needle||(!/(구|군|시)$/.test(needle)&&needle!=="세종"))return false;
  // 실제 근무지 기본주소를 우선합니다. 공고의 광역 지역명으로 다른 구 공고를 포함하지 않습니다.
  const address=norm(job?.basicAddr||job?.region||"").replace(/,/g," ");
  return address===needle||address.startsWith(needle+" ")||address.includes(" "+needle+" ");
@@ -86,5 +86,13 @@ async function planRegions(geo,point,radius,address){
 function label(code){
  return code==="31200"?"울산 북구":(entries.find(e=>e[0]===code)?.[1]||code);
 }
-root.GoodjobNearbyScope=Object.freeze({norm,province,inferArea,matchArea,regionForArea,planRegions,label});
+function transitUrl(originName,originLat,originLng,destName,destLat,destLng){
+ const valid=(lat,lng)=>Number.isFinite(lat)&&Number.isFinite(lng)&&lat>=33&&lat<=39&&lng>=124&&lng<=132;
+ if(!valid(originLat,originLng)||!valid(destLat,destLng))return "";
+ const name=value=>encodeURIComponent(String(value||"").trim().replace(/[,/]+/g," ").slice(0,100));
+ const origin=name(originName||"기준 위치")+","+originLat.toFixed(7)+","+originLng.toFixed(7);
+ const dest=name(destName||"회사")+","+destLat.toFixed(7)+","+destLng.toFixed(7);
+ return "https://map.kakao.com/link/by/traffic/"+origin+"/"+dest;
+}
+root.GoodjobNearbyScope=Object.freeze({norm,province,inferArea,matchArea,regionForArea,planRegions,label,transitUrl});
 })(window);
