@@ -20,13 +20,67 @@ function openJobMap(address,company){
  else window.alert('지도 창이 차단되었습니다. 브라우저 팝업 허용을 확인해 주세요.');
 }
 // 고용24 주변 채용지도: 상담일지 통합본 안에서 열고 로그인 토큰은 화면 메모리로만 전달합니다.
-let nearbyModal=null;
+let nearbyModal=null,nearbyTargetDocument=null,nearbyImporting=false;
+async function work24NearbyDetail(no){
+ // 고용24 목록에는 직무·근무시간이 없는 경우가 있으므로 기존 상세조회 서버를 재사용합니다.
+ const u=new URL("https://bowxlaiyjxknqccoughl.supabase.co/functions/v1/work24-counsel-jobs");
+ u.searchParams.set("action","detail");u.searchParams.set("wantedAuthNo",no);
+ const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),10000);
+ try{
+  const response=await fetch(u.href,{method:"GET",cache:"no-store",signal:controller.signal});
+  if(!response.ok)throw Error("상세정보 조회 실패");
+  const data=await response.json();
+  if(!data?.ok||!data?.job||String(data.job.wantedAuthNo||"")!==no)throw Error("상세 공고의 구인인증번호가 일치하지 않습니다.");
+  return data.job;
+ }finally{clearTimeout(timer)}
+}
+function fromNearbyJob(raw,detail){
+ const v=(x,n=1000)=>String(x||"").trim().slice(0,n);
+ const loc=[v(raw.basicAddr,250),v(raw.detailAddr,180)].filter(Boolean).join(" ");
+ return{
+  wantedAuthNo:v(raw.wantedAuthNo,48),title:v(detail?.title||raw.title,240),
+  company:v(detail?.company||raw.company,160),
+  duties:v(detail?.duties||"미확인",3000),
+  location:loc||v(detail?.workRegion||raw.region,350),
+  salary:v(raw.pay||detail?.pay,200),
+  deadline:v(detail?.closeDate||raw.closeDate,40),
+  workHours:v(detail?.workTime||"미확인",1000),
+  education:v(detail?.education,120),experience:v(detail?.career,120),
+  employment:v(detail?.employmentType,120),
+  url:"https://www.work24.go.kr/wk/a/b/1500/empDetailAuthView.do?wantedAuthNo="+encodeURIComponent(raw.wantedAuthNo)+"&infoTypeCd=VALIDATION&infoTypeGroup=tb_workinfoworknet",
+  source:"고용24 주변 채용지도"
+ };
+}
+async function importNearbyPosting(raw,child){
+ const reply=(ok,message)=>{if(child===nearbyModal?.querySelector("iframe")?.contentWindow&&!nearbyModal.hidden)child.postMessage({type:"GJ_NEARBY_MAP_IMPORT_RESULT",ok,message},location.origin)};
+ if(nearbyImporting){reply(false,"다른 공고를 불러오는 중입니다.");return}
+ const no=String(raw?.wantedAuthNo||"").trim();
+ if(!/^[A-Z0-9-]{5,48}$/i.test(no)){reply(false,"공고 인증번호가 올바르지 않습니다.");return}
+ const doc=nearbyTargetDocument,panel=doc&&panels.get(doc);
+ if(!panel?.loadJob){reply(false,"채용정보&알선 작성 화면을 찾지 못했습니다. 다시 열어 주세요.");return}
+ // 기존 초안을 임의로 덮어쓰지 않습니다.
+ const hasDraft=['c_title','c_name','c_task','c_address'].some(id=>String(doc.getElementById(id)?.value||"").trim());
+ if(hasDraft&&!window.confirm("현재 채용정보&알선에 작성 중인 내용이 있습니다. 이 공고로 입력칸을 바꿀까요?")){
+  reply(false,"불러오기를 취소했습니다. 기존 작성 내용은 그대로 유지됩니다.");return;
+ }
+ nearbyImporting=true;
+ let detail=null,detailMessage="";
+ try{detail=await work24NearbyDetail(no)}catch(err){detailMessage="상세 API 확인 실패: 직무내용·근무시간은 원문에서 확인해 주세요."}
+ try{
+  if(nearbyModal?.hidden||nearbyTargetDocument!==doc||child!==nearbyModal.querySelector("iframe")?.contentWindow)return;
+  panel.loadJob(fromNearbyJob(raw,detail));
+  if(detailMessage)window.alert("공고의 기본정보를 불러왔습니다. "+detailMessage);
+  closeNearbyMap();
+ }catch(err){reply(false,"공고 불러오기 실패: "+String(err?.message||err))}
+ finally{nearbyImporting=false}
+}
 function closeNearbyMap(){
  if(!nearbyModal)return;
  nearbyModal.hidden=true;nearbyModal.style.display='none';
+ nearbyTargetDocument=null;
  nearbyModal.querySelector('iframe').src='about:blank';
 }
-function openNearbyMap(){
+function openNearbyMap(doc){
  if(!nearbyModal){
   const box=document.createElement('div');
   box.id='gjaNearbyModal';
@@ -42,7 +96,12 @@ function openNearbyMap(){
   box.addEventListener('click',e=>{if(e.target===box)closeNearbyMap()});
   window.addEventListener('keydown',e=>{if(e.key==='Escape'&&!box.hidden)closeNearbyMap()});
   window.addEventListener('message',async e=>{
-   if(box.hidden||e.origin!==window.location.origin||e.source!==frame.contentWindow||e.data?.type!=='GJ_NEARBY_MAP_READY')return;
+   if(box.hidden||e.origin!==window.location.origin||e.source!==frame.contentWindow)return;
+   if(e.data?.type==='GJ_NEARBY_MAP_IMPORT'){
+    await importNearbyPosting(e.data.job,e.source);
+    return;
+   }
+   if(e.data?.type!=='GJ_NEARBY_MAP_READY')return;
    let token='';
    try{
     const client=window.clgJobArchiveClient?.();
@@ -57,6 +116,7 @@ function openNearbyMap(){
   document.body.append(box);nearbyModal=box;
  }
  const frame=nearbyModal.querySelector('iframe');
+ nearbyTargetDocument=doc;
  nearbyModal.hidden=false;nearbyModal.style.display='flex';
  frame.src=new URL('./work24-nearby-map.html',window.location.href).href;
 }
@@ -153,7 +213,7 @@ function mount(frame){
  nearbyButton.type='button';nearbyButton.textContent='📍 내 주변 채용지도';
  nearbyButton.title='내담자 주소를 기준으로 고용24 주변 채용공고 찾기';
  nearbyButton.style.cssText='border:1px solid #bfddf4;background:#e8f4ff;color:#145183;border-radius:8px;padding:8px 11px;cursor:pointer;font-size:12px;font-weight:850;white-space:nowrap';
- nearbyButton.addEventListener('click',openNearbyMap);
+ nearbyButton.addEventListener('click',()=>openNearbyMap(d));
  box.querySelector('.gja-head')?.append(nearbyButton);
  let rows=[],uid='',page=0,busy=false,epoch=0,visible=[],loadedJob=null;
  const checked=new Set(),batch=100;
@@ -304,7 +364,7 @@ function mount(frame){
  }
  connectSave();
  function clear(){sharedDashboard?.clear?.();epoch++;busy=false;rows=[];checked.clear();uid='';q('[data-list]').replaceChildren();q('[data-count]').textContent='로그인 필요';message('로그인이 필요합니다.')}
- panels.set(d,{refresh,connectSave,clear});
+ panels.set(d,{refresh,connectSave,clear,loadJob:load});
  refresh();
  return panels.get(d);
 }
