@@ -123,13 +123,17 @@
 
  // Mandatory registration -> local lookup -> edit -> confirmed save workflow.
  // The parent owns the guard so the legacy embedded forms keep their own logic.
- // Job-information & matching (p12) does not need an IAP lookup gate.
-  const requiredPages=new Set(['p01','p02','p03','p04','p05','p06','p07','p10','p11','p13','p16','p17','p21','p23','p30','p34']);
+ // Termination/follow-up (p11) and job matching (p12) do not require IAP lookup.
+  const requiredPages=new Set(['p01','p02','p03','p04','p05','p06','p07','p10','p13','p16','p17','p21','p23','p30','p34']);
  const requiredStoragePrefix='clg_required_consult_records_v1:';
  function requiredDbKey(){return requiredStoragePrefix+encodeURIComponent(owner)}
  function requiredStorage(){return window.GoodJobPrivacy?.storage||window.localStorage}
  function readRequiredDb(){
-  try{const row=JSON.parse(requiredStorage().getItem(requiredDbKey())||'{}');return row&&typeof row==='object'&&!Array.isArray(row)?row:{}}catch{return {}}
+  const raw=requiredStorage().getItem(requiredDbKey());
+  if(raw===null)return {};
+  const row=JSON.parse(raw);
+  if(!row||typeof row!=='object'||Array.isArray(row))throw Error('상담 저장 자료 형식 오류');
+  return row;
  }
  function nativeIapRecord(reg){
   try{const db=JSON.parse(requiredStorage().getItem('iap_participant_records_v1')||'{}');return db?.records?.[reg]||null}catch{return null}
@@ -137,7 +141,7 @@
 
 
  // A saved journal is not a confirmed server change. Keep confirmation and history separate.
- const calendarSyncTasks=new Map(),calendarSyncDone=new Map();
+ const calendarSyncTasks=new Map(),calendarSyncDone=new Map(),calendarSyncQueue=new Map();
  const validDate=value=>{
   if(!/^\d{4}-\d{2}-\d{2}$/.test(value||''))return false;
   const d=new Date(value+'T12:00:00Z');return !Number.isNaN(d.getTime())&&d.toISOString().slice(0,10)===value;
@@ -166,7 +170,12 @@
   const account=String(owner||'').trim().toLowerCase(),current=String(window.__CLG_JOURNAL_EMPLOYEE?.email||'').trim().toLowerCase();
   if(!account||account!==current||s.closed||s.flow?.reg!==reg)return;
   const key=account+':'+reg,version=String(stamp||'')+':'+String(data.consultation?.sourceKey||'')+':'+JSON.stringify(data.status||{});
-  if(calendarSyncTasks.has(key)){show('✓ 상담 저장 확인 완료 · 일정표에서 이전 동기화 처리 중입니다.',true);return}
+  if(calendarSyncTasks.has(key)){
+   const queue=calendarSyncQueue.get(key)||[];
+   queue.push(()=>sendCalendarRequest(s,reg,data,stamp,show));
+   calendarSyncQueue.set(key,queue);
+   show('✓ 상담 저장 확인 완료 · 이전 작업이 끝나면 일정표에 반영합니다.',true);return;
+  }
   if(version&&calendarSyncDone.get(key)===version){show('✓ 상담 저장 확인 완료 · 일정표 반영 확인됨',true);return}
   const frame=document.createElement('iframe');frame.hidden=true;frame.setAttribute('aria-hidden','true');
   frame.src='https://careercounselor1984-code.github.io/my-html-9/clients.html';
@@ -177,6 +186,9 @@
    if(ok)calendarSyncDone.set(key,version);
    if(String(owner||'').trim().toLowerCase()===account&&!s.closed)
     show((ok?'✓ 상담 저장 확인 완료 · 일정표 반영 완료':'✓ 상담 저장 확인 완료 · 일정표 미반영')+(message?' · '+message:''),ok);
+   const queue=calendarSyncQueue.get(key);
+   while(queue?.length&&!calendarSyncTasks.has(key))queue.shift()();
+   if(!queue?.length)calendarSyncQueue.delete(key);
   };
   const receive=e=>{
    if(e.source!==frame.contentWindow||e.origin!==targetOrigin||e.data?.type!=='goodjob:client-link-result:v1'||e.data.requestId!==requestId)return;
@@ -216,7 +228,7 @@
   sendCalendarRequest(s,reg,{type:'goodjob:client-consultation:v1',regNo:reg,consultation,status},
    snapshot.updatedAt||'',show);
  }
- window.addEventListener('clg-auth-logout',()=>{for(const task of [...calendarSyncTasks.values()])task.finish(false,'로그아웃으로 중단');calendarSyncDone.clear()});
+ window.addEventListener('clg-auth-logout',()=>{calendarSyncQueue.clear();for(const task of [...calendarSyncTasks.values()])task.finish(false,'로그아웃으로 중단');calendarSyncDone.clear()});
 
  function installRequiredFlow(s){
   if(!requiredPages.has(s.tab.pageId)||s.closed||s.flow||!s.doc?.body)return;
@@ -327,7 +339,9 @@
    const prior=(originalReg?.value||'').trim().toUpperCase();
    if(prior&&prior!==reg)return alertGate('현재 탭에 다른 등록번호의 작성내용이 있습니다. 해당 번호로 검색하거나 새 작업 탭을 사용해 주세요.');
    // Check the saved record before native lookup. Never mix records from different people.
-   const previous=s.tab.pageId==='p05'?nativeIapRecord(reg):readRequiredDb()[storageKey(reg)];
+   let previous;
+   try{previous=s.tab.pageId==='p05'?nativeIapRecord(reg):readRequiredDb()[storageKey(reg)];}
+   catch{return alertGate('기존 상담기록을 읽지 못했습니다. 저장 자료를 먼저 확인해 주세요.');}
    const nativeLoad=doc.getElementById(s.tab.pageId==='p05'?'iapParticipantLoadBtn':'clgIapCommonLoadBtn');
    try{
     unlockEditor();
@@ -391,7 +405,11 @@
      try{syncSavedIapToCalendar(s,reg,after,show)}catch(e){show('✓ IAP 저장 확인 완료 · 일정표 연동 보류: '+e.message,true)}
     return;
    }
-   const key=storageKey(reg),database=readRequiredDb(),latest=database[key]||null;
+   const key=storageKey(reg);
+   let database;
+   try{database=readRequiredDb();}
+   catch{show('기존 상담기록을 읽지 못해 저장을 중단했습니다.');return;}
+   const latest=database[key]||null;
    if(latest && latest.revision!==flow.revision){
     show('다른 작업 탭에서 이 상담기록이 수정됐습니다. 새 탭에서 재검색 후 확인해 주세요.');return;
    }

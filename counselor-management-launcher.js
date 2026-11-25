@@ -1,7 +1,7 @@
 /* North-center integration. Authorization comes from active server employee records. */
 (()=>{'use strict';
 const PAGE='p_counselor_management',VERSION='20261121-period-report-1';
-let generation=0,busy=false,current=null;
+let generation=0,refreshingGeneration=null,current=null;
 const nativeRenderMenu=renderMenu,nativeLoadPage=loadPage;
 function syncMenu(){
  if(!current){
@@ -32,7 +32,8 @@ async function access(){
  const client=window.clgJobArchiveClient?.();
  if(!client)throw Error('통합본에 로그인해 주세요.');
  const {data,error}=await client.rpc('counselor_management_access');
- if(error||!data?.allowed||!data.userId)throw Error('북부센터 직원만 사용할 수 있습니다.');
+ if(error)throw Error('상담사 관리 권한을 확인하지 못했습니다. 다시 시도해 주세요.');
+ if(!data?.allowed||!data.userId)throw Error('북부센터 직원만 사용할 수 있습니다.');
  if(client!==window.clgJobArchiveClient?.())throw Error('로그인 계정이 변경되었습니다.');
  return data;
 }
@@ -46,15 +47,16 @@ function invalidate(){
  }
 }
 async function refresh(){
- if(busy)return;busy=true;const token=generation;
+ const token=generation;if(refreshingGeneration===token)return;refreshingGeneration=token;
  try{const next=await access();if(token!==generation)return;
   if(current&&current.userId!==next.userId){invalidate();return;}
   const changed=!current;current=next;
   if(changed){renderMenu();if(typeof uiRenderFavorites==='function')uiRenderFavorites();}
- }catch{if(token===generation)invalidate();}finally{busy=false;}
+ }catch{if(token===generation)invalidate();}finally{if(refreshingGeneration===token)refreshingGeneration=null;}
 }
 window.addEventListener('clg-auth-ready',()=>{invalidate();refresh();});
 window.addEventListener('clg-auth-logout',invalidate);
 window.addEventListener('pagehide',invalidate);
+window.addEventListener('pageshow',refresh);
 setInterval(refresh,60000);refresh();
 })();
