@@ -2,6 +2,7 @@
 const test=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
+const vm=require('node:vm');
 const path=require('node:path');
 const crypto=require('node:crypto');
 
@@ -16,6 +17,7 @@ test('strict Content-Security-Policy and external preset SRI match the actual fi
   const external=html.match(/<script src="\.\/period-presets\.js" integrity="sha256-([^"]+)" crossorigin="anonymous"><\/script>/);
   const csp=html.match(/Content-Security-Policy" content="([^"]+)"/);
   assert.ok(inline&&external&&csp);
+  new vm.Script(inline[1],{filename:base+'/index.html'});
   assert.equal(external[1],digest(preset));
   assert.ok(csp[1].includes("'sha256-"+digest(inline[1])+"'"));
   assert.ok(csp[1].includes("'sha256-"+digest(preset)+"'"));
