@@ -477,17 +477,12 @@ body.clg-fixed-scroll .viewer iframe{height:100%!important}
         <p class="pageSubtitle" id="pageSubtitle">좌측 메뉴를 선택하면 해당 상담 화면이 열립니다.</p>
       </div>
       <div class="topActions" aria-label="자주 사용하는 업무 기능">
-<a class="topBtn clgGptTopBtn" href="https://chatgpt.com/g/g-6a55dedf9ba48191aa01e9eb86faac1e-joheuniljari-gugcwi-eobmu-siljeog-doumi" target="_blank" rel="noopener noreferrer" title="국취 매뉴얼·실적 도우미 열기">🤖 <span class="label">국취 도우미</span></a>
-<button class="topBtn evaluationTopBtn" id="clgEvaluationGuideBtn" type="button" title="2026 성과평가 길잡이 · 매뉴얼·법령·평가기준 확인" onclick="loadPage('p_evaluation_2026')">📊 <span class="label">성과평가</span></button>
 <button class="topBtn boardTopBtn" id="boardOpenBtn" type="button" title="공용 게시판 열기">📋 <span class="label">게시판</span><span class="boardUnread" id="boardUnread">0</span></button>
-<button class="topBtn captureTopBtn" id="captureOpenBtn" type="button" title="화면·창을 선택해 캡처하고 출력하거나 저장">📸 <span class="label">캡처·출력</span></button>
-<button class="topBtn" id="clgOpenNextApptBtn" type="button">📅 <span class="label">다음 상담 예약</span></button>
 <button class="topBtn" id="clgScheduleTabBtn" type="button" title="상담 일정표를 통합본 작업 탭 안에서 열기">🗓 <span class="label">일정표</span></button>
 <details class="clgTopMore" id="clgTopMore">
   <summary class="topBtn clgTopMoreTrigger" aria-label="추가 업무 및 설정 메뉴"><span class="clgMoreIcon" aria-hidden="true">⋯</span><span class="label">더보기</span></summary>
   <div class="clgTopMorePanel">
     <section class="clgTopMoreGroup"><h3>업무 도구</h3><div class="clgTopMoreItems"><button type="button" class="topBtn" id="clgWorkAlertMenuBtn">🔔 <span class="label">업무 알림</span><span id="clgWorkAlertMenuCount" class="clgAlertCount" hidden>0</span></button>
-<a class="topBtn clgGptTopBtn" href="https://chatgpt.com/g/g-6948c05fff9c8191acd52e93ad66b437-joheuniljari-gugcwi-jidojeomgeom-sajeongeomsu" target="_blank" rel="noopener noreferrer" title="좋은일자리 | 국취 지도점검 사전검수 열기">🛡 <span class="label">지도점검 사전검수</span></a>
 <button class="topBtn" id="lawCheckBtn" type="button" title="국가법령정보센터 API 최신성 확인 및 내일배움카드 지원 판정">⚖ <span class="label">규정·내배카</span></button></div></section>
     <section class="clgTopMoreGroup"><h3>설정 · 데이터 관리</h3><div class="clgTopMoreItems"><button class="topBtn" id="userSettingsBtn" type="button" title="개인 설정">⚙ <span class="label">설정</span></button>
 <button class="topBtn primary" id="globalBackupBtn" type="button" title="전화번호부·메모·카톡 문구·상담일지·메뉴 설정을 하나의 파일로 저장">⇩ <span class="label">전체 백업</span></button>
@@ -5914,7 +5909,7 @@ window.addEventListener('clg-tab-frame-load',e=>setTimeout(()=>inject(e.detail?.
 window.addEventListener('clg-tab-switch',e=>setTimeout(()=>inject(e.detail?.frame),20));
 setTimeout(()=>document.querySelectorAll('iframe.clgWorkFrame,iframe#frame').forEach(inject),450);
 dlg.addEventListener('close',()=>{if(!pending)recruitRequest=null});
-$('clgOpenNextApptBtn').addEventListener('click',()=>{if(!pending)recruitRequest=null});
+$('clgOpenNextApptBtn')?.addEventListener('click',()=>{if(!pending)recruitRequest=null});
 form.addEventListener('submit',e=>{e.preventDefault();const req=recruitRequest;booking(read(),req?.source||null);if(pending&&req)pending.recruitId=req.recruitId});
 $('clgScheduleNextDate').addEventListener('change',()=>times($('clgScheduleNextTime'),$('clgScheduleNextDate').value));
 window.addEventListener('message',e=>{
@@ -5927,7 +5922,7 @@ window.addEventListener('message',e=>{
  show({name:p.name,date:p.date,time:p.time,consultType:types.includes(p.consultType)?p.consultType:'신청'});
  setStatus('자체모집 명단의 약속입니다. 날짜·시간을 확인하고 「자동 예약」을 눌러야 일정표에 저장됩니다.');
 });
-$('clgOpenNextApptBtn').addEventListener('click',()=>show());
+$('clgOpenNextApptBtn')?.addEventListener('click',()=>show());
 $('clgScheduleClose').addEventListener('click',()=>dlg.close());
 $('clgScheduleCopy').addEventListener('click',async()=>{
  const data=read();if(!valid(data)){setStatus('복사할 예약정보를 입력해 주세요.','error');return}
@@ -6821,7 +6816,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 <script src="./client-date-source.js?v=20261025-1"></script>
 <script defer src="./center-board-link.js" data-journal="1" data-board-base="https://careercounselor1984-code.github.io/my-html-9/"></script>
 <script src="./kakao-mini-integration.js" defer></script>
-<script src="./notebooklm-launcher.js?v=20261121-1" defer></script>
+<script src="./notebooklm-launcher.js?v=20261125-toolbar-1" defer></script>
 </body>
 </html>
 
