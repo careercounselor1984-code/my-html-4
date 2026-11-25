@@ -46,8 +46,7 @@ assert(employment.includes('주 15시간 미만')&&employment.includes('월 소�
 const experience=fs.readFileSync('performance-2026/experience.html','utf8');assert(experience.includes('현장실습')&&experience.includes('가점에서 제외'));
 const sources=fs.readFileSync('performance-2026/sources.html','utf8');assert(sources.includes('2026.10.14.')&&sources.includes('수당 지급기간의 첫 날')&&sources.includes('실시간 법령 API 자동연동'));
 const shell=fs.readFileSync('index.html','utf8');const registration=shell.match(/<script id="clg-evaluation-guide-registration">([\s\S]*?)<\/script>/)[1];
-assert(shell.indexOf('id="clgEvaluationGuideBtn"')<shell.indexOf('id="boardOpenBtn"'),'evaluation is left of board');
-assert(/class="topBtn evaluationTopBtn" id="clgEvaluationGuideBtn"/.test(shell),'guide is in top toolbar');
+assert(!shell.includes('id="clgEvaluationGuideBtn"'),'guide shortcut is absent from the shared toolbar');
 const ctx={PAGES:[],MENU:[],renderMenu:()=>{}};vm.createContext(ctx);vm.runInContext(registration,ctx);vm.runInContext(registration,ctx);
 assert.equal(ctx.PAGES.length,11);assert.equal(ctx.MENU.length,0);assert(ctx.PAGES.every(p=>p.menuHidden));
 for(const p of ctx.PAGES)assert(fs.existsSync(p.url.split('?')[0]),p.url);
