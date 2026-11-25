@@ -169,16 +169,15 @@
       document.getElementById('clgNotebookSidebarBtn').addEventListener('click', openNotebook);
       document.getElementById('clgNotebookSettingsBtn').addEventListener('click', function () { showSettings(false); });
     }
-    if (topActions) {
+    var oldGpt = topActions?.querySelector('.clgGptTopBtn');
+    if (oldGpt) {
       var topButton = document.createElement('button');
       topButton.type = 'button';
       topButton.id = 'clgNotebookTopBtn';
       topButton.className = 'topBtn';
       topButton.title = 'NotebookLM 국취 AI 도우미 열기';
       topButton.innerHTML = '✨ <span class="label">국취 AI</span>';
-      var oldGpt = topActions.querySelector('.clgGptTopBtn');
-      if (oldGpt) oldGpt.insertAdjacentElement('afterend', topButton);
-      else topActions.insertBefore(topButton, topActions.firstChild);
+      oldGpt.insertAdjacentElement('afterend', topButton);
       topButton.addEventListener('click', openNotebook);
     }
   }
